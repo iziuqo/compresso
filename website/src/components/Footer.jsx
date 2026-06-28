@@ -22,7 +22,7 @@ export default function Footer({ t, basePath = '' }) {
             <ul className="space-y-2 text-sm text-gray-500">
               <li><a href="https://www.npmjs.com/package/compresso" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.npm}</a></li>
               <li><a href="https://github.com/iziuqo/compresso" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.github}</a></li>
-              <li><a href="https://unpkg.com/compresso/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.cdn}</a></li>
+              <li><a href="https://unpkg.com/compressojs/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.cdn}</a></li>
             </ul>
           </div>
 

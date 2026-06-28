@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/compresso"><img src="https://img.shields.io/npm/v/compresso?color=%23059669&label=npm" alt="npm version" /></a>
+  <a href="https://www.npmjs.com/package/compressojs"><img src="https://img.shields.io/npm/v/compressojs?color=%23059669&label=npm" alt="npm version" /></a>
   <a href="https://bundlephobia.com/package/compresso"><img src="https://img.shields.io/bundlephobia/minzip/compresso?color=%230284c7&label=size" alt="bundle size" /></a>
   <a href="https://github.com/iziuqo/compresso/blob/main/LICENSE"><img src="https://img.shields.io/github/license/iziuqo/compresso?color=%236d28d9" alt="license" /></a>
   <a href="https://github.com/iziuqo/compresso/stargazers"><img src="https://img.shields.io/github/stars/iziuqo/compresso?style=social" alt="GitHub stars" /></a>
@@ -44,19 +44,19 @@ This is what researchers call **externalized processing**: systems shift automat
 ## Install
 
 ```bash
-npm install compresso
+npm install compressojs
 ```
 
 Or use from a CDN:
 
 ```html
-<script src="https://unpkg.com/compresso/dist/compresso.umd.js"></script>
+<script src="https://unpkg.com/compressojs/dist/compresso.umd.js"></script>
 ```
 
 ## Quick Start
 
 ```js
-import { compress } from 'compresso';
+import { compress } from 'compressojs';
 
 const input = document.querySelector('input[type="file"]');
 
@@ -148,7 +148,7 @@ const result = await optimizer.compress(file);
 ### Utilities
 
 ```js
-import { isFormatSupported, getBestFormat, formatBytes } from 'compresso';
+import { isFormatSupported, getBestFormat, formatBytes } from 'compressojs';
 
 isFormatSupported('avif');  // true or false
 getBestFormat();            // 'avif', 'webp', or 'jpeg'
@@ -162,7 +162,7 @@ formatBytes(1536000);       // '1.5 MB'
 
 ```jsx
 import { useState } from 'react';
-import { compress, formatBytes } from 'compresso';
+import { compress, formatBytes } from 'compressojs';
 
 function ImageUpload() {
   const [result, setResult] = useState(null);
@@ -203,7 +203,7 @@ function ImageUpload() {
 ```vue
 <script setup>
 import { ref } from 'vue';
-import { compress, formatBytes } from 'compresso';
+import { compress, formatBytes } from 'compressojs';
 
 const result = ref(null);
 
@@ -238,7 +238,7 @@ async function handleFile(e) {
 <input type="file" accept="image/*" id="upload" />
 <div id="output"></div>
 
-<script src="https://unpkg.com/compresso/dist/compresso.umd.js"></script>
+<script src="https://unpkg.com/compressojs/dist/compresso.umd.js"></script>
 <script>
   document.getElementById('upload').addEventListener('change', async (e) => {
     const file = e.target.files[0];

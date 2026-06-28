@@ -9,13 +9,13 @@ Tiny, zero-dependency image optimizer that runs entirely in the browser. Compres
 ## Install
 
 ```bash
-npm install compresso
+npm install compressojs
 ```
 
 ## Usage
 
 ```js
-import { compress } from 'compresso';
+import { compress } from 'compressojs';
 
 const input = document.querySelector('input[type="file"]');
 

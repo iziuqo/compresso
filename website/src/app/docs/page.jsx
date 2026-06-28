@@ -113,17 +113,17 @@ export default function DocsPage() {
 
             <h2 id="installation">{t.docs.installation}</h2>
             <p>{t.docs.installDesc}</p>
-            <pre><code>{`npm install compresso
+            <pre><code>{`npm install compressojs
 # or
-yarn add compresso
+yarn add compressojs
 # or
-pnpm add compresso`}</code></pre>
+pnpm add compressojs`}</code></pre>
 
             <p>{t.docs.cdnDesc}</p>
-            <pre><code>{`<script src="https://unpkg.com/compresso/dist/compresso.umd.js"></script>`}</code></pre>
+            <pre><code>{`<script src="https://unpkg.com/compressojs/dist/compresso.umd.js"></script>`}</code></pre>
 
             <h2 id="quick-start">{t.docs.quickStart}</h2>
-            <pre><code>{`import { compress } from 'compresso';
+            <pre><code>{`import { compress } from 'compressojs';
 
 const input = document.querySelector('input[type="file"]');
 
@@ -226,7 +226,7 @@ try {
 }`}</code></pre>
 
             <h2 id="formats">{t.docs.formats}</h2>
-            <pre><code>{`import { isFormatSupported, getBestFormat, detectFormat } from 'compresso';
+            <pre><code>{`import { isFormatSupported, getBestFormat, detectFormat } from 'compressojs';
 
 // Check if the current browser supports AVIF
 isFormatSupported('avif');  // true or false
@@ -241,7 +241,7 @@ detectFormat(file);  // 'png', 'jpeg', etc.`}</code></pre>
 
             <h3>React</h3>
             <pre><code>{`import { useState } from 'react';
-import { compress, formatBytes } from 'compresso';
+import { compress, formatBytes } from 'compressojs';
 
 function ImageUpload() {
   const [result, setResult] = useState(null);
@@ -265,7 +265,7 @@ function ImageUpload() {
             <h3>Vue</h3>
             <pre><code>{`<script setup>
 import { ref } from 'vue';
-import { compress } from 'compresso';
+import { compress } from 'compressojs';
 
 const result = ref(null);
 
@@ -282,7 +282,7 @@ async function handleFile(e) {
 </template>`}</code></pre>
 
             <h3>Vanilla JS (CDN)</h3>
-            <pre><code>{`<script src="https://unpkg.com/compresso/dist/compresso.umd.js"></script>
+            <pre><code>{`<script src="https://unpkg.com/compressojs/dist/compresso.umd.js"></script>
 <script>
   document.getElementById('upload').addEventListener('change', async (e) => {
     const result = await Compresso.compress(e.target.files[0], {
