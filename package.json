@@ -1,0 +1,15 @@
+{
+  "name": "compresso-monorepo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "website"
+  ],
+  "scripts": {
+    "build:lib": "npm run build -w packages/compresso",
+    "build:web": "npm run build -w website",
+    "build": "npm run build:lib && npm run build:web",
+    "dev": "npm run dev -w website",
+    "lint": "npm run lint -w website"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "name": "compresso",
+  "version": "0.1.0",
+  "description": "Tiny, zero-dependency image optimizer that runs entirely in the browser. Compress, resize, and convert images on the client side — no server needed.",
+  "type": "module",
+  "main": "dist/compresso.cjs",
+  "module": "dist/compresso.mjs",
+  "unpkg": "dist/compresso.umd.js",
+  "types": "types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/compresso.mjs",
+      "require": "./dist/compresso.cjs",
+      "types": "./types/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "types",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "image",
+    "compression",
+    "resize",
+    "optimize",
+    "browser",
+    "client-side",
+    "webp",
+    "avif",
+    "jpeg",
+    "png",
+    "canvas",
+    "file-upload",
+    "image-processing",
+    "zero-dependency",
+    "lightweight",
+    "accessibility"
+  ],
+  "author": "Izaias Cavalcanti",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/izaiascavalcanti/compresso"
+  },
+  "homepage": "https://compresso.dev",
+  "bugs": {
+    "url": "https://github.com/izaiascavalcanti/compresso/issues"
+  },
+  "devDependencies": {
+    "rollup": "^4.28.0",
+    "@rollup/plugin-terser": "^0.4.4"
+  },
+  "sideEffects": false
+}

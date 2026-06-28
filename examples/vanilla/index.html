@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compresso — Vanilla JS Example</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+    input { margin-bottom: 1rem; }
+    #output { margin-top: 1rem; }
+    #output img { max-width: 100%; border-radius: 8px; margin-top: 0.5rem; }
+    .stats { background: #f3f4f6; padding: 1rem; border-radius: 8px; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Compresso — Vanilla JS</h1>
+  <input type="file" accept="image/*" id="upload" />
+  <div id="output"></div>
+
+  <script src="https://unpkg.com/compresso/dist/compresso.umd.js"></script>
+  <script>
+    document.getElementById('upload').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const output = document.getElementById('output');
+      output.innerHTML = '<p>Optimizing...</p>';
+
+      const result = await Compresso.compress(file, {
+        quality: 0.8,
+        format: 'webp',
+        maxSizeMB: 2,
+      });
+
+      output.innerHTML = `
+        <div class="stats">
+          <p><strong>Original:</strong> ${Compresso.formatBytes(result.originalSize)}</p>
+          <p><strong>Optimized:</strong> ${Compresso.formatBytes(result.compressedSize)}</p>
+          <p><strong>Reduction:</strong> ${result.savings}%</p>
+          <p><strong>Dimensions:</strong> ${result.width} × ${result.height}</p>
+          <p><strong>Format:</strong> ${result.format}</p>
+        </div>
+        <img src="${result.url}" alt="Optimized image" />
+      `;
+    });
+  </script>
+</body>
+</html>

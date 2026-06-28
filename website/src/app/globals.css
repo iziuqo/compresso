@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer components {
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-emerald-400;
+  }
+
+  .gradient-bg {
+    @apply bg-gradient-to-br from-brand-500 to-emerald-500;
+  }
+
+  .glass {
+    @apply bg-white/80 backdrop-blur-lg border border-gray-200/50;
+  }
+
+  .code-block {
+    @apply bg-gray-950 text-gray-100 rounded-xl p-4 sm:p-6 font-mono text-sm overflow-x-auto;
+  }
+}
+
+.comparison-slider {
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.comparison-slider:focus-visible {
+  outline: 2px solid theme('colors.brand.500');
+  outline-offset: 2px;
+}
