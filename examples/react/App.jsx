@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { compress, formatBytes } from 'compressojs';
+import { compress, formatBytes } from 'compresso.js';
 
 export default function App() {
   const [result, setResult] = useState(null);

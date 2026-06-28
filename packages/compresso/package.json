@@ -1,5 +1,5 @@
 {
-  "name": "compressojs",
+  "name": "compresso.js",
   "version": "0.1.0",
   "description": "Tiny, zero-dependency image optimizer that runs entirely in the browser. Compress, resize, and convert images on the client side — no server needed.",
   "type": "module",

@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 
-const INSTALL_CODE = 'npm install compressojs';
+const INSTALL_CODE = 'npm install compresso.js';
 
-const USAGE_CODE = `import { compress } from 'compressojs';
+const USAGE_CODE = `import { compress } from 'compresso.js';
 
 const input = document.querySelector('input[type="file"]');
 

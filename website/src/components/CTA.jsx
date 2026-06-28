@@ -8,7 +8,7 @@ export default function CTA({ t, basePath = '' }) {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <div className="code-block inline-flex items-center gap-3 !py-3 !px-5">
             <span className="text-gray-500">$</span>
-            <span className="text-emerald-400">npm install compressojs</span>
+            <span className="text-emerald-400">npm install compresso.js</span>
           </div>
         </div>
 

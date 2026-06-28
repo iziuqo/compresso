@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { compress, formatBytes } from 'compressojs';
+import { compress, formatBytes } from 'compresso.js';
 
 const result = ref(null);
 const loading = ref(false);
