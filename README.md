@@ -11,15 +11,15 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/compresso.js"><img src="https://img.shields.io/npm/v/compresso.js?color=%23059669&label=npm" alt="npm version" /></a>
-  <a href="https://bundlephobia.com/package/compresso"><img src="https://img.shields.io/bundlephobia/minzip/compresso?color=%230284c7&label=size" alt="bundle size" /></a>
+  <a href="https://bundlephobia.com/package/compresso.js"><img src="https://img.shields.io/bundlephobia/minzip/compresso.js?color=%230284c7&label=size" alt="bundle size" /></a>
   <a href="https://github.com/iziuqo/compresso/blob/main/LICENSE"><img src="https://img.shields.io/github/license/iziuqo/compresso?color=%236d28d9" alt="license" /></a>
   <a href="https://github.com/iziuqo/compresso/stargazers"><img src="https://img.shields.io/github/stars/iziuqo/compresso?style=social" alt="GitHub stars" /></a>
 </p>
 
 <p align="center">
-  <a href="https://compresso.dev">Website</a> ·
-  <a href="https://compresso.dev/docs">Documentation</a> ·
-  <a href="https://compresso.dev/#playground">Try it live</a>
+  <a href="https://compresso.izaias.xyz">Website</a> ·
+  <a href="https://compresso.izaias.xyz/docs">Documentation</a> ·
+  <a href="https://compresso.izaias.xyz/#playground">Try it live</a>
 </p>
 
 ---
@@ -303,7 +303,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
-[MIT](LICENSE) — use it in anything, commercial or otherwise.
+[MIT + Commons Clause](LICENSE) — Free for non-commercial use. For commercial use, contact [iz.iuqo@gmail.com](mailto:iz.iuqo@gmail.com).
 
 ## Research
 
@@ -315,5 +315,5 @@ This project is grounded in research on cognitive distance and externalized proc
 
 <p align="center">
   Made with care for the people who struggle with file uploads.<br />
-  <a href="https://compresso.dev">compresso.dev</a>
+  <a href="https://compresso.izaias.xyz">compresso.izaias.xyz</a>
 </p>
