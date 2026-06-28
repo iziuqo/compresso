@@ -91,7 +91,8 @@ export default function ToolPage() {
   const [file, setFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [result, setResult] = useState(null);
-  const [processing, setProcessing] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [reprocessing, setReprocessing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [quality, setQuality] = useState(0.8);
   const [format, setFormat] = useState('auto');
@@ -100,6 +101,7 @@ export default function ToolPage() {
   const [maxSizeMB, setMaxSizeMB] = useState('');
   const [viewMode, setViewMode] = useState('compare');
   const inputRef = useRef(null);
+  const prevUrlRef = useRef(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('compresso-locale');
@@ -121,15 +123,6 @@ export default function ToolPage() {
     maxSizeMB: maxSizeMB ? parseFloat(maxSizeMB) : undefined,
   }), [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
-  const processImage = useCallback(async (imageFile, opts) => {
-    setProcessing(true);
-    try {
-      if (result?.url) URL.revokeObjectURL(result.url);
-      setResult(await compressImage(imageFile, opts));
-    } catch (err) { console.error(err); }
-    setProcessing(false);
-  }, [result?.url]);
-
   const handleFile = useCallback(async (imageFile) => {
     if (!imageFile?.type?.startsWith('image/')) return;
     if (originalUrl) URL.revokeObjectURL(originalUrl);
@@ -137,12 +130,27 @@ export default function ToolPage() {
     setFile(imageFile);
     setOriginalUrl(URL.createObjectURL(imageFile));
     setResult(null);
-    await processImage(imageFile, getOpts());
-  }, [getOpts, processImage, originalUrl, result?.url]);
+    setInitialLoading(true);
+    try {
+      setResult(await compressImage(imageFile, getOpts()));
+    } catch (err) { console.error(err); }
+    setInitialLoading(false);
+  }, [getOpts, originalUrl, result?.url]);
 
   useEffect(() => {
     if (!file) return;
-    const timer = setTimeout(() => processImage(file, getOpts()), 200);
+    const timer = setTimeout(async () => {
+      setReprocessing(true);
+      try {
+        const r = await compressImage(file, getOpts());
+        prevUrlRef.current = result?.url;
+        setResult(r);
+        if (prevUrlRef.current) {
+          setTimeout(() => URL.revokeObjectURL(prevUrlRef.current), 100);
+        }
+      } catch (err) { console.error(err); }
+      setReprocessing(false);
+    }, 200);
     return () => clearTimeout(timer);
   }, [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
@@ -273,7 +281,7 @@ export default function ToolPage() {
               </div>
 
               {/* Results */}
-              {result && !processing && (
+              {result && (
                 <div className="mt-4 pt-4 border-t border-gray-100 space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <MiniStat label={t.playground.newSize} value={formatBytes(result.compressedSize)} accent />
@@ -286,7 +294,7 @@ export default function ToolPage() {
               )}
 
               <div className="mt-4 space-y-2">
-                <button onClick={download} disabled={!result || processing} className="w-full gradient-bg text-white font-medium py-2.5 rounded-lg disabled:opacity-50 text-sm">
+                <button onClick={download} disabled={!result || initialLoading} className="w-full gradient-bg text-white font-medium py-2.5 rounded-lg disabled:opacity-50 text-sm">
                   {t.playground.download}
                 </button>
                 <button onClick={clearUpload} className="w-full py-2 border border-gray-200 rounded-lg text-xs text-gray-500 hover:bg-gray-50">
@@ -313,15 +321,22 @@ export default function ToolPage() {
               </div>
 
               {/* Image display */}
-              <div className="flex-1 overflow-auto p-3 sm:p-4">
-                {processing ? (
+              <div className="flex-1 overflow-auto p-3 sm:p-4 relative">
+                {initialLoading && !result && (
                   <div className="flex items-center justify-center h-full">
                     <div className="flex items-center gap-3">
                       <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
                       <span className="text-sm text-gray-500">{t.playground.processing}</span>
                     </div>
                   </div>
-                ) : result ? (
+                )}
+                {reprocessing && result && (
+                  <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20 bg-black/60 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2">
+                    <div className="w-3 h-3 border-[1.5px] border-white border-t-transparent rounded-full animate-spin" />
+                    {t.playground.processing}
+                  </div>
+                )}
+                {result ? (
                   viewMode === 'compare' ? (
                     <BeforeAfter
                       originalUrl={originalUrl}

@@ -15,10 +15,7 @@ function loadImage(source) {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Failed to load image'));
-    if (typeof source === 'string') {
-      img.crossOrigin = 'anonymous';
-      img.src = source;
-    } else if (source instanceof Blob) {
+    if (source instanceof Blob) {
       const url = URL.createObjectURL(source);
       img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
       img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load')); };
@@ -57,6 +54,7 @@ function getBestFormat() {
 }
 
 async function compressImage(file, opts) {
+  const start = performance.now();
   const img = await loadImage(file);
   const format = opts.format === 'auto' ? getBestFormat() : opts.format;
   const mime = formatToMime(format);
@@ -76,7 +74,6 @@ async function compressImage(file, opts) {
 
   let quality = opts.quality;
   const maxBytes = (opts.maxSizeMB || Infinity) * 1024 * 1024;
-
   const toBlob = (q) => new Promise((res) => canvas.toBlob((b) => res(b), mime, q));
 
   let blob = await toBlob(quality);
@@ -94,15 +91,11 @@ async function compressImage(file, opts) {
   }
 
   return {
-    blob,
-    url: URL.createObjectURL(blob),
-    width, height,
-    originalWidth: img.naturalWidth,
-    originalHeight: img.naturalHeight,
-    originalSize: file.size,
-    compressedSize: blob.size,
+    blob, url: URL.createObjectURL(blob), width, height,
+    originalWidth: img.naturalWidth, originalHeight: img.naturalHeight,
+    originalSize: file.size, compressedSize: blob.size,
     savings: Math.round((1 - blob.size / file.size) * 1000) / 10,
-    format,
+    format, time: Math.round(performance.now() - start),
   };
 }
 
@@ -113,7 +106,8 @@ export default function Playground({ t }) {
   const [file, setFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [result, setResult] = useState(null);
-  const [processing, setProcessing] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [reprocessing, setReprocessing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [quality, setQuality] = useState(DEFAULT_QUALITY);
   const [format, setFormat] = useState(DEFAULT_FORMAT);
@@ -123,6 +117,7 @@ export default function Playground({ t }) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const inputRef = useRef(null);
   const sectionRef = useRef(null);
+  const prevUrlRef = useRef(null);
 
   const getOpts = useCallback(() => ({
     quality, format,
@@ -131,18 +126,6 @@ export default function Playground({ t }) {
     maxSizeMB: maxSizeMB ? parseFloat(maxSizeMB) : undefined,
   }), [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
-  const processImage = useCallback(async (imageFile, opts) => {
-    setProcessing(true);
-    try {
-      if (result?.url) URL.revokeObjectURL(result.url);
-      const r = await compressImage(imageFile, opts);
-      setResult(r);
-    } catch (err) {
-      console.error('Compression failed:', err);
-    }
-    setProcessing(false);
-  }, [result?.url]);
-
   const handleFile = useCallback(async (imageFile) => {
     if (!imageFile || !imageFile.type.startsWith('image/')) return;
     if (originalUrl) URL.revokeObjectURL(originalUrl);
@@ -150,13 +133,30 @@ export default function Playground({ t }) {
     setFile(imageFile);
     setOriginalUrl(URL.createObjectURL(imageFile));
     setResult(null);
-    await processImage(imageFile, getOpts());
-  }, [getOpts, processImage, originalUrl, result?.url]);
+    setInitialLoading(true);
+    try {
+      const r = await compressImage(imageFile, getOpts());
+      setResult(r);
+    } catch (err) { console.error(err); }
+    setInitialLoading(false);
+  }, [getOpts, originalUrl, result?.url]);
 
-  const reprocess = useCallback(async () => {
+  useEffect(() => {
     if (!file) return;
-    await processImage(file, getOpts());
-  }, [file, getOpts, processImage]);
+    const timer = setTimeout(async () => {
+      setReprocessing(true);
+      try {
+        const r = await compressImage(file, getOpts());
+        prevUrlRef.current = result?.url;
+        setResult(r);
+        if (prevUrlRef.current) {
+          setTimeout(() => URL.revokeObjectURL(prevUrlRef.current), 100);
+        }
+      } catch (err) { console.error(err); }
+      setReprocessing(false);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
   const resetParams = () => {
     setQuality(DEFAULT_QUALITY);
@@ -180,17 +180,10 @@ export default function Playground({ t }) {
     if (inputRef.current) inputRef.current.value = '';
   };
 
-  useEffect(() => {
-    if (!file) return;
-    const timer = setTimeout(() => reprocess(), 150);
-    return () => clearTimeout(timer);
-  }, [quality, format, maxWidth, maxHeight, maxSizeMB]);
-
   const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
-    const f = e.dataTransfer.files[0];
-    if (f) handleFile(f);
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
   };
 
   const download = () => {
@@ -207,23 +200,17 @@ export default function Playground({ t }) {
 
   const toggleFullscreen = () => {
     if (!isFullscreen) {
-      sectionRef.current?.requestFullscreen?.() ||
-        sectionRef.current?.webkitRequestFullscreen?.();
+      sectionRef.current?.requestFullscreen?.() || sectionRef.current?.webkitRequestFullscreen?.();
     } else {
       document.exitFullscreen?.() || document.webkitExitFullscreen?.();
     }
   };
 
   useEffect(() => {
-    const handler = () => {
-      setIsFullscreen(!!document.fullscreenElement || !!document.webkitFullscreenElement);
-    };
+    const handler = () => setIsFullscreen(!!document.fullscreenElement || !!document.webkitFullscreenElement);
     document.addEventListener('fullscreenchange', handler);
     document.addEventListener('webkitfullscreenchange', handler);
-    return () => {
-      document.removeEventListener('fullscreenchange', handler);
-      document.removeEventListener('webkitfullscreenchange', handler);
-    };
+    return () => { document.removeEventListener('fullscreenchange', handler); document.removeEventListener('webkitfullscreenchange', handler); };
   }, []);
 
   return (
@@ -234,9 +221,7 @@ export default function Playground({ t }) {
     >
       <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${isFullscreen ? 'max-w-full' : 'max-w-6xl'}`}>
         <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-4">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.playground.title}</h2>
-          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.playground.title}</h2>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">{t.playground.subtitle}</p>
         </div>
 
@@ -273,31 +258,20 @@ export default function Playground({ t }) {
               {/* Controls */}
               <div className="lg:col-span-1 space-y-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 h-fit">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.playground.quality}: {Math.round(quality * 100)}%
+                  <label className="flex items-center justify-between text-sm font-medium text-gray-700 mb-2">
+                    <span>{t.playground.quality}</span>
+                    <span className="text-brand-600 font-bold tabular-nums">{Math.round(quality * 100)}%</span>
                   </label>
                   <input
-                    type="range"
-                    min="0.1"
-                    max="1"
-                    step="0.05"
-                    value={quality}
+                    type="range" min="0.05" max="1" step="0.05" value={quality}
                     onChange={(e) => setQuality(parseFloat(e.target.value))}
                     className="w-full accent-brand-500"
                   />
-                  <div className="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>10%</span>
-                    <span>100%</span>
-                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.playground.format}</label>
-                  <select
-                    value={format}
-                    onChange={(e) => setFormat(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  >
+                  <select value={format} onChange={(e) => setFormat(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                     <option value="auto">{t.playground.auto}</option>
                     <option value="webp">WebP</option>
                     <option value="jpeg">JPEG</option>
@@ -309,83 +283,41 @@ export default function Playground({ t }) {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t.playground.maxWidth}</label>
-                    <input
-                      type="number"
-                      placeholder={t.playground.unlimited}
-                      value={maxWidth}
-                      onChange={(e) => setMaxWidth(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    />
+                    <input type="number" placeholder={t.playground.unlimited} value={maxWidth} onChange={(e) => setMaxWidth(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">{t.playground.maxHeight}</label>
-                    <input
-                      type="number"
-                      placeholder={t.playground.unlimited}
-                      value={maxHeight}
-                      onChange={(e) => setMaxHeight(e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                    />
+                    <input type="number" placeholder={t.playground.unlimited} value={maxHeight} onChange={(e) => setMaxHeight(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.playground.maxSize} (MB)</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0.1"
-                    placeholder={t.playground.unlimited}
-                    value={maxSizeMB}
-                    onChange={(e) => setMaxSizeMB(e.target.value)}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                  />
+                  <input type="number" step="0.5" min="0.1" placeholder={t.playground.unlimited} value={maxSizeMB} onChange={(e) => setMaxSizeMB(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
                 </div>
 
                 <div className="space-y-2 pt-1">
-                  <button
-                    onClick={download}
-                    disabled={!result || processing}
-                    className="w-full gradient-bg text-white font-medium py-2.5 rounded-lg disabled:opacity-50 transition-opacity text-sm"
-                  >
+                  <button onClick={download} disabled={!result || initialLoading} className="w-full gradient-bg text-white font-medium py-2.5 rounded-lg disabled:opacity-50 transition-opacity text-sm">
                     {t.playground.download}
                   </button>
                   <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => { resetParams(); }}
-                      className="py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      {t.playground.reset}
-                    </button>
-                    <button
-                      onClick={clearUpload}
-                      className="py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors"
-                    >
-                      {t.playground.newImage || 'New image'}
-                    </button>
+                    <button onClick={resetParams} className="py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors">{t.playground.reset}</button>
+                    <button onClick={clearUpload} className="py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors">{t.playground.newImage || 'New image'}</button>
                   </div>
-                  <button
-                    onClick={toggleFullscreen}
-                    className="w-full py-2 border border-gray-200 rounded-lg text-xs text-gray-500 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
-                    aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-                  >
+                  <button onClick={toggleFullscreen} className="w-full py-2 border border-gray-200 rounded-lg text-xs text-gray-500 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5" aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}>
                     {isFullscreen ? (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                        <path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" />
-                      </svg>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" /></svg>
                     ) : (
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
-                        <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
-                      </svg>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" /></svg>
                     )}
                     {isFullscreen ? (t.playground.exitFullscreen || 'Exit fullscreen') : (t.playground.fullscreen || 'Fullscreen')}
                   </button>
                 </div>
               </div>
 
-              {/* Preview */}
-              <div className={isFullscreen ? 'lg:col-span-3' : 'lg:col-span-2'}>
-                {processing && (
+              {/* Preview — always mounted, never unmounted during reprocess */}
+              <div className={`relative ${isFullscreen ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
+                {initialLoading && !result && (
                   <div className="flex items-center justify-center py-20">
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
@@ -394,8 +326,16 @@ export default function Playground({ t }) {
                   </div>
                 )}
 
-                {result && !processing && (
+                {result && (
                   <div className="space-y-6">
+                    {/* Reprocessing indicator — subtle overlay, no unmount */}
+                    {reprocessing && (
+                      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-black/60 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2">
+                        <div className="w-3 h-3 border-1.5 border-white border-t-transparent rounded-full animate-spin" />
+                        {t.playground.processing}
+                      </div>
+                    )}
+
                     <BeforeAfter
                       originalUrl={originalUrl}
                       optimizedUrl={result.url}
@@ -404,7 +344,6 @@ export default function Playground({ t }) {
                       dragLabel={t.playground.dragToCompare}
                     />
 
-                    {/* Stats */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                       <Stat label={t.playground.originalSize} value={formatBytes(result.originalSize)} />
                       <Stat label={t.playground.newSize} value={formatBytes(result.compressedSize)} highlight />
@@ -425,7 +364,7 @@ export default function Playground({ t }) {
 function Stat({ label, value, highlight }) {
   return (
     <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 text-center">
-      <div className={`text-base sm:text-xl font-bold ${highlight ? 'text-brand-600' : 'text-gray-900'}`}>
+      <div className={`text-base sm:text-xl font-bold tabular-nums ${highlight ? 'text-brand-600' : 'text-gray-900'}`}>
         {value}
       </div>
       <div className="text-[0.65rem] sm:text-xs text-gray-500 mt-1">{label}</div>
