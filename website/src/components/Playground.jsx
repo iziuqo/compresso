@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import BeforeAfter from './BeforeAfter';
 
 function formatBytes(bytes) {
@@ -106,59 +106,85 @@ async function compressImage(file, opts) {
   };
 }
 
+const DEFAULT_QUALITY = 0.8;
+const DEFAULT_FORMAT = 'auto';
+
 export default function Playground({ t }) {
   const [file, setFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [result, setResult] = useState(null);
   const [processing, setProcessing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-  const [quality, setQuality] = useState(0.8);
-  const [format, setFormat] = useState('auto');
+  const [quality, setQuality] = useState(DEFAULT_QUALITY);
+  const [format, setFormat] = useState(DEFAULT_FORMAT);
   const [maxWidth, setMaxWidth] = useState('');
   const [maxHeight, setMaxHeight] = useState('');
   const [maxSizeMB, setMaxSizeMB] = useState('');
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const inputRef = useRef(null);
+  const sectionRef = useRef(null);
+
+  const getOpts = useCallback(() => ({
+    quality, format,
+    maxWidth: maxWidth ? parseInt(maxWidth) : undefined,
+    maxHeight: maxHeight ? parseInt(maxHeight) : undefined,
+    maxSizeMB: maxSizeMB ? parseFloat(maxSizeMB) : undefined,
+  }), [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
   const processImage = useCallback(async (imageFile, opts) => {
     setProcessing(true);
     try {
+      if (result?.url) URL.revokeObjectURL(result.url);
       const r = await compressImage(imageFile, opts);
       setResult(r);
     } catch (err) {
       console.error('Compression failed:', err);
     }
     setProcessing(false);
-  }, []);
+  }, [result?.url]);
 
   const handleFile = useCallback(async (imageFile) => {
     if (!imageFile || !imageFile.type.startsWith('image/')) return;
+    if (originalUrl) URL.revokeObjectURL(originalUrl);
+    if (result?.url) URL.revokeObjectURL(result.url);
     setFile(imageFile);
     setOriginalUrl(URL.createObjectURL(imageFile));
-    await processImage(imageFile, {
-      quality, format,
-      maxWidth: maxWidth ? parseInt(maxWidth) : undefined,
-      maxHeight: maxHeight ? parseInt(maxHeight) : undefined,
-      maxSizeMB: maxSizeMB ? parseFloat(maxSizeMB) : undefined,
-    });
-  }, [quality, format, maxWidth, maxHeight, maxSizeMB, processImage]);
+    setResult(null);
+    await processImage(imageFile, getOpts());
+  }, [getOpts, processImage, originalUrl, result?.url]);
 
   const reprocess = useCallback(async () => {
     if (!file) return;
-    await processImage(file, {
-      quality, format,
-      maxWidth: maxWidth ? parseInt(maxWidth) : undefined,
-      maxHeight: maxHeight ? parseInt(maxHeight) : undefined,
-      maxSizeMB: maxSizeMB ? parseFloat(maxSizeMB) : undefined,
-    });
-  }, [file, quality, format, maxWidth, maxHeight, maxSizeMB, processImage]);
+    await processImage(file, getOpts());
+  }, [file, getOpts, processImage]);
 
-  const reset = () => {
+  const resetParams = () => {
+    setQuality(DEFAULT_QUALITY);
+    setFormat(DEFAULT_FORMAT);
+    setMaxWidth('');
+    setMaxHeight('');
+    setMaxSizeMB('');
+  };
+
+  const clearUpload = () => {
     if (originalUrl) URL.revokeObjectURL(originalUrl);
     if (result?.url) URL.revokeObjectURL(result.url);
     setFile(null);
     setOriginalUrl(null);
     setResult(null);
+    setQuality(DEFAULT_QUALITY);
+    setFormat(DEFAULT_FORMAT);
+    setMaxWidth('');
+    setMaxHeight('');
+    setMaxSizeMB('');
+    if (inputRef.current) inputRef.current.value = '';
   };
+
+  useEffect(() => {
+    if (!file) return;
+    const timer = setTimeout(() => reprocess(), 150);
+    return () => clearTimeout(timer);
+  }, [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -169,17 +195,48 @@ export default function Playground({ t }) {
 
   const download = () => {
     if (!result) return;
+    const ext = result.format === 'jpeg' ? 'jpg' : result.format;
+    const baseName = file?.name ? file.name.replace(/\.[^.]+$/, '') : 'image';
     const a = document.createElement('a');
     a.href = result.url;
-    a.download = `optimized.${result.format === 'jpeg' ? 'jpg' : result.format}`;
+    a.download = `${baseName}-optimized.${ext}`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
   };
 
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      sectionRef.current?.requestFullscreen?.() ||
+        sectionRef.current?.webkitRequestFullscreen?.();
+    } else {
+      document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+    }
+  };
+
+  useEffect(() => {
+    const handler = () => {
+      setIsFullscreen(!!document.fullscreenElement || !!document.webkitFullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handler);
+    document.addEventListener('webkitfullscreenchange', handler);
+    return () => {
+      document.removeEventListener('fullscreenchange', handler);
+      document.removeEventListener('webkitfullscreenchange', handler);
+    };
+  }, []);
+
   return (
-    <section id="playground" className="py-20 sm:py-28 bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section
+      id="playground"
+      ref={sectionRef}
+      className={`py-20 sm:py-28 bg-gray-50 ${isFullscreen ? '!py-6 overflow-auto' : ''}`}
+    >
+      <div className={`mx-auto px-4 sm:px-6 lg:px-8 ${isFullscreen ? 'max-w-full' : 'max-w-6xl'}`}>
         <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.playground.title}</h2>
+          <div className="flex items-center justify-center gap-4">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.playground.title}</h2>
+          </div>
           <p className="text-gray-600 text-lg max-w-2xl mx-auto">{t.playground.subtitle}</p>
         </div>
 
@@ -212,9 +269,9 @@ export default function Playground({ t }) {
           </div>
         ) : (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className={`grid grid-cols-1 gap-8 ${isFullscreen ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
               {/* Controls */}
-              <div className="lg:col-span-1 space-y-6 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="lg:col-span-1 space-y-5 bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-gray-100 h-fit">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.playground.quality}: {Math.round(quality * 100)}%
@@ -226,8 +283,6 @@ export default function Playground({ t }) {
                     step="0.05"
                     value={quality}
                     onChange={(e) => setQuality(parseFloat(e.target.value))}
-                    onMouseUp={reprocess}
-                    onTouchEnd={reprocess}
                     className="w-full accent-brand-500"
                   />
                   <div className="flex justify-between text-xs text-gray-400 mt-1">
@@ -240,7 +295,7 @@ export default function Playground({ t }) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t.playground.format}</label>
                   <select
                     value={format}
-                    onChange={(e) => { setFormat(e.target.value); setTimeout(reprocess, 0); }}
+                    onChange={(e) => setFormat(e.target.value)}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >
                     <option value="auto">{t.playground.auto}</option>
@@ -259,7 +314,6 @@ export default function Playground({ t }) {
                       placeholder={t.playground.unlimited}
                       value={maxWidth}
                       onChange={(e) => setMaxWidth(e.target.value)}
-                      onBlur={reprocess}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
@@ -270,7 +324,6 @@ export default function Playground({ t }) {
                       placeholder={t.playground.unlimited}
                       value={maxHeight}
                       onChange={(e) => setMaxHeight(e.target.value)}
-                      onBlur={reprocess}
                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                     />
                   </div>
@@ -285,30 +338,53 @@ export default function Playground({ t }) {
                     placeholder={t.playground.unlimited}
                     value={maxSizeMB}
                     onChange={(e) => setMaxSizeMB(e.target.value)}
-                    onBlur={reprocess}
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                   />
                 </div>
 
-                <div className="flex gap-3">
+                <div className="space-y-2 pt-1">
                   <button
                     onClick={download}
                     disabled={!result || processing}
-                    className="flex-1 gradient-bg text-white font-medium py-2.5 rounded-lg disabled:opacity-50 transition-opacity text-sm"
+                    className="w-full gradient-bg text-white font-medium py-2.5 rounded-lg disabled:opacity-50 transition-opacity text-sm"
                   >
                     {t.playground.download}
                   </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => { resetParams(); }}
+                      className="py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      {t.playground.reset}
+                    </button>
+                    <button
+                      onClick={clearUpload}
+                      className="py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      {t.playground.newImage || 'New image'}
+                    </button>
+                  </div>
                   <button
-                    onClick={reset}
-                    className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+                    onClick={toggleFullscreen}
+                    className="w-full py-2 border border-gray-200 rounded-lg text-xs text-gray-500 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
+                    aria-label={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                   >
-                    {t.playground.reset}
+                    {isFullscreen ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" />
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                        <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
+                      </svg>
+                    )}
+                    {isFullscreen ? (t.playground.exitFullscreen || 'Exit fullscreen') : (t.playground.fullscreen || 'Fullscreen')}
                   </button>
                 </div>
               </div>
 
               {/* Preview */}
-              <div className="lg:col-span-2">
+              <div className={isFullscreen ? 'lg:col-span-3' : 'lg:col-span-2'}>
                 {processing && (
                   <div className="flex items-center justify-center py-20">
                     <div className="flex items-center gap-3">
@@ -329,7 +405,7 @@ export default function Playground({ t }) {
                     />
 
                     {/* Stats */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                       <Stat label={t.playground.originalSize} value={formatBytes(result.originalSize)} />
                       <Stat label={t.playground.newSize} value={formatBytes(result.compressedSize)} highlight />
                       <Stat label={t.playground.reduction} value={`${result.savings}%`} highlight />
@@ -348,11 +424,11 @@ export default function Playground({ t }) {
 
 function Stat({ label, value, highlight }) {
   return (
-    <div className="bg-white rounded-xl p-4 border border-gray-100 text-center">
-      <div className={`text-lg sm:text-xl font-bold ${highlight ? 'text-brand-600' : 'text-gray-900'}`}>
+    <div className="bg-white rounded-xl p-3 sm:p-4 border border-gray-100 text-center">
+      <div className={`text-base sm:text-xl font-bold ${highlight ? 'text-brand-600' : 'text-gray-900'}`}>
         {value}
       </div>
-      <div className="text-xs text-gray-500 mt-1">{label}</div>
+      <div className="text-[0.65rem] sm:text-xs text-gray-500 mt-1">{label}</div>
     </div>
   );
 }

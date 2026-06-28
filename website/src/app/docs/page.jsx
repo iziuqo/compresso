@@ -108,7 +108,7 @@ export default function DocsPage() {
           </aside>
 
           {/* Content */}
-          <main className="prose prose-gray max-w-none prose-headings:scroll-mt-24 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none">
+          <main className="prose prose-gray max-w-none prose-headings:scroll-mt-24 prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-td:text-gray-700 prose-th:text-gray-900 prose-strong:text-gray-900 prose-code:bg-gray-100 prose-code:text-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:bg-gray-950 prose-pre:text-gray-100">
             <h1>{t.docs.title}</h1>
 
             <h2 id="installation">{t.docs.installation}</h2>
