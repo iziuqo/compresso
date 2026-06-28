@@ -1,6 +1,7 @@
-const CACHE_NAME = 'compresso-v1';
+const CACHE_NAME = 'compresso-v2';
 const PRECACHE_URLS = [
   '/',
+  '/tool/',
   '/docs/',
   '/favicon.svg',
   '/icon-192.png',
