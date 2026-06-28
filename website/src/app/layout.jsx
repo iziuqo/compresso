@@ -4,7 +4,7 @@ export const metadata = {
   title: 'Compresso — Instant Image Optimization in the Browser',
   description:
     'Tiny, zero-dependency image optimizer. Compress, resize, and convert images on the client side — no server needed.',
-  metadataBase: new URL('https://compresso.dev'),
+  metadataBase: new URL('https://compresso.izaias.xyz'),
   openGraph: {
     title: 'Compresso — Images optimized instantly, right in the browser',
     description:
