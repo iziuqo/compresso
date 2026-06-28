@@ -185,7 +185,7 @@ export default function ToolPage() {
         {/* Desktop preview */}
         <div className="flex-1 flex flex-col min-h-0">
           <ViewTabs viewMode={viewMode} setViewMode={setViewMode} t={t} />
-          <PreviewArea viewMode={viewMode} initialLoading={initialLoading} result={result} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} />
+          <PreviewArea viewMode={viewMode} setViewMode={setViewMode} initialLoading={initialLoading} result={result} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} />
         </div>
       </div>
 
@@ -211,11 +211,8 @@ export default function ToolPage() {
           </div>
         </div>
 
-        {/* Mobile view tabs */}
-        <ViewTabs viewMode={viewMode} setViewMode={setViewMode} t={t} />
-
-        {/* Mobile preview — fills remaining space */}
-        <PreviewArea viewMode={viewMode} initialLoading={initialLoading} result={result} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} />
+        {/* Mobile preview — fills remaining space, tabs overlaid */}
+        <PreviewArea viewMode={viewMode} setViewMode={setViewMode} initialLoading={initialLoading} result={result} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} mobile />
 
         {/* Mobile bottom bar */}
         <div className="bg-white border-t border-gray-200 flex-shrink-0 safe-bottom">
@@ -381,11 +378,15 @@ function MiniStat({ label, value, accent }) {
   );
 }
 
-function ViewTabs({ viewMode, setViewMode, t }) {
+function ViewTabs({ viewMode, setViewMode, t, overlay }) {
   return (
-    <div className="flex items-center gap-1 px-3 py-1.5 bg-white border-b border-gray-200 flex-shrink-0">
+    <div className={`flex items-center gap-0.5 flex-shrink-0 ${overlay ? 'absolute top-2 left-1/2 -translate-x-1/2 z-20 bg-black/40 backdrop-blur-md rounded-lg p-0.5' : 'px-3 py-1.5 bg-white border-b border-gray-200'}`}>
       {['compare', 'original', 'optimized'].map((mode) => (
-        <button key={mode} onClick={() => setViewMode(mode)} className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${viewMode === mode ? 'bg-brand-50 text-brand-700' : 'text-gray-400 hover:text-gray-600'}`}>
+        <button key={mode} onClick={() => setViewMode(mode)} className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
+          overlay
+            ? viewMode === mode ? 'bg-white/20 text-white' : 'text-white/60 hover:text-white/90'
+            : viewMode === mode ? 'bg-brand-50 text-brand-700' : 'text-gray-400 hover:text-gray-600'
+        }`}>
           {mode === 'compare' ? (t.playground.dragToCompare || 'Compare') : mode === 'original' ? t.playground.original : t.playground.optimized}
         </button>
       ))}
@@ -393,21 +394,22 @@ function ViewTabs({ viewMode, setViewMode, t }) {
   );
 }
 
-function PreviewArea({ viewMode, initialLoading, result, originalUrl, optimizedUrl, t }) {
+function PreviewArea({ viewMode, setViewMode, initialLoading, result, originalUrl, optimizedUrl, t, mobile }) {
   return (
-    <div className="flex-1 min-h-0 overflow-hidden p-2 sm:p-3 flex items-center justify-center">
+    <div className={`flex-1 min-h-0 overflow-hidden flex items-center justify-center relative ${mobile ? 'bg-gray-900' : 'bg-gray-100 p-2'}`}>
+      {mobile && result && <ViewTabs viewMode={viewMode} setViewMode={setViewMode} t={t} overlay />}
       {initialLoading && !result ? (
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm text-gray-500">{t.playground.processing}</span>
+          <span className="text-sm text-gray-400">{t.playground.processing}</span>
         </div>
       ) : result ? (
         viewMode === 'compare' ? (
-          <div className="w-full h-full flex items-center">
-            <BeforeAfter originalUrl={originalUrl} optimizedUrl={optimizedUrl} originalLabel={t.playground.original} optimizedLabel={t.playground.optimized} dragLabel={t.playground.dragToCompare} />
+          <div className="w-full h-full">
+            <BeforeAfter originalUrl={originalUrl} optimizedUrl={optimizedUrl} originalLabel={t.playground.original} optimizedLabel={t.playground.optimized} dragLabel={t.playground.dragToCompare} fill />
           </div>
         ) : (
-          <img src={viewMode === 'original' ? originalUrl : optimizedUrl} alt={viewMode === 'original' ? t.playground.original : t.playground.optimized} className="max-w-full max-h-full object-contain rounded-lg" draggable={false} />
+          <img src={viewMode === 'original' ? originalUrl : optimizedUrl} alt={viewMode === 'original' ? t.playground.original : t.playground.optimized} className="max-w-full max-h-full object-contain" draggable={false} />
         )
       ) : null}
     </div>

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-export default function BeforeAfter({ originalUrl, optimizedUrl, originalLabel, optimizedLabel, dragLabel }) {
+export default function BeforeAfter({ originalUrl, optimizedUrl, originalLabel, optimizedLabel, dragLabel, fill }) {
   const [position, setPosition] = useState(50);
   const [dragging, setDragging] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -56,8 +56,8 @@ export default function BeforeAfter({ originalUrl, optimizedUrl, originalLabel, 
   return (
     <div
       ref={containerRef}
-      className="relative w-full rounded-2xl overflow-hidden bg-gray-100 select-none"
-      style={{ aspectRatio: '16 / 10', cursor: 'ew-resize', touchAction: 'pan-y' }}
+      className={`relative w-full overflow-hidden bg-gray-100 select-none ${fill ? 'h-full' : 'rounded-2xl'}`}
+      style={{ ...(!fill && { aspectRatio: '16 / 10' }), cursor: 'ew-resize', touchAction: 'pan-y' }}
       onPointerDown={handlePointerDown}
       role="slider"
       aria-label={dragLabel}
