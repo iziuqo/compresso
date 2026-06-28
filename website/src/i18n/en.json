@@ -151,4 +151,13 @@
     "formats": "Format Detection",
     "browser": "Browser Support"
   }
+,
+  "pwa": {
+    "title": "Install Compresso",
+    "description": "Optimize images offline, right from your phone. No internet needed.",
+    "install": "Install app",
+    "dismiss": "Not now",
+    "installing": "Installing Compresso...",
+    "installed": "Compresso installed! Find it on your home screen."
+  }
 }

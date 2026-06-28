@@ -151,4 +151,13 @@
     "formats": "Detección de Formato",
     "browser": "Soporte de Navegadores"
   }
+,
+  "pwa": {
+    "title": "Instalar Compresso",
+    "description": "Optimiza imágenes sin conexión, directo desde tu celular.",
+    "install": "Instalar app",
+    "dismiss": "Ahora no",
+    "installing": "Instalando Compresso...",
+    "installed": "Compresso instalado! Encuéntralo en tu pantalla de inicio."
+  }
 }

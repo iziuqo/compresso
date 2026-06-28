@@ -11,6 +11,7 @@ import CodeSection from '../components/CodeSection';
 import Impact from '../components/Impact';
 import CTA from '../components/CTA';
 import Footer from '../components/Footer';
+import InstallBanner from '../components/InstallBanner';
 
 function detectLocale() {
   if (typeof window === 'undefined') return defaultLocale;
@@ -42,6 +43,10 @@ export default function Home() {
     setBasePath(detectBasePath());
     setMounted(true);
     document.documentElement.lang = detected === 'pt-br' ? 'pt-BR' : detected;
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
   }, []);
 
   function changeLocale(newLocale) {
@@ -73,6 +78,7 @@ export default function Home() {
         <CTA t={t} basePath={basePath} />
       </main>
       <Footer t={t} basePath={basePath} />
+      <InstallBanner t={t} />
     </>
   );
 }
