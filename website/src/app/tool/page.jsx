@@ -87,7 +87,6 @@ async function compressImage(file, opts) {
 
 export default function ToolPage() {
   const [locale, setLocale] = useState(defaultLocale);
-  const [mounted, setMounted] = useState(false);
   const [file, setFile] = useState(null);
   const [originalUrl, setOriginalUrl] = useState(null);
   const [result, setResult] = useState(null);
@@ -111,7 +110,6 @@ export default function ToolPage() {
       if (b.startsWith('pt')) setLocale('pt-br');
       else if (b.startsWith('es')) setLocale('es');
     }
-    setMounted(true);
   }, []);
 
   const t = getTranslations(locale);
@@ -172,8 +170,6 @@ export default function ToolPage() {
   };
 
   const handleDrop = (e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); };
-
-  if (!mounted) return null;
 
   return (
     <div className="min-h-[100dvh] bg-gray-50 flex flex-col">

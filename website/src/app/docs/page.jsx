@@ -36,24 +36,14 @@ const sections = [
 
 export default function DocsPage() {
   const [locale, setLocale] = useState(defaultLocale);
-  const [mounted, setMounted] = useState(false);
   const [basePath, setBasePath] = useState('');
 
   useEffect(() => {
     setLocale(detectLocale());
     setBasePath(detectBasePath());
-    setMounted(true);
   }, []);
 
   const t = getTranslations(locale);
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white">

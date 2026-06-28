@@ -34,15 +34,12 @@ function detectBasePath() {
 
 export default function Home() {
   const [locale, setLocale] = useState(defaultLocale);
-  const [mounted, setMounted] = useState(false);
   const [basePath, setBasePath] = useState('');
 
   useEffect(() => {
-    const detected = detectLocale();
-    setLocale(detected);
+    setLocale(detectLocale());
     setBasePath(detectBasePath());
-    setMounted(true);
-    document.documentElement.lang = detected === 'pt-br' ? 'pt-BR' : detected;
+    document.documentElement.lang = detectLocale() === 'pt-br' ? 'pt-BR' : detectLocale();
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -56,14 +53,6 @@ export default function Home() {
   }
 
   const t = getTranslations(locale);
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <>
