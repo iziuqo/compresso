@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build:lib && cd website && npm run build",
+  "outputDirectory": "website/out",
+  "installCommand": "npm install",
+  "framework": null
+}
