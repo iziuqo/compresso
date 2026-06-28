@@ -198,19 +198,18 @@ export default function Playground({ t }) {
     document.body.removeChild(a);
   };
 
-  const loadExample = async (name) => {
+  const loadExample = async (url, name) => {
     try {
-      const res = await fetch(`/samples/${name}`);
+      const res = await fetch(url);
       const blob = await res.blob();
-      const f = new File([blob], name, { type: blob.type });
-      handleFile(f);
+      handleFile(new File([blob], name, { type: blob.type }));
     } catch (err) { console.error(err); }
   };
 
   const examples = [
-    { name: 'landscape.jpg', label: t.playground.exLandscape || 'Landscape (2.1 MB)' },
-    { name: 'document.jpg', label: t.playground.exDocument || 'Document (150 KB)' },
-    { name: 'portrait.jpg', label: t.playground.exPortrait || 'Portrait (100 KB)' },
+    { url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=3000&q=90', name: 'landscape.jpg', label: t.playground.exLandscape },
+    { url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=2000&q=90', name: 'portrait.jpg', label: t.playground.exPortrait },
+    { url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=3000&q=90', name: 'abstract.jpg', label: t.playground.exAbstract },
   ];
 
   const toggleFullscreen = () => {
@@ -275,7 +274,7 @@ export default function Playground({ t }) {
               {examples.map((ex) => (
                 <button
                   key={ex.name}
-                  onClick={() => loadExample(ex.name)}
+                  onClick={() => loadExample(ex.url, ex.name)}
                   className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-brand-300 hover:text-brand-700 transition-colors"
                 >
                   {ex.label}

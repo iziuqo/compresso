@@ -51,10 +51,9 @@
     "dimensions": "Dimensions",
     "formatLabel": "Format",
     "auto": "Auto (best)",
-    "examples": "Or try an example:",
-    "exLandscape": "Landscape (2.1 MB)",
-    "exDocument": "Document (150 KB)",
-    "exPortrait": "Portrait (100 KB)"
+    "exLandscape": "Landscape",
+    "exPortrait": "Portrait",
+    "exAbstract": "Abstract"
   },
   "problem": {
     "title": "The Problem We Solve",
