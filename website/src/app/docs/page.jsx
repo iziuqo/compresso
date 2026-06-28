@@ -112,14 +112,14 @@ export default function DocsPage() {
             <h1>{t.docs.title}</h1>
 
             <h2 id="installation">{t.docs.installation}</h2>
-            <p>Install via npm, yarn, or pnpm:</p>
+            <p>{t.docs.installDesc}</p>
             <pre><code>{`npm install compresso
 # or
 yarn add compresso
 # or
 pnpm add compresso`}</code></pre>
 
-            <p>Or use directly from a CDN:</p>
+            <p>{t.docs.cdnDesc}</p>
             <pre><code>{`<script src="https://unpkg.com/compresso/dist/compresso.umd.js"></script>`}</code></pre>
 
             <h2 id="quick-start">{t.docs.quickStart}</h2>
@@ -144,13 +144,13 @@ input.addEventListener('change', async (e) => {
             <h2 id="api">{t.docs.api}</h2>
 
             <h3><code>compress(source, options?)</code></h3>
-            <p>Compresses a single image. Accepts a <code>File</code>, <code>Blob</code>, or image URL string.</p>
+            <p>{t.docs.compressDesc}</p>
 
             <h3><code>compressMultiple(files, options?)</code></h3>
-            <p>Compresses an array of files sequentially. Returns <code>Promise&lt;CompressResult[]&gt;</code>.</p>
+            <p>{t.docs.compressMultipleDesc}</p>
 
             <h3><code>createCompressor(defaults?)</code></h3>
-            <p>Creates a reusable compressor instance with preset options:</p>
+            <p>{t.docs.createCompressorDesc}</p>
             <pre><code>{`const optimizer = createCompressor({
   quality: 0.7,
   maxWidth: 1200,
@@ -195,7 +195,7 @@ const result = await optimizer.compress(file);`}</code></pre>
             </table>
 
             <h2 id="target-size">{t.docs.targetSize}</h2>
-            <p>Set <code>maxSizeMB</code> to ensure the output never exceeds a given file size. Compresso uses binary search to find the highest quality that fits:</p>
+            <p>{t.docs.targetSizeDesc}</p>
             <pre><code>{`const result = await compress(file, {
   maxSizeMB: 2,    // Output will be ≤ 2 MB
   format: 'jpeg',
@@ -306,7 +306,23 @@ async function handleFile(e) {
                 <tr><td>Edge 79+</td><td>✓</td><td>✓</td><td>✓ (121+)</td></tr>
               </tbody>
             </table>
-            <p>When using <code>format: &apos;auto&apos;</code>, Compresso automatically detects the best format supported by the current browser.</p>
+            <p>{t.docs.autoFormatDesc}</p>
+
+            <h2 id="why-browser">{t.docs.whyBrowserTitle}</h2>
+            <p>{t.docs.whyBrowserDesc}</p>
+
+            <table>
+              <thead>
+                <tr><th></th><th>{t.docs.comparisonServer}</th><th>{t.docs.comparisonClient}</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>{t.docs.compCost}</td><td>{t.docs.compCostServer}</td><td><strong>{t.docs.compCostClient}</strong></td></tr>
+                <tr><td>{t.docs.compLatency}</td><td>{t.docs.compLatencyServer}</td><td><strong>{t.docs.compLatencyClient}</strong></td></tr>
+                <tr><td>{t.docs.compOffline}</td><td>{t.docs.compOfflineServer}</td><td><strong>{t.docs.compOfflineClient}</strong></td></tr>
+                <tr><td>{t.docs.compPrivacy}</td><td>{t.docs.compPrivacyServer}</td><td><strong>{t.docs.compPrivacyClient}</strong></td></tr>
+                <tr><td>{t.docs.compDeps}</td><td>{t.docs.compDepsServer}</td><td><strong>{t.docs.compDepsClient}</strong></td></tr>
+              </tbody>
+            </table>
           </main>
         </div>
       </div>

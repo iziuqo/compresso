@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+function isMobileDevice() {
+  if (typeof window === 'undefined') return false;
+  return /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
+}
+
 export default function InstallBanner({ t }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showBanner, setShowBanner] = useState(false);
@@ -16,13 +22,15 @@ export default function InstallBanner({ t }) {
       return;
     }
 
+    if (!isMobileDevice()) return;
+
     const dismissed = sessionStorage.getItem('compresso-install-dismissed');
     if (dismissed) return;
 
     const handler = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setTimeout(() => setShowBanner(true), 3000);
+      setTimeout(() => setShowBanner(true), 4000);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -31,7 +39,7 @@ export default function InstallBanner({ t }) {
       setInstalled(true);
       setShowBanner(false);
       setDeferredPrompt(null);
-      showToast(t?.pwa?.installed || 'Compresso installed!');
+      showToast(t?.pwa?.installed || 'Compresso installed! Find it on your home screen.');
     };
     window.addEventListener('appinstalled', installedHandler);
 
@@ -43,18 +51,18 @@ export default function InstallBanner({ t }) {
 
   const showToast = useCallback((message) => {
     setToast(message);
-    setTimeout(() => setToast(null), 4000);
+    setTimeout(() => setToast(null), 5000);
   }, []);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      showToast(t?.pwa?.installing || 'Installing...');
-    }
     setDeferredPrompt(null);
     setShowBanner(false);
+    if (outcome === 'accepted') {
+      showToast(t?.pwa?.installing || 'Installing Compresso to your home screen...');
+    }
   };
 
   const handleDismiss = () => {
@@ -70,16 +78,18 @@ export default function InstallBanner({ t }) {
     <>
       {toast && <Toast message={toast} />}
 
-      {/* Bottom banner — mobile-first, non-intrusive */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 p-4 sm:p-0 sm:bottom-6 sm:left-auto sm:right-6 sm:max-w-sm animate-slide-up"
+        className="fixed bottom-0 left-0 right-0 z-50 p-3 animate-slide-up safe-bottom"
         role="alert"
       >
-        <div className="bg-white rounded-2xl shadow-2xl shadow-black/10 border border-gray-200 p-4 sm:p-5">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl gradient-bg flex items-center justify-center flex-shrink-0">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 5v14M5 12l7 7 7-7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <div className="bg-white rounded-2xl shadow-2xl shadow-black/10 border border-gray-200 p-4 max-w-md mx-auto">
+          <div className="flex items-start gap-3">
+            <div className="w-11 h-11 rounded-xl gradient-bg flex items-center justify-center flex-shrink-0">
+              <svg width="22" height="22" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M8 16C8 11.58 11.58 8 16 8V12C13.79 12 12 13.79 12 16H8Z" fill="white" opacity="0.7" />
+                <path d="M16 8C20.42 8 24 11.58 24 16H20C20 13.79 18.21 12 16 12V8Z" fill="white" />
+                <path d="M24 16C24 20.42 20.42 24 16 24V20C18.21 20 20 18.21 20 16H24Z" fill="white" opacity="0.7" />
+                <path d="M16 24C11.58 24 8 20.42 8 16H12C12 18.21 13.79 20 16 20V24Z" fill="white" />
               </svg>
             </div>
             <div className="flex-1 min-w-0">
@@ -87,14 +97,14 @@ export default function InstallBanner({ t }) {
                 {t?.pwa?.title || 'Install Compresso'}
               </p>
               <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-                {t?.pwa?.description || 'Optimize images offline, right from your phone. No internet needed.'}
+                {t?.pwa?.description || 'Optimize images offline, right from your phone.'}
               </p>
-              <div className="flex items-center gap-2 mt-3">
+              <div className="flex items-center gap-2 mt-2.5">
                 <button
                   onClick={handleInstall}
                   className="gradient-bg text-white text-xs font-medium px-4 py-2 rounded-lg hover:opacity-90 transition-opacity"
                 >
-                  {t?.pwa?.install || 'Install app'}
+                  {t?.pwa?.install || 'Install'}
                 </button>
                 <button
                   onClick={handleDismiss}
@@ -106,7 +116,7 @@ export default function InstallBanner({ t }) {
             </div>
             <button
               onClick={handleDismiss}
-              className="text-gray-300 hover:text-gray-500 transition-colors -mt-1 -mr-1"
+              className="text-gray-300 hover:text-gray-500 transition-colors -mt-1 -mr-1 p-1"
               aria-label="Close"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -122,12 +132,12 @@ export default function InstallBanner({ t }) {
 
 function Toast({ message }) {
   return (
-    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] animate-fade-in">
-      <div className="bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg flex items-center gap-2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-400" aria-hidden="true">
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] animate-fade-in px-4 w-full max-w-sm">
+      <div className="bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg flex items-center gap-2.5">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-brand-400 flex-shrink-0" aria-hidden="true">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
         </svg>
-        {message}
+        <span className="leading-snug">{message}</span>
       </div>
     </div>
   );

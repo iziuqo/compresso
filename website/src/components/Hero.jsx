@@ -10,7 +10,7 @@ export default function Hero({ t }) {
           {t.hero.badge}
         </div>
 
-        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight mb-6">
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold tracking-tight mb-6 [text-wrap:balance]">
           {t.hero.title}
           <br />
           <span className="gradient-text">Compresso.</span>
