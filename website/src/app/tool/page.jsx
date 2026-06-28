@@ -330,12 +330,6 @@ export default function ToolPage() {
                     </div>
                   </div>
                 )}
-                {reprocessing && result && (
-                  <div className="absolute top-5 left-1/2 -translate-x-1/2 z-20 bg-black/60 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2">
-                    <div className="w-3 h-3 border-[1.5px] border-white border-t-transparent rounded-full animate-spin" />
-                    {t.playground.processing}
-                  </div>
-                )}
                 {result ? (
                   viewMode === 'compare' ? (
                     <BeforeAfter

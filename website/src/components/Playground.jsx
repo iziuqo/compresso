@@ -359,14 +359,6 @@ export default function Playground({ t }) {
 
                 {result && (
                   <div className="space-y-6">
-                    {/* Reprocessing indicator — subtle overlay, no unmount */}
-                    {reprocessing && (
-                      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-20 bg-black/60 text-white text-xs font-medium px-3 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2">
-                        <div className="w-3 h-3 border-1.5 border-white border-t-transparent rounded-full animate-spin" />
-                        {t.playground.processing}
-                      </div>
-                    )}
-
                     <BeforeAfter
                       originalUrl={originalUrl}
                       optimizedUrl={result.url}
