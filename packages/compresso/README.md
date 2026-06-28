@@ -4,12 +4,18 @@ Tiny, zero-dependency image optimizer that runs entirely in the browser. Compres
 
 **~2 KB gzipped** · **Zero dependencies** · **Works everywhere**
 
-[Website](https://compresso.dev) · [Documentation](https://compresso.dev/docs) · [GitHub](https://github.com/iziuqo/compresso)
+[Website](https://compresso.izaias.xyz) · [Documentation](https://compresso.izaias.xyz/docs) · [GitHub](https://github.com/iziuqo/compresso)
 
 ## Install
 
 ```bash
 npm install compresso.js
+```
+
+Or via CDN:
+
+```html
+<script src="https://unpkg.com/compresso.js/dist/compresso.umd.js"></script>
 ```
 
 ## Usage
@@ -54,4 +60,4 @@ const result = await compress(file, {
 
 ## License
 
-[MIT](https://github.com/iziuqo/compresso/blob/main/LICENSE)
+[MIT + Commons Clause](https://github.com/iziuqo/compresso/blob/main/LICENSE) — Free for non-commercial use. For commercial use, contact [iz.iuqo@gmail.com](mailto:iz.iuqo@gmail.com).
