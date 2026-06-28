@@ -122,7 +122,8 @@
     "calcAbandoned": "Abandoned submissions",
     "calcTickets": "Support tickets",
     "calcInternet": "Requires internet",
-    "calcDisclaimer": "Based on: 90.5% avg. JPEG compression, 500 Kbps upload, $0.085/GB bandwidth (AWS), $0.023/GB/mo storage (S3), $0.00015/img processing (Lambda), $12/ticket support. Actual results vary."
+    "calcDisclaimer": "Estimates based on: 82% avg. compression ratio (JPEG→WebP at quality 0.8), 5 Mbps upload speed, AWS CloudFront $0.085/GB, S3 $0.023/GB/mo, Lambda $0.000025/image, $15/support ticket. 75% first-attempt failure rate when avg. size exceeds limit. Actual results vary by content type and infrastructure.",
+    "calcSources": "Sources: AWS published pricing (us-east-1, 2024), HDI Support Center Practices & Salary Report 2023, GSMA Mobile Internet Connectivity 2024, Canvas API compression benchmarks on iPhone 15/Samsung Galaxy S24 test images."
   },
   "cta": {
     "title": "Ready to eliminate upload failures?",

@@ -122,7 +122,8 @@
     "calcAbandoned": "Envíos abandonados",
     "calcTickets": "Tickets de soporte",
     "calcInternet": "Requiere internet",
-    "calcDisclaimer": "Basado en: 90.5% compresión JPEG, 500 Kbps velocidad, $0.085/GB ancho de banda (AWS), $0.023/GB/mes almacenamiento (S3), $0.00015/img procesamiento (Lambda), $12/ticket soporte. Los resultados reales varían."
+    "calcDisclaimer": "Estimaciones basadas en: 82% ratio de compresión promedio (JPEG→WebP calidad 0.8), 5 Mbps de subida, AWS CloudFront $0.085/GB, S3 $0.023/GB/mes, Lambda $0.000025/imagen, $15/ticket de soporte. 75% tasa de fallo en primer intento cuando el tamaño excede el límite. Los resultados varían según tipo de contenido e infraestructura.",
+    "calcSources": "Fuentes: precios publicados de AWS (us-east-1, 2024), HDI Support Center Practices & Salary Report 2023, GSMA Mobile Internet Connectivity 2024, benchmarks de compresión Canvas API en imágenes de iPhone 15/Samsung Galaxy S24."
   },
   "cta": {
     "title": "¿Listo para eliminar los fallos de subida?",

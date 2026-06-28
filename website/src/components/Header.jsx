@@ -16,7 +16,7 @@ export default function Header({ t, locale, onLocaleChange, basePath = '' }) {
               <path
                 d="M8 16C8 11.58 11.58 8 16 8V12C13.79 12 12 13.79 12 16H8Z"
                 fill="white"
-                opacity="0.7"
+               
               />
               <path
                 d="M16 8C20.42 8 24 11.58 24 16H20C20 13.79 18.21 12 16 12V8Z"
@@ -25,7 +25,7 @@ export default function Header({ t, locale, onLocaleChange, basePath = '' }) {
               <path
                 d="M24 16C24 20.42 20.42 24 16 24V20C18.21 20 20 18.21 20 16H24Z"
                 fill="white"
-                opacity="0.7"
+               
               />
               <path
                 d="M16 24C11.58 24 8 20.42 8 16H12C12 18.21 13.79 20 16 20V24Z"
