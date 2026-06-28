@@ -3,6 +3,13 @@
 import { useEffect, useState } from 'react';
 import { getTranslations, locales, defaultLocale, getLocaleLabel } from '../../i18n';
 
+function detectBasePath() {
+  if (typeof window === "undefined") return "";
+  const path = window.location.pathname;
+  if (path.startsWith("/compresso")) return "/compresso";
+  return "";
+}
+
 function detectLocale() {
   if (typeof window === 'undefined') return defaultLocale;
   const saved = localStorage.getItem('compresso-locale');
@@ -30,9 +37,11 @@ const sections = [
 export default function DocsPage() {
   const [locale, setLocale] = useState(defaultLocale);
   const [mounted, setMounted] = useState(false);
+  const [basePath, setBasePath] = useState('');
 
   useEffect(() => {
     setLocale(detectLocale());
+    setBasePath(detectBasePath());
     setMounted(true);
   }, []);
 
@@ -50,7 +59,7 @@ export default function DocsPage() {
     <div className="min-h-screen bg-white">
       <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <a href="/" className="flex items-center gap-2 font-bold text-xl">
+          <a href={`${basePath}/`} className="flex items-center gap-2 font-bold text-xl">
             <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
               <rect width="32" height="32" rx="8" className="fill-brand-500" />
               <path d="M8 16C8 11.58 11.58 8 16 8V12C13.79 12 12 13.79 12 16H8Z" fill="white" opacity="0.7" />

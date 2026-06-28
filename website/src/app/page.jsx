@@ -24,13 +24,22 @@ function detectLocale() {
   return 'en';
 }
 
+function detectBasePath() {
+  if (typeof window === 'undefined') return '';
+  const path = window.location.pathname;
+  if (path.startsWith('/compresso')) return '/compresso';
+  return '';
+}
+
 export default function Home() {
   const [locale, setLocale] = useState(defaultLocale);
   const [mounted, setMounted] = useState(false);
+  const [basePath, setBasePath] = useState('');
 
   useEffect(() => {
     const detected = detectLocale();
     setLocale(detected);
+    setBasePath(detectBasePath());
     setMounted(true);
     document.documentElement.lang = detected === 'pt-br' ? 'pt-BR' : detected;
   }, []);
@@ -53,7 +62,7 @@ export default function Home() {
 
   return (
     <>
-      <Header t={t} locale={locale} onLocaleChange={changeLocale} />
+      <Header t={t} locale={locale} onLocaleChange={changeLocale} basePath={basePath} />
       <main>
         <Hero t={t} />
         <Playground t={t} />
@@ -61,9 +70,9 @@ export default function Home() {
         <Features t={t} />
         <CodeSection t={t} />
         <Impact t={t} />
-        <CTA t={t} />
+        <CTA t={t} basePath={basePath} />
       </main>
-      <Footer t={t} />
+      <Footer t={t} basePath={basePath} />
     </>
   );
 }

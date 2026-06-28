@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { locales, getLocaleLabel } from '../i18n';
 
-export default function Header({ t, locale, onLocaleChange }) {
+export default function Header({ t, locale, onLocaleChange, basePath = '' }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -39,7 +39,7 @@ export default function Header({ t, locale, onLocaleChange }) {
             <a href="#playground" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               {t.nav.playground}
             </a>
-            <a href="/docs/" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <a href={`${basePath}/docs/`} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
               {t.nav.docs}
             </a>
             <a
@@ -98,7 +98,7 @@ export default function Header({ t, locale, onLocaleChange }) {
           <a href="#playground" className="block text-gray-600" onClick={() => setMenuOpen(false)}>
             {t.nav.playground}
           </a>
-          <a href="/docs/" className="block text-gray-600">
+          <a href={`${basePath}/docs/`} className="block text-gray-600">
             {t.nav.docs}
           </a>
           <a

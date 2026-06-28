@@ -1,4 +1,4 @@
-export default function Footer({ t }) {
+export default function Footer({ t, basePath = '' }) {
   return (
     <footer className="border-t border-gray-200 bg-gray-50 py-12 sm:py-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,7 +29,7 @@ export default function Footer({ t }) {
           <div>
             <h4 className="font-semibold text-sm text-gray-900 mb-3">{t.footer.resources}</h4>
             <ul className="space-y-2 text-sm text-gray-500">
-              <li><a href="/docs/" className="hover:text-gray-700 transition-colors">{t.footer.docs}</a></li>
+              <li><a href={`${basePath}/docs/`} className="hover:text-gray-700 transition-colors">{t.footer.docs}</a></li>
               <li><a href="https://github.com/iziuqo/compresso/tree/main/examples" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.examples}</a></li>
               <li><a href="https://github.com/iziuqo/compresso/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.contributing}</a></li>
             </ul>

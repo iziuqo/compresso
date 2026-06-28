@@ -1,4 +1,4 @@
-export default function CTA({ t }) {
+export default function CTA({ t, basePath = '' }) {
   return (
     <section className="py-20 sm:py-28">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -14,7 +14,7 @@ export default function CTA({ t }) {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
           <a
-            href="/docs/"
+            href={`${basePath}/docs/`}
             className="gradient-bg text-white font-medium px-6 py-3 rounded-xl hover:opacity-90 transition-opacity"
           >
             {t.cta.docs}
