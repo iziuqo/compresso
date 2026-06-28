@@ -11,8 +11,8 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/compresso.js"><img src="https://img.shields.io/npm/v/compresso.js?color=%23059669&label=npm" alt="npm version" /></a>
-  <a href="https://bundlephobia.com/package/compresso.js"><img src="https://img.shields.io/bundlephobia/minzip/compresso.js?color=%230284c7&label=size" alt="bundle size" /></a>
-  <a href="https://github.com/iziuqo/compresso/blob/main/LICENSE"><img src="https://img.shields.io/github/license/iziuqo/compresso?color=%236d28d9" alt="license" /></a>
+  <a href="https://bundlephobia.com/package/compresso.js"><img src="https://img.shields.io/badge/size-~2%20KB%20gzip-0284c7" alt="bundle size" /></a>
+  <a href="https://github.com/iziuqo/compresso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-6d28d9" alt="license" /></a>
   <a href="https://github.com/iziuqo/compresso/stargazers"><img src="https://img.shields.io/github/stars/iziuqo/compresso?style=social" alt="GitHub stars" /></a>
 </p>
 
