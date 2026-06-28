@@ -47,11 +47,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/izaiascavalcanti/compresso"
+    "url": "https://github.com/iziuqo/compresso"
   },
   "homepage": "https://compresso.dev",
   "bugs": {
-    "url": "https://github.com/izaiascavalcanti/compresso/issues"
+    "url": "https://github.com/iziuqo/compresso/issues"
   },
   "devDependencies": {
     "rollup": "^4.28.0",

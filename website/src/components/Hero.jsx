@@ -28,7 +28,7 @@ export default function Hero({ t }) {
             {t.hero.cta}
           </a>
           <a
-            href="https://github.com/izaiascavalcanti/compresso"
+            href="https://github.com/iziuqo/compresso"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 bg-gray-900 text-white font-semibold px-8 py-3.5 rounded-xl hover:bg-gray-800 transition-colors text-lg"

@@ -21,7 +21,7 @@ export default function Footer({ t }) {
             <h4 className="font-semibold text-sm text-gray-900 mb-3">{t.footer.lib}</h4>
             <ul className="space-y-2 text-sm text-gray-500">
               <li><a href="https://www.npmjs.com/package/compresso" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.npm}</a></li>
-              <li><a href="https://github.com/izaiascavalcanti/compresso" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.github}</a></li>
+              <li><a href="https://github.com/iziuqo/compresso" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.github}</a></li>
               <li><a href="https://unpkg.com/compresso/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.cdn}</a></li>
             </ul>
           </div>
@@ -30,17 +30,17 @@ export default function Footer({ t }) {
             <h4 className="font-semibold text-sm text-gray-900 mb-3">{t.footer.resources}</h4>
             <ul className="space-y-2 text-sm text-gray-500">
               <li><a href="/docs/" className="hover:text-gray-700 transition-colors">{t.footer.docs}</a></li>
-              <li><a href="https://github.com/izaiascavalcanti/compresso/tree/main/examples" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.examples}</a></li>
-              <li><a href="https://github.com/izaiascavalcanti/compresso/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.contributing}</a></li>
+              <li><a href="https://github.com/iziuqo/compresso/tree/main/examples" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.examples}</a></li>
+              <li><a href="https://github.com/iziuqo/compresso/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.contributing}</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-sm text-gray-900 mb-3">{t.footer.project}</h4>
             <ul className="space-y-2 text-sm text-gray-500">
-              <li><a href="https://github.com/izaiascavalcanti/compresso/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.license}</a></li>
-              <li><a href="https://github.com/izaiascavalcanti/compresso/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.security}</a></li>
-              <li><a href="https://github.com/izaiascavalcanti/compresso/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.codeOfConduct}</a></li>
+              <li><a href="https://github.com/iziuqo/compresso/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.license}</a></li>
+              <li><a href="https://github.com/iziuqo/compresso/blob/main/SECURITY.md" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.security}</a></li>
+              <li><a href="https://github.com/iziuqo/compresso/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener noreferrer" className="hover:text-gray-700 transition-colors">{t.footer.codeOfConduct}</a></li>
             </ul>
           </div>
         </div>

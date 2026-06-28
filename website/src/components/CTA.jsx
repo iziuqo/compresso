@@ -20,7 +20,7 @@ export default function CTA({ t }) {
             {t.cta.docs}
           </a>
           <a
-            href="https://github.com/izaiascavalcanti/compresso"
+            href="https://github.com/iziuqo/compresso"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 bg-gray-900 text-white font-medium px-6 py-3 rounded-xl hover:bg-gray-800 transition-colors"

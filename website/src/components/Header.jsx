@@ -43,7 +43,7 @@ export default function Header({ t, locale, onLocaleChange }) {
               {t.nav.docs}
             </a>
             <a
-              href="https://github.com/izaiascavalcanti/compresso"
+              href="https://github.com/iziuqo/compresso"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
@@ -102,7 +102,7 @@ export default function Header({ t, locale, onLocaleChange }) {
             {t.nav.docs}
           </a>
           <a
-            href="https://github.com/izaiascavalcanti/compresso"
+            href="https://github.com/iziuqo/compresso"
             target="_blank"
             rel="noopener noreferrer"
             className="block text-gray-600"
