@@ -87,29 +87,29 @@ export default function Impact({ t }) {
         {/* Sliders */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-8 shadow-sm mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-            <SliderInput label={t.impact.calcUploads || 'Monthly uploads'} value={uploads} min={1000} max={2000000} step={1000} display={fmt(uploads)} onChange={setUploads} />
-            <SliderInput label={t.impact.calcAvgSize || 'Avg. photo size'} value={avgSizeMB} min={0.5} max={20} step={0.5} display={`${avgSizeMB} MB`} onChange={setAvgSizeMB} />
-            <SliderInput label={t.impact.calcLimit || 'System upload limit'} value={uploadLimitMB} min={0.5} max={10} step={0.5} display={`${uploadLimitMB} MB`} onChange={setUploadLimitMB} />
+            <SliderInput label={t.impact.calcUploads} value={uploads} min={1000} max={2000000} step={1000} display={fmt(uploads)} onChange={setUploads} />
+            <SliderInput label={t.impact.calcAvgSize} value={avgSizeMB} min={0.5} max={20} step={0.5} display={`${avgSizeMB} MB`} onChange={setAvgSizeMB} />
+            <SliderInput label={t.impact.calcLimit} value={uploadLimitMB} min={0.5} max={10} step={0.5} display={`${uploadLimitMB} MB`} onChange={setUploadLimitMB} />
           </div>
         </div>
 
         {/* Hero metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <HeroMetric value={fmtMoney(d.annualSaved)} label={t.impact.calcAnnual || 'Annual savings'} sub={`${fmtMoney(d.monthlySaved)}/mo`} accent />
-          <HeroMetric value={fmtBytes(d.bwSavedGB)} label={t.impact.calcBandwidth || 'Bandwidth saved/mo'} sub={`${fmtBytes(d.bwBeforeGB)} → ${fmtBytes(d.bwAfterGB)}`} accent />
-          <HeroMetric value={fmt(d.failedUploads)} label={t.impact.calcFailures || 'Failures eliminated'} sub={`${Math.round(d.failRate * 100)}% → 0%`} />
-          <HeroMetric value={`${Math.round(d.totalTimeSavedHours)}h`} label={t.impact.calcTimeSaved || 'User time saved/mo'} sub={`${fmtTime(d.uploadTimeBefore)} → ${fmtTime(d.uploadTimeAfter)} per file`} />
+          <HeroMetric value={fmtMoney(d.annualSaved)} label={t.impact.calcAnnual} sub={`${fmtMoney(d.monthlySaved)}/mo`} accent />
+          <HeroMetric value={fmtBytes(d.bwSavedGB)} label={t.impact.calcBandwidth} sub={`${fmtBytes(d.bwBeforeGB)} → ${fmtBytes(d.bwAfterGB)}`} accent />
+          <HeroMetric value={fmt(d.failedUploads)} label={t.impact.calcFailures} sub={`${Math.round(d.failRate * 100)}% → 0%`} />
+          <HeroMetric value={`${Math.round(d.totalTimeSavedHours)}h`} label={t.impact.calcTimeSaved} sub={`${fmtTime(d.uploadTimeBefore)} → ${fmtTime(d.uploadTimeAfter)} per file`} />
         </div>
 
         {/* Cost breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.impact.calcCostBreakdown || 'Monthly cost breakdown'}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.impact.calcCostBreakdown}</h3>
             <div className="space-y-2.5">
-              <CostRow label={t.impact.bandwidth || 'Bandwidth'} before={fmtMoney(d.costBandwidthBefore)} after={fmtMoney(d.costBandwidthAfter)} />
-              <CostRow label={t.impact.calcProcessing || 'Server processing'} before={fmtMoney(d.costProcessingBefore)} after={fmtMoney(0)} />
-              <CostRow label={t.impact.calcStorage || 'Storage'} before={fmtMoney(d.costStorageBefore)} after={fmtMoney(d.costStorageAfter)} />
-              <CostRow label={t.impact.calcSupport || 'Support tickets'} before={fmtMoney(d.costSupportBefore)} after={fmtMoney(0)} />
+              <CostRow label={t.impact.bandwidth} before={fmtMoney(d.costBandwidthBefore)} after={fmtMoney(d.costBandwidthAfter)} />
+              <CostRow label={t.impact.calcProcessing} before={fmtMoney(d.costProcessingBefore)} after={fmtMoney(0)} />
+              <CostRow label={t.impact.calcStorage} before={fmtMoney(d.costStorageBefore)} after={fmtMoney(d.costStorageAfter)} />
+              <CostRow label={t.impact.calcSupport} before={fmtMoney(d.costSupportBefore)} after={fmtMoney(0)} />
               <div className="pt-2 border-t border-gray-100">
                 <CostRow label="Total" before={fmtMoney(d.totalBefore)} after={fmtMoney(d.totalAfter)} bold />
               </div>
@@ -117,20 +117,20 @@ export default function Impact({ t }) {
           </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.impact.calcUserImpact || 'User experience impact'}</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.impact.calcUserImpact}</h3>
             <div className="space-y-2.5">
-              <ImpactRow label={t.impact.calcUploadSpeed || 'Upload time per file'} before={fmtTime(d.uploadTimeBefore)} after={fmtTime(d.uploadTimeAfter)} />
-              <ImpactRow label={t.impact.calcRetries || 'Retry attempts'} before={fmt(d.retryAttempts)} after="0" />
-              <ImpactRow label={t.impact.calcAbandoned || 'Abandoned submissions'} before={fmt(d.abandonments)} after="0" />
-              <ImpactRow label={t.impact.calcTickets || 'Support tickets'} before={fmt(d.supportTickets)} after="0" />
-              <ImpactRow label={t.impact.calcInternet || 'Requires internet'} before={t.impact.yes || 'Yes'} after={t.impact.no || 'No'} />
-              <ImpactRow label={t.impact.confusion || 'User confusion'} before={t.impact.confusionBefore || 'High'} after={t.impact.confusionAfter || 'None'} />
+              <ImpactRow label={t.impact.calcUploadSpeed} before={fmtTime(d.uploadTimeBefore)} after={fmtTime(d.uploadTimeAfter)} />
+              <ImpactRow label={t.impact.calcRetries} before={fmt(d.retryAttempts)} after="0" />
+              <ImpactRow label={t.impact.calcAbandoned} before={fmt(d.abandonments)} after="0" />
+              <ImpactRow label={t.impact.calcTickets} before={fmt(d.supportTickets)} after="0" />
+              <ImpactRow label={t.impact.calcInternet} before={t.impact.yes} after={t.impact.no} />
+              <ImpactRow label={t.impact.confusion} before={t.impact.confusionBefore} after={t.impact.confusionAfter} />
             </div>
           </div>
         </div>
 
         <p className="text-[10px] text-gray-400 text-center max-w-2xl mx-auto leading-relaxed">
-          {t.impact.calcDisclaimer || 'Based on: 90.5% avg. JPEG compression ratio, 500 Kbps upload speed, $0.085/GB bandwidth (AWS), $0.023/GB/mo storage (S3), $0.00015/img processing (Lambda), $12/ticket support cost. Failure rate assumes users lack tools to resize/convert. Actual results vary.'}
+          {t.impact.calcDisclaimer}
         </p>
       </div>
     </section>
