@@ -50,7 +50,11 @@
     "reduction": "Reduction",
     "dimensions": "Dimensions",
     "formatLabel": "Format",
-    "auto": "Auto (best)"
+    "auto": "Auto (best)",
+    "examples": "Or try an example:",
+    "exLandscape": "Landscape (2.1 MB)",
+    "exDocument": "Document (150 KB)",
+    "exPortrait": "Portrait (100 KB)"
   },
   "problem": {
     "title": "The Problem We Solve",

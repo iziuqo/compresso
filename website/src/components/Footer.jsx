@@ -46,7 +46,7 @@ export default function Footer({ t, basePath = '' }) {
         </div>
 
         <div className="border-t border-gray-200 pt-8 text-center text-sm text-gray-400">
-          &copy; {new Date().getFullYear()} Compresso. MIT License.
+          &copy; {new Date().getFullYear()} Compresso. MIT + Commons Clause.
         </div>
       </div>
     </footer>

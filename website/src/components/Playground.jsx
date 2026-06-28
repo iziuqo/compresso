@@ -198,6 +198,21 @@ export default function Playground({ t }) {
     document.body.removeChild(a);
   };
 
+  const loadExample = async (name) => {
+    try {
+      const res = await fetch(`/samples/${name}`);
+      const blob = await res.blob();
+      const f = new File([blob], name, { type: blob.type });
+      handleFile(f);
+    } catch (err) { console.error(err); }
+  };
+
+  const examples = [
+    { name: 'landscape.jpg', label: t.playground.exLandscape || 'Landscape (2.1 MB)' },
+    { name: 'document.jpg', label: t.playground.exDocument || 'Document (150 KB)' },
+    { name: 'portrait.jpg', label: t.playground.exPortrait || 'Portrait (100 KB)' },
+  ];
+
   const toggleFullscreen = () => {
     if (!isFullscreen) {
       sectionRef.current?.requestFullscreen?.() || sectionRef.current?.webkitRequestFullscreen?.();
@@ -226,6 +241,7 @@ export default function Playground({ t }) {
         </div>
 
         {!file ? (
+          <>
           <div
             className={`max-w-2xl mx-auto border-2 border-dashed rounded-2xl p-12 sm:p-16 text-center cursor-pointer transition-colors ${
               dragOver ? 'border-brand-500 bg-brand-50' : 'border-gray-300 hover:border-brand-400 hover:bg-gray-50'
@@ -252,6 +268,22 @@ export default function Playground({ t }) {
               onChange={(e) => { if (e.target.files[0]) handleFile(e.target.files[0]); }}
             />
           </div>
+
+          <div className="max-w-2xl mx-auto mt-6 text-center">
+            <p className="text-sm text-gray-400 mb-3">{t.playground.examples || 'Or try an example:'}</p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {examples.map((ex) => (
+                <button
+                  key={ex.name}
+                  onClick={() => loadExample(ex.name)}
+                  className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:border-brand-300 hover:text-brand-700 transition-colors"
+                >
+                  {ex.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          </>
         ) : (
           <div className="space-y-8">
             <div className={`grid grid-cols-1 gap-8 ${isFullscreen ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>

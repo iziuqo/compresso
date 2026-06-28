@@ -50,7 +50,10 @@
     "reduction": "Redução",
     "dimensions": "Dimensões",
     "formatLabel": "Formato",
-    "auto": "Auto (melhor)"
+    "auto": "Auto (melhor)",
+    "exLandscape": "Paisagem (2.1 MB)",
+    "exDocument": "Documento (150 KB)",
+    "exPortrait": "Retrato (100 KB)"
   },
   "problem": {
     "title": "O Problema que Resolvemos",
