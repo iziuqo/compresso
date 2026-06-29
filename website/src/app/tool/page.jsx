@@ -97,12 +97,17 @@ export default function ToolPage() {
     maxSizeMB: maxSizeMB ? parseFloat(maxSizeMB) : undefined,
   }), [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
+  const [error, setError] = useState(null);
+
   const handleFile = useCallback(async (imageFile) => {
-    if (!imageFile?.type?.startsWith('image/')) return;
+    if (!imageFile) return;
+    const isImage = imageFile.type?.startsWith('image/') || /\.(jpe?g|png|webp|avif|gif|bmp|heic|heif)$/i.test(imageFile.name);
+    if (!isImage) return;
+    setError(null);
     if (originalUrl) URL.revokeObjectURL(originalUrl);
     if (result?.url) URL.revokeObjectURL(result.url);
     setFile(imageFile); setOriginalUrl(URL.createObjectURL(imageFile)); setResult(null); setInitialLoading(true);
-    try { setResult(await compressImage(imageFile, getOpts())); } catch (err) { console.error(err); }
+    try { setResult(await compressImage(imageFile, getOpts())); } catch (err) { console.error(err); setError(err.message || 'Failed to process image'); }
     setInitialLoading(false);
   }, [getOpts, originalUrl, result?.url]);
 
@@ -185,7 +190,7 @@ export default function ToolPage() {
         {/* Desktop preview */}
         <div className="flex-1 flex flex-col min-h-0">
           <ViewTabs viewMode={viewMode} setViewMode={setViewMode} t={t} />
-          <PreviewArea viewMode={viewMode} setViewMode={setViewMode} initialLoading={initialLoading} result={result} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} />
+          <PreviewArea viewMode={viewMode} setViewMode={setViewMode} initialLoading={initialLoading} result={result} error={error} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} onClear={clearUpload} />
         </div>
       </div>
 
@@ -212,7 +217,7 @@ export default function ToolPage() {
         </div>
 
         {/* Mobile preview — fills remaining space, tabs overlaid */}
-        <PreviewArea viewMode={viewMode} setViewMode={setViewMode} initialLoading={initialLoading} result={result} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} mobile />
+        <PreviewArea viewMode={viewMode} setViewMode={setViewMode} initialLoading={initialLoading} result={result} error={error} originalUrl={originalUrl} optimizedUrl={result?.url} t={t} onClear={clearUpload} mobile />
 
         {/* Mobile bottom bar */}
         <div className="bg-white border-t border-gray-200 flex-shrink-0 safe-bottom">
@@ -394,11 +399,16 @@ function ViewTabs({ viewMode, setViewMode, t, overlay }) {
   );
 }
 
-function PreviewArea({ viewMode, setViewMode, initialLoading, result, originalUrl, optimizedUrl, t, mobile }) {
+function PreviewArea({ viewMode, setViewMode, initialLoading, result, error, originalUrl, optimizedUrl, t, mobile, onClear }) {
   return (
     <div className={`flex-1 min-h-0 overflow-hidden flex items-center justify-center relative ${mobile ? 'bg-gray-900' : 'bg-gray-100 p-2'}`}>
       {mobile && result && <ViewTabs viewMode={viewMode} setViewMode={setViewMode} t={t} overlay />}
-      {initialLoading && !result ? (
+      {error && !result ? (
+        <div className="flex flex-col items-center justify-center text-center p-6">
+          <p className="text-sm text-red-400 mb-3">{error}</p>
+          <button onClick={onClear} className="text-xs text-gray-400 underline">{t.playground.newImage || 'Try another image'}</button>
+        </div>
+      ) : initialLoading && !result ? (
         <div className="flex items-center gap-3">
           <div className="w-5 h-5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
           <span className="text-sm text-gray-400">{t.playground.processing}</span>

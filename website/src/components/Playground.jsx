@@ -126,8 +126,13 @@ export default function Playground({ t }) {
     maxSizeMB: maxSizeMB ? parseFloat(maxSizeMB) : undefined,
   }), [quality, format, maxWidth, maxHeight, maxSizeMB]);
 
+  const [error, setError] = useState(null);
+
   const handleFile = useCallback(async (imageFile) => {
-    if (!imageFile || !imageFile.type.startsWith('image/')) return;
+    if (!imageFile) return;
+    const isImage = imageFile.type?.startsWith('image/') || /\.(jpe?g|png|webp|avif|gif|bmp|heic|heif)$/i.test(imageFile.name);
+    if (!isImage) return;
+    setError(null);
     if (originalUrl) URL.revokeObjectURL(originalUrl);
     if (result?.url) URL.revokeObjectURL(result.url);
     setFile(imageFile);
@@ -137,7 +142,10 @@ export default function Playground({ t }) {
     try {
       const r = await compressImage(imageFile, getOpts());
       setResult(r);
-    } catch (err) { console.error(err); }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Failed to process image');
+    }
     setInitialLoading(false);
   }, [getOpts, originalUrl, result?.url]);
 
@@ -348,12 +356,19 @@ export default function Playground({ t }) {
 
               {/* Preview — always mounted, never unmounted during reprocess */}
               <div className={`relative ${isFullscreen ? 'lg:col-span-3' : 'lg:col-span-2'}`}>
-                {initialLoading && !result && (
+                {initialLoading && !result && !error && (
                   <div className="flex items-center justify-center py-20">
                     <div className="flex items-center gap-3">
                       <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
                       <span className="text-gray-600">{t.playground.processing}</span>
                     </div>
+                  </div>
+                )}
+
+                {error && !result && (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <p className="text-sm text-red-500 mb-3">{error}</p>
+                    <button onClick={clearUpload} className="text-xs text-gray-500 underline">{t.playground.newImage || 'Try another image'}</button>
                   </div>
                 )}
 
