@@ -627,6 +627,10 @@
   @apply flex flex-col flex-1 min-h-0 h-full;
 }
 
+.demo-shell .pro-embed-window .pro-body > * {
+  @apply flex-1 min-h-0;
+}
+
 .demo-shell .pro-layout-full {
   display: grid;
   flex: 1 1 auto;
@@ -634,8 +638,15 @@
   height: 100%;
 }
 
+.demo-shell .pro-mobile-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
 .demo-shell .pro-preview-col,
-.demo-shell .pro-stage {
+.demo-shell .pro-stage,
+.demo-shell .pro-mobile-preview {
   @apply h-full min-h-0;
 }
 
@@ -722,7 +733,26 @@ body.demo-fullscreen-body {
   min-height: 0 !important;
   height: 100% !important;
   width: 100%;
-  grid-template-columns: minmax(240px, 300px) 1fr;
+}
+
+@media (min-width: 1024px) {
+  #demo-fullscreen-root:fullscreen .pro-layout,
+  #demo-fullscreen-root:fullscreen .pro-layout-full,
+  #demo-fullscreen-root:fullscreen .pro-layout-fs,
+  #demo-fullscreen-root:-webkit-full-screen .pro-layout,
+  #demo-fullscreen-root:-webkit-full-screen .pro-layout-full,
+  #demo-fullscreen-root:-webkit-full-screen .pro-layout-fs,
+  #demo-fullscreen-root.demo-fullscreen-active .pro-layout,
+  #demo-fullscreen-root.demo-fullscreen-active .pro-layout-full,
+  #demo-fullscreen-root.demo-fullscreen-active .pro-layout-fs {
+    grid-template-columns: minmax(240px, 300px) 1fr;
+  }
+}
+
+#demo-fullscreen-root:fullscreen .pro-mobile-layout,
+#demo-fullscreen-root:-webkit-full-screen .pro-mobile-layout,
+#demo-fullscreen-root.demo-fullscreen-active .pro-mobile-layout {
+  @apply flex flex-col flex-1 min-h-0 h-full w-full;
 }
 
 #demo-fullscreen-root:fullscreen .pro-inspector,
@@ -891,7 +921,7 @@ html.tool-route body {
 }
 
 .tool-workspace {
-  @apply flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-[minmax(280px,320px)_1fr] h-full;
+  @apply flex-1 min-h-0 flex flex-col lg:grid lg:grid-cols-[minmax(280px,320px)_1fr] h-full;
 }
 
 .tool-sidebar {
@@ -962,6 +992,32 @@ html.tool-route body {
   @apply flex flex-col min-h-0 h-full overflow-hidden;
 }
 
+/* Shared mobile layout — preview + bottom sheet */
+.pro-mobile-layout {
+  @apply flex flex-col flex-1 min-h-0 h-full w-full overflow-hidden;
+}
+
+.pro-mobile-preview {
+  @apply flex flex-col flex-1 min-h-0 overflow-hidden;
+  min-height: min(40dvh, 360px);
+}
+
+.pro-mobile-preview .pro-stage {
+  @apply flex-1 h-full min-h-0;
+}
+
+.pro-mobile-preview .pro-canvas-fill {
+  @apply pt-14 pb-3 px-3 sm:pt-16 sm:pb-5 sm:px-5;
+}
+
+.pro-mobile-preview .pro-toolbar {
+  @apply w-full max-w-none;
+}
+
+.pro-mobile-preview .pro-toolbar-btn {
+  @apply px-2 py-1.5 text-[0.625rem] sm:text-[0.6875rem];
+}
+
 .tool-mobile-layout {
   @apply flex flex-col min-h-0 h-full overflow-hidden;
 }
@@ -974,13 +1030,13 @@ html.tool-route body {
   @apply flex-shrink-0 rounded-t-[20px] border-t border-white/10 backdrop-blur-2xl px-4 pt-2 pb-4;
   background-color: rgba(28, 28, 30, 0.98);
   padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  max-height: min(52vh, 420px);
+  max-height: min(50dvh, 440px);
   overflow-y: auto;
   box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45);
 }
 
 .tool-mobile-sheet.is-expanded {
-  max-height: min(72vh, 560px);
+  max-height: min(65dvh, 520px);
 }
 
 .tool-mobile-sheet-handle {

@@ -42,7 +42,7 @@ export default function PreviewWorkspace({
   return (
     <div className={`pro-stage flex flex-col animate-pro-stage-in ${fill ? 'h-full min-h-0' : 'min-h-[320px] sm:min-h-[440px] lg:min-h-[520px]'}`}>
       {result && !hideViewTabs && (
-        <div className="absolute top-5 left-1/2 -translate-x-1/2 z-30">
+        <div className="absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-2rem)] max-w-md px-1">
           <ViewTabs viewMode={viewMode} setViewMode={setViewMode} t={t} />
         </div>
       )}

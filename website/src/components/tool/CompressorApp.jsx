@@ -8,7 +8,7 @@ import Dropzone from './Dropzone';
 import PreviewWorkspace from './PreviewWorkspace';
 import ToolWindow from './ToolWindow';
 import ToolShell from './ToolShell';
-import ToolMobileSheet from './ToolMobileSheet';
+import ProMobileLayout from './ProMobileLayout';
 import { locales, getLocaleLabel } from '../../i18n';
 
 function FileChip({ file, originalUrl, result, onClear }) {
@@ -211,7 +211,15 @@ export default function CompressorApp({
       ? `${formatBytes(c.file.size)} → ${formatBytes(c.result.compressedSize)} · −${c.result.savings}%`
       : formatBytes(c.file.size);
 
-    const mobilePreviewProps = { ...previewProps, hideViewTabs: true, hideStats: true };
+    const mobileSheetProps = {
+      t,
+      c,
+      panelProps,
+      viewMode: c.viewMode,
+      setViewMode: c.setViewMode,
+      expanded: mobileExpanded,
+      onToggleExpand: () => setMobileExpanded((v) => !v),
+    };
 
     return (
       <ToolShell title={c.file.name} subtitle={headerSubtitle} actions={headerActions}>
@@ -230,19 +238,8 @@ export default function CompressorApp({
             <PreviewWorkspace {...previewProps} fill />
           </div>
 
-          <div className="tool-mobile-layout lg:hidden">
-            <div className="tool-mobile-preview">
-              <PreviewWorkspace {...mobilePreviewProps} fill />
-            </div>
-            <ToolMobileSheet
-              t={t}
-              c={c}
-              panelProps={panelProps}
-              viewMode={c.viewMode}
-              setViewMode={c.setViewMode}
-              expanded={mobileExpanded}
-              onToggleExpand={() => setMobileExpanded((v) => !v)}
-            />
+          <div className="lg:hidden flex-1 min-h-0 h-full">
+            <ProMobileLayout previewProps={previewProps} {...mobileSheetProps} />
           </div>
         </div>
       </ToolShell>
@@ -265,13 +262,26 @@ export default function CompressorApp({
   }
 
   /* Embed — live demo */
+  const mobileSheetProps = {
+    t,
+    c,
+    panelProps,
+    viewMode: c.viewMode,
+    setViewMode: c.setViewMode,
+    expanded: mobileExpanded,
+    onToggleExpand: () => setMobileExpanded((v) => !v),
+    showFullscreen,
+    onFullscreen: toggleFullscreen,
+    isFullscreen,
+  };
+
   const embed = (
     <ToolWindow
       title="Compresso"
       flush={isFullscreen}
       className={isFullscreen ? 'h-full min-h-0 flex-1' : 'pro-embed-window'}
     >
-      <div className="pro-layout pro-layout-full animate-pro-layout-in">
+      <div className="hidden lg:grid pro-layout pro-layout-full animate-pro-layout-in flex-1 min-h-0">
         <aside className="pro-inspector animate-pro-inspector-in min-h-0 h-full">
           <div className="pro-inspector-scroll">
             <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
@@ -284,6 +294,10 @@ export default function CompressorApp({
         <div className="pro-preview-col">
           <PreviewWorkspace {...previewProps} />
         </div>
+      </div>
+
+      <div className="lg:hidden flex-1 min-h-0 h-full">
+        <ProMobileLayout previewProps={previewProps} {...mobileSheetProps} />
       </div>
     </ToolWindow>
   );

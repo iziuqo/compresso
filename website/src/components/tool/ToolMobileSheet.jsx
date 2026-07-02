@@ -3,7 +3,6 @@
 import { formatBytes } from '../../lib/compress';
 import { getFormatOptions } from '../../lib/compress';
 import ControlPanel from './ControlPanel';
-import { ViewTabs } from './PreviewWorkspace';
 import SegmentedControl from './SegmentedControl';
 
 export default function ToolMobileSheet({
@@ -14,6 +13,9 @@ export default function ToolMobileSheet({
   setViewMode,
   expanded,
   onToggleExpand,
+  showFullscreen = false,
+  onFullscreen,
+  isFullscreen = false,
 }) {
   const formats = getFormatOptions().map((opt) => ({
     value: opt.value,
@@ -46,12 +48,6 @@ export default function ToolMobileSheet({
             <span className="tool-mobile-stat-val">{formatBytes(c.result.compressedSize)}</span>
             <span className="tool-mobile-stat-label">{t.playground.optimized}</span>
           </div>
-        </div>
-      )}
-
-      {c.result && (
-        <div className="mb-4">
-          <ViewTabs viewMode={viewMode} setViewMode={setViewMode} t={t} />
         </div>
       )}
 
@@ -104,6 +100,11 @@ export default function ToolMobileSheet({
             {t.playground.newImage || 'New'}
           </button>
         </div>
+        {showFullscreen && onFullscreen && (
+          <button type="button" onClick={onFullscreen} className="tool-mobile-secondary w-full">
+            {isFullscreen ? (t.playground.exitFullscreen || 'Exit fullscreen') : (t.playground.fullscreen || 'Fullscreen')}
+          </button>
+        )}
       </div>
     </div>
   );
