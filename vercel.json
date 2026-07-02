@@ -2,5 +2,13 @@
   "buildCommand": "npm run build:lib && cd website && npm run build",
   "outputDirectory": "website/out",
   "installCommand": "npm install",
-  "framework": null
+  "framework": null,
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    }
+  ]
 }

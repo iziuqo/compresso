@@ -4,6 +4,7 @@ import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
+import ServiceWorker from '../components/ServiceWorker';
 
 const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -53,6 +54,7 @@ export default function RootLayout({ children }) {
         <script src="https://t.contentsquare.net/uxa/17eb42fc937fb.js" defer />
       </head>
       <body className="font-sans antialiased">
+        <ServiceWorker />
         {children}
         <Analytics />
         <SpeedInsights />

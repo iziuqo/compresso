@@ -40,10 +40,6 @@ export default function Home() {
     setLocale(detectLocale());
     setBasePath(detectBasePath());
     document.documentElement.lang = detectLocale() === 'pt-br' ? 'pt-BR' : detectLocale();
-
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
-    }
   }, []);
 
   function changeLocale(newLocale) {
