@@ -279,7 +279,7 @@
 
   /* ── Pro tool (Apple-inspired) ── */
   .pro-window {
-    @apply rounded-[14px] border border-black/[0.08] bg-[#f5f5f7] shadow-[0_22px_70px_rgba(0,0,0,0.14),0_0_0_1px_rgba(0,0,0,0.04)] overflow-hidden;
+    @apply rounded-[14px] border border-black/[0.08] bg-[#f5f5f7] shadow-[0_22px_70px_rgba(0,0,0,0.14),0_0_0_1px_rgba(0,0,0,0.04)] overflow-hidden flex flex-col;
   }
 
   .pro-window-flush {
@@ -319,7 +319,7 @@
   }
 
   .pro-layout {
-    @apply grid grid-cols-1 lg:grid-cols-[280px_1fr] min-h-[520px];
+    @apply grid grid-cols-1 lg:grid-cols-[280px_1fr] min-h-[520px] h-full;
   }
 
   .pro-layout-full {
@@ -424,6 +424,14 @@
 
   .pro-canvas {
     @apply flex flex-1 flex-col items-center justify-center p-6 sm:p-8 min-h-0 relative;
+  }
+
+  .pro-canvas-fill {
+    @apply items-stretch justify-stretch p-4 sm:p-5;
+  }
+
+  .pro-canvas-fill .pro-image-frame {
+    @apply flex-1 min-h-0 w-full h-full;
   }
 
   .pro-canvas-busy .pro-image-frame {
@@ -602,6 +610,35 @@
 }
 
 /* Demo presentation */
+.demo-shell {
+  @apply flex flex-col min-h-0;
+  min-height: min(70vh, 640px);
+}
+
+.demo-shell .demo-app-root {
+  @apply flex flex-col flex-1 min-h-0 h-full w-full;
+}
+
+.demo-shell .pro-embed-window {
+  @apply flex flex-col flex-1 min-h-0 h-full;
+}
+
+.demo-shell .pro-embed-window .pro-body {
+  @apply flex flex-col flex-1 min-h-0 h-full;
+}
+
+.demo-shell .pro-layout-full {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+.demo-shell .pro-preview-col,
+.demo-shell .pro-stage {
+  @apply h-full min-h-0;
+}
+
 .demo-stage {
   @apply relative py-4 sm:py-6;
 }
@@ -701,6 +738,18 @@ body.demo-fullscreen-body {
 #demo-fullscreen-root:-webkit-full-screen .pro-canvas,
 #demo-fullscreen-root.demo-fullscreen-active .pro-canvas {
   @apply flex-1 min-h-0;
+}
+
+#demo-fullscreen-root:fullscreen .pro-preview-col,
+#demo-fullscreen-root:-webkit-full-screen .pro-preview-col,
+#demo-fullscreen-root.demo-fullscreen-active .pro-preview-col {
+  @apply flex flex-col h-full min-h-0;
+}
+
+#demo-fullscreen-root:fullscreen .pro-image-frame,
+#demo-fullscreen-root:-webkit-full-screen .pro-image-frame,
+#demo-fullscreen-root.demo-fullscreen-active .pro-image-frame {
+  @apply flex-1 min-h-0 w-full h-full;
 }
 
 #demo-fullscreen-root:fullscreen .pro-dropzone-shell,

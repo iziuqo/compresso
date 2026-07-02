@@ -168,7 +168,7 @@ export default function CompressorApp({
     reprocessing: c.reprocessing,
     error: c.error,
     onClear: c.clearUpload,
-    fill: isFullscreen || isTool,
+    fill: true,
   };
 
   const titleActions = isTool && locale && onLocaleChange
@@ -265,13 +265,13 @@ export default function CompressorApp({
   }
 
   /* Embed — live demo */
-  const layoutClass = isFullscreen
-    ? 'pro-layout pro-layout-full pro-layout-fs'
-    : 'pro-layout';
-
   const embed = (
-    <ToolWindow title="Compresso" flush={isFullscreen} className={isFullscreen ? 'h-full min-h-0 flex-1' : ''}>
-      <div className={`${layoutClass} animate-pro-layout-in`}>
+    <ToolWindow
+      title="Compresso"
+      flush={isFullscreen}
+      className={isFullscreen ? 'h-full min-h-0 flex-1' : 'pro-embed-window'}
+    >
+      <div className="pro-layout pro-layout-full animate-pro-layout-in">
         <aside className="pro-inspector animate-pro-inspector-in min-h-0 h-full">
           <div className="pro-inspector-scroll">
             <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
@@ -282,14 +282,15 @@ export default function CompressorApp({
           <InspectorFooter {...fsFooterProps} />
         </aside>
         <div className="pro-preview-col">
-          <PreviewWorkspace {...previewProps} fill={isFullscreen} />
+          <PreviewWorkspace {...previewProps} />
         </div>
       </div>
     </ToolWindow>
   );
 
-  if (isFullscreen) {
-    return <div className="demo-app-root flex-1 min-h-0 h-full w-full">{embed}</div>;
-  }
-  return embed;
+  return (
+    <div className="demo-app-root flex flex-col flex-1 min-h-0 w-full">
+      {embed}
+    </div>
+  );
 }

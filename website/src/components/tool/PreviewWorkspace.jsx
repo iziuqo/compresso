@@ -47,7 +47,7 @@ export default function PreviewWorkspace({
         </div>
       )}
 
-      <div className={`pro-canvas flex-1 relative min-h-0 ${reprocessing ? 'pro-canvas-busy' : ''}`}>
+      <div className={`pro-canvas flex-1 relative min-h-0 ${fill ? 'pro-canvas-fill' : ''} ${reprocessing ? 'pro-canvas-busy' : ''}`}>
         {error && !result ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 animate-pro-fade-in">
             <p className="text-sm text-red-400 mb-3">{error}</p>
