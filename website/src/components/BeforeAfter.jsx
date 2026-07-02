@@ -10,6 +10,7 @@ export default function BeforeAfter({
   dragLabel,
   fill,
   dark = false,
+  hideLabels = false,
 }) {
   const [position, setPosition] = useState(50);
   const [dragging, setDragging] = useState(false);
@@ -106,8 +107,12 @@ export default function BeforeAfter({
         </div>
       </div>
 
-      <div className="absolute top-4 left-4 z-10 pro-badge animate-pro-badge-in">{originalLabel}</div>
-      <div className="absolute top-4 right-4 z-10 pro-badge animate-pro-badge-in">{optimizedLabel}</div>
+      {!hideLabels && (
+        <>
+          <div className="absolute top-4 left-4 z-10 pro-badge animate-pro-badge-in">{originalLabel}</div>
+          <div className="absolute top-4 right-4 z-10 pro-badge animate-pro-badge-in">{optimizedLabel}</div>
+        </>
+      )}
     </div>
   );
 }

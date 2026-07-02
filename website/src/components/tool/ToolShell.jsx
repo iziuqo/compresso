@@ -12,16 +12,16 @@ export default function ToolShell({ title, subtitle, actions, children }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </a>
-          <a href="/" className="tool-header-brand">
+          <a href="/" className="tool-header-brand hidden sm:flex">
             <Logo size={24} />
             <span className="tool-header-name">Compresso</span>
           </a>
         </div>
 
         {(title || subtitle) && (
-          <div className="tool-header-center hidden sm:block min-w-0">
+          <div className="tool-header-center min-w-0 flex-1 sm:flex-none">
             {title && <p className="tool-header-title truncate">{title}</p>}
-            {subtitle && <p className="tool-header-subtitle truncate">{subtitle}</p>}
+            {subtitle && <p className="tool-header-subtitle truncate hidden sm:block">{subtitle}</p>}
           </div>
         )}
 

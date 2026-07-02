@@ -30,12 +30,12 @@ export default function Playground({ t }) {
 
   const shellClass = [
     'demo-shell flex flex-col',
-    isFullscreen ? 'demo-fullscreen-active h-full min-h-0' : 'demo-wrap demo-stage',
+    isFullscreen ? 'demo-fullscreen-active h-full min-h-0' : 'demo-wrap demo-stage demo-stage-inline',
   ].join(' ');
 
   return (
-    <section id="playground" className="band-light section-block">
-      <div className="playground-chrome site-wrap mb-8 sm:mb-10">
+    <section id="playground" className="band-light section-block playground-section">
+      <div className="playground-chrome site-wrap mb-4 sm:mb-10 hidden lg:block">
         <StoryChapter label={t.playground.label} title={t.playground.title} desc={t.playground.subtitle} />
       </div>
       <div id="demo-fullscreen-root" ref={shellRef} className={shellClass}>
@@ -46,7 +46,7 @@ export default function Playground({ t }) {
           isFullscreen={isFullscreen}
         />
       </div>
-      <div className="playground-chrome site-wrap mt-10 sm:mt-12">
+      <div className="playground-chrome site-wrap mt-6 sm:mt-12 hidden lg:block">
         <a href="#problem" className="story-bridge">
           {t.story.playgroundBridge}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

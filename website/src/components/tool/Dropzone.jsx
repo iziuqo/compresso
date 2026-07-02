@@ -17,11 +17,12 @@ export default function Dropzone({
   inputRef,
   onFileChange,
   onExample,
+  compact = false,
 }) {
   return (
-    <div className="max-w-lg mx-auto animate-pro-dropzone-in">
+    <div className={`mx-auto animate-pro-dropzone-in ${compact ? 'w-full' : 'max-w-lg'}`}>
       <div
-        className={`pro-dropzone transition-all duration-300 ${dragOver ? 'pro-dropzone-active' : ''}`}
+        className={`pro-dropzone transition-all duration-300 ${dragOver ? 'pro-dropzone-active' : ''} ${compact ? 'pro-dropzone-compact' : ''}`}
         onClick={onClick}
         onDrop={onDrop}
         onDragOver={onDragOver}
@@ -31,13 +32,13 @@ export default function Dropzone({
         onKeyDown={onKeyDown}
         aria-label={t.playground.dropzone}
       >
-        <div className="pro-dropzone-icon animate-pro-icon-float">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true">
+        <div className={`pro-dropzone-icon ${compact ? 'pro-dropzone-icon-compact' : 'animate-pro-icon-float'}`}>
+          <svg width={compact ? 22 : 28} height={compact ? 22 : 28} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" aria-hidden="true">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A4.5 4.5 0 0118 19.5H6.75z" />
           </svg>
         </div>
-        <p className="text-[0.9375rem] font-semibold text-ink mb-1">{t.playground.dropzone}</p>
-        <p className="text-sm text-ink-faint">{t.playground.dropzoneHint}</p>
+        <p className={`font-semibold text-ink mb-0.5 ${compact ? 'text-sm' : 'text-[0.9375rem]'}`}>{t.playground.dropzone}</p>
+        {!compact && <p className="text-sm text-ink-faint">{t.playground.dropzoneHint}</p>}
         <p className="text-xs text-ink-faint/70 mt-4 hidden sm:flex items-center justify-center gap-1.5">
           <kbd className="pro-kbd">⌘V</kbd>
           <span>to paste</span>
@@ -47,16 +48,16 @@ export default function Dropzone({
         <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
       </div>
 
-      <p className="pro-group-label text-center mt-8 mb-3">
+      <p className={`pro-group-label text-center mb-2 ${compact ? 'mt-3 text-[0.625rem]' : 'mt-8 mb-3'}`}>
         {t.playground.examples || 'Sample images'}
       </p>
-      <div className="grid grid-cols-3 gap-3 pro-sample-stagger">
+      <div className={`${compact ? 'flex gap-2 overflow-x-auto pb-1 -mx-1 px-1' : 'grid grid-cols-3 gap-3'} pro-sample-stagger`}>
         {EXAMPLES.map((ex) => (
           <button
             key={ex.name}
             type="button"
             onClick={(e) => { e.stopPropagation(); onExample(ex.url, ex.name); }}
-            className="pro-sample"
+            className={`pro-sample ${compact ? 'pro-sample-compact shrink-0' : ''}`}
           >
             <img src={ex.url} alt="" loading="lazy" draggable={false} />
             <span className="pro-sample-label">{t.playground[ex.key]}</span>

@@ -15,8 +15,14 @@ export default function ProMobileLayout({
   showFullscreen,
   onFullscreen,
   isFullscreen,
+  variant = 'tool',
 }) {
-  const mobilePreview = { ...previewProps, hideStats: true };
+  const mobilePreview = {
+    ...previewProps,
+    hideStats: true,
+    hideViewTabs: true,
+    mobile: true,
+  };
 
   return (
     <div className="pro-mobile-layout">
@@ -34,6 +40,7 @@ export default function ProMobileLayout({
         showFullscreen={showFullscreen}
         onFullscreen={onFullscreen}
         isFullscreen={isFullscreen}
+        variant={variant}
       />
     </div>
   );

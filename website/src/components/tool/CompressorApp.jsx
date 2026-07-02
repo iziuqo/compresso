@@ -9,6 +9,8 @@ import PreviewWorkspace from './PreviewWorkspace';
 import ToolWindow from './ToolWindow';
 import ToolShell from './ToolShell';
 import ProMobileLayout from './ProMobileLayout';
+import EmbedMobileLayout from './EmbedMobileLayout';
+import EmbedMobileEmpty from './EmbedMobileEmpty';
 import { locales, getLocaleLabel } from '../../i18n';
 
 function FileChip({ file, originalUrl, result, onClear }) {
@@ -239,7 +241,7 @@ export default function CompressorApp({
           </div>
 
           <div className="lg:hidden flex-1 min-h-0 h-full">
-            <ProMobileLayout previewProps={previewProps} {...mobileSheetProps} />
+            <ProMobileLayout previewProps={previewProps} {...mobileSheetProps} variant="tool" />
           </div>
         </div>
       </ToolShell>
@@ -247,64 +249,88 @@ export default function CompressorApp({
   }
 
   if (!c.file) {
-    const emptyBody = (
-      <ToolWindow title="Compresso" actions={titleActions} flush={isFullscreen || isTool} className={isFullscreen || isTool ? 'h-full min-h-0 flex-1' : ''}>
-        <div className={isFullscreen || isTool ? 'pro-dropzone-shell flex-1 min-h-0' : 'flex items-center justify-center py-12 sm:py-16 px-6'}>
-          <Dropzone {...dropzoneProps} />
-        </div>
-      </ToolWindow>
+    const emptyDropzone = (
+      <div className="pro-dropzone-shell flex-1 min-h-0">
+        <Dropzone {...dropzoneProps} compact={!isFullscreen} />
+      </div>
     );
 
-    if (isFullscreen && !isTool) {
-      return <div className="demo-app-root flex-1 min-h-0 h-full w-full">{emptyBody}</div>;
+    if (isFullscreen) {
+      return (
+        <div className="demo-app-root flex-1 min-h-0 h-full w-full">
+          <ToolWindow title="Compresso" actions={titleActions} flush className="h-full min-h-0 flex-1">
+            {emptyDropzone}
+          </ToolWindow>
+        </div>
+      );
     }
-    return emptyBody;
+
+    return (
+      <>
+        <div className="hidden lg:block">
+          <ToolWindow title="Compresso" actions={titleActions}>
+            <div className="flex items-center justify-center py-12 sm:py-16 px-6">
+              <Dropzone {...dropzoneProps} />
+            </div>
+          </ToolWindow>
+        </div>
+        <div className="lg:hidden">
+          <EmbedMobileEmpty t={t} dropzoneProps={dropzoneProps} />
+        </div>
+      </>
+    );
   }
 
-  /* Embed — live demo */
-  const mobileSheetProps = {
-    t,
-    c,
-    panelProps,
-    viewMode: c.viewMode,
-    setViewMode: c.setViewMode,
-    expanded: mobileExpanded,
-    onToggleExpand: () => setMobileExpanded((v) => !v),
-    showFullscreen,
-    onFullscreen: toggleFullscreen,
-    isFullscreen,
-  };
-
-  const embed = (
-    <ToolWindow
-      title="Compresso"
-      flush={isFullscreen}
-      className={isFullscreen ? 'h-full min-h-0 flex-1' : 'pro-embed-window'}
-    >
-      <div className="hidden lg:grid pro-layout pro-layout-full animate-pro-layout-in flex-1 min-h-0">
-        <aside className="pro-inspector animate-pro-inspector-in min-h-0 h-full">
-          <div className="pro-inspector-scroll">
-            <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
-            <div className="mt-4">
-              <ControlPanel {...panelProps} />
+  if (isFullscreen) {
+    return (
+      <div className="demo-app-root flex flex-col flex-1 min-h-0 w-full">
+        <ToolWindow title="Compresso" flush className="h-full min-h-0 flex-1">
+          <div className="hidden lg:grid pro-layout pro-layout-full animate-pro-layout-in flex-1 min-h-0">
+            <aside className="pro-inspector animate-pro-inspector-in min-h-0 h-full">
+              <div className="pro-inspector-scroll">
+                <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
+                <div className="mt-4">
+                  <ControlPanel {...panelProps} />
+                </div>
+              </div>
+              <InspectorFooter {...fsFooterProps} />
+            </aside>
+            <div className="pro-preview-col">
+              <PreviewWorkspace {...previewProps} />
             </div>
           </div>
-          <InspectorFooter {...fsFooterProps} />
-        </aside>
-        <div className="pro-preview-col">
-          <PreviewWorkspace {...previewProps} />
-        </div>
+          <div className="lg:hidden flex-1 min-h-0 h-full p-3">
+            <EmbedMobileLayout t={t} c={c} previewProps={previewProps} fullscreen />
+          </div>
+        </ToolWindow>
       </div>
-
-      <div className="lg:hidden flex-1 min-h-0 h-full">
-        <ProMobileLayout previewProps={previewProps} {...mobileSheetProps} />
-      </div>
-    </ToolWindow>
-  );
+    );
+  }
 
   return (
-    <div className="demo-app-root flex flex-col flex-1 min-h-0 w-full">
-      {embed}
-    </div>
+    <>
+      <div className="hidden lg:block">
+        <ToolWindow title="Compresso" className="pro-embed-window demo-app-root">
+          <div className="grid pro-layout pro-layout-full animate-pro-layout-in">
+            <aside className="pro-inspector animate-pro-inspector-in min-h-0 h-full">
+              <div className="pro-inspector-scroll">
+                <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
+                <div className="mt-4">
+                  <ControlPanel {...panelProps} />
+                </div>
+              </div>
+              <InspectorFooter {...fsFooterProps} />
+            </aside>
+            <div className="pro-preview-col">
+              <PreviewWorkspace {...previewProps} />
+            </div>
+          </div>
+        </ToolWindow>
+      </div>
+
+      <div className="lg:hidden">
+        <EmbedMobileLayout t={t} c={c} previewProps={previewProps} />
+      </div>
+    </>
   );
 }
