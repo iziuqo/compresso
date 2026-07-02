@@ -1,125 +1,132 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { locales, getLocaleLabel } from '../i18n';
+import Logo from './Logo';
 
 export default function Header({ t, locale, onLocaleChange, basePath = '' }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrollHidden, setScrollHidden] = useState(false);
+  const [fsHidden, setFsHidden] = useState(false);
+  const lastY = useRef(0);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+
+    const onScroll = () => {
+      if (!mq.matches) {
+        setScrollHidden(false);
+        return;
+      }
+
+      const y = window.scrollY;
+      const delta = y - lastY.current;
+
+      if (y < 64) {
+        setScrollHidden(false);
+      } else if (delta > 10) {
+        setScrollHidden(true);
+      } else if (delta < -10) {
+        setScrollHidden(false);
+      }
+
+      lastY.current = y;
+    };
+
+    const onFullscreen = () => {
+      const el = document.fullscreenElement || document.webkitFullscreenElement;
+      setFsHidden(el?.id === 'demo-fullscreen-root');
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    document.addEventListener('fullscreenchange', onFullscreen);
+    document.addEventListener('webkitfullscreenchange', onFullscreen);
+
+    const onMq = () => setScrollHidden(false);
+    mq.addEventListener('change', onMq);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('fullscreenchange', onFullscreen);
+      document.removeEventListener('webkitfullscreenchange', onFullscreen);
+      mq.removeEventListener('change', onMq);
+    };
+  }, []);
+
+  const headerClass = [
+    'site-header',
+    scrollHidden && !fsHidden ? 'is-hidden' : '',
+    fsHidden ? 'is-fs-hidden' : '',
+  ].filter(Boolean).join(' ');
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className={headerClass}>
+      <div className="site-wrap">
         <div className="flex items-center justify-between h-16">
-          <a href="#" className="flex items-center gap-2 font-bold text-xl">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-              <rect width="32" height="32" rx="8" className="fill-brand-500" />
-              <path
-                d="M8 16C8 11.58 11.58 8 16 8V12C13.79 12 12 13.79 12 16H8Z"
-                fill="white"
-               
-              />
-              <path
-                d="M16 8C20.42 8 24 11.58 24 16H20C20 13.79 18.21 12 16 12V8Z"
-                fill="white"
-              />
-              <path
-                d="M24 16C24 20.42 20.42 24 16 24V20C18.21 20 20 18.21 20 16H24Z"
-                fill="white"
-               
-              />
-              <path
-                d="M16 24C11.58 24 8 20.42 8 16H12C12 18.21 13.79 20 16 20V24Z"
-                fill="white"
-              />
-            </svg>
-            <span>Compresso</span>
+          <a href="#" className="flex items-center gap-2.5">
+            <Logo size={28} />
+            <span className="text-[0.9375rem] font-semibold text-white tracking-tight">Compresso</span>
           </a>
 
-          <nav className="hidden md:flex items-center gap-6" aria-label="Main">
-            <a href="#playground" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Main">
+            <a href="#playground" className="text-sm font-medium text-white/70 hover:text-white px-3 py-2 rounded-pill transition-colors">
               {t.nav.playground}
             </a>
-            <a href={`${basePath}/docs/`} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+            <a href={`${basePath}/docs/`} className="text-sm font-medium text-white/70 hover:text-white px-3 py-2 rounded-pill transition-colors">
               {t.nav.docs}
             </a>
             <a
               href="https://github.com/iziuqo/compresso"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-sm font-medium text-white/70 hover:text-white px-3 py-2 rounded-pill transition-colors"
             >
               {t.nav.github}
             </a>
 
-            <div className="relative">
-              <select
-                value={locale}
-                onChange={(e) => onLocaleChange(e.target.value)}
-                className="appearance-none bg-gray-100 text-sm rounded-lg px-3 py-1.5 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500"
-                aria-label="Language"
-              >
-                {locales.map((l) => (
-                  <option key={l} value={l}>
-                    {getLocaleLabel(l)}
-                  </option>
-                ))}
-              </select>
-              <svg
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
+            <div className="w-px h-5 bg-line-dark mx-2" aria-hidden="true" />
+
+            <select
+              value={locale}
+              onChange={(e) => onLocaleChange(e.target.value)}
+              className="appearance-none bg-transparent text-sm font-medium text-white/70 hover:text-white px-2 py-1.5 cursor-pointer focus:outline-none rounded-pill"
+              aria-label="Language"
+            >
+              {locales.map((l) => (
+                <option key={l} value={l} className="text-ink">{getLocaleLabel(l)}</option>
+              ))}
+            </select>
+
+            <a href="#playground" className="btn-primary ml-2 !h-10 !px-5 !text-sm">
+              {t.nav.getStarted}
+            </a>
           </nav>
 
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+            className="md:hidden p-2 -mr-1 text-white/70 rounded-pill hover:bg-white/10"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              {menuOpen ? (
-                <path d="M6 6L18 18M6 18L18 6" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {menuOpen ? <path d="M6 6L18 18M6 18L18 6" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
             </svg>
           </button>
         </div>
       </div>
 
       {menuOpen && (
-        <nav className="md:hidden border-t border-gray-200/50 px-4 py-4 space-y-3" aria-label="Mobile">
-          <a href="#playground" className="block text-gray-600" onClick={() => setMenuOpen(false)}>
-            {t.nav.playground}
-          </a>
-          <a href={`${basePath}/docs/`} className="block text-gray-600">
-            {t.nav.docs}
-          </a>
-          <a
-            href="https://github.com/iziuqo/compresso"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-gray-600"
-          >
-            {t.nav.github}
-          </a>
+        <nav className="md:hidden border-t border-line-dark bg-canvas-dark px-5 py-4 space-y-1" aria-label="Mobile">
+          <a href="#playground" className="block py-2.5 px-2 text-white font-medium rounded-pill hover:bg-white/10" onClick={() => setMenuOpen(false)}>{t.nav.playground}</a>
+          <a href={`${basePath}/docs/`} className="block py-2.5 px-2 text-white font-medium rounded-pill hover:bg-white/10">{t.nav.docs}</a>
+          <a href="https://github.com/iziuqo/compresso" target="_blank" rel="noopener noreferrer" className="block py-2.5 px-2 text-white font-medium rounded-pill hover:bg-white/10">{t.nav.github}</a>
           <select
             value={locale}
             onChange={(e) => { onLocaleChange(e.target.value); setMenuOpen(false); }}
-            className="w-full bg-gray-100 rounded-lg px-3 py-2"
+            className="w-full mt-2 py-2.5 px-3 border border-line-dark rounded-ui-lg bg-canvas-elevated text-sm font-medium text-white"
             aria-label="Language"
           >
-            {locales.map((l) => (
-              <option key={l} value={l}>
-                {getLocaleLabel(l)}
-              </option>
-            ))}
+            {locales.map((l) => <option key={l} value={l}>{getLocaleLabel(l)}</option>)}
           </select>
         </nav>
       )}

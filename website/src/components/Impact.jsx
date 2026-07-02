@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import StoryChapter from './StoryChapter';
 
 function fmt(n) {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -107,15 +108,12 @@ export default function Impact({ t }) {
   }, [uploads, avgSizeMB, uploadLimitMB]);
 
   return (
-    <section className="py-20 sm:py-28 bg-gray-50">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.impact.title}</h2>
-          <p className="text-gray-600 text-lg max-w-2xl mx-auto">{t.impact.subtitle}</p>
-        </div>
+    <section id="impact" className="band-dark section-block">
+      <div className="site-wrap">
+        <div className="max-w-4xl mx-auto band-dark">
+        <StoryChapter label={t.impact.tagline} title={t.impact.title} desc={t.impact.subtitle} />
 
-        {/* Sliders */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-5 sm:p-8 shadow-sm mb-6">
+        <div className="card p-5 sm:p-8 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
             <SliderInput label={t.impact.calcUploads} value={uploads} min={1000} max={2000000} step={1000} display={fmt(uploads)} onChange={setUploads} />
             <SliderInput label={t.impact.calcAvgSize} value={avgSizeMB} min={0.5} max={15} step={0.5} display={`${avgSizeMB} MB`} onChange={setAvgSizeMB} />
@@ -123,31 +121,29 @@ export default function Impact({ t }) {
           </div>
         </div>
 
-        {/* Hero metrics */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
           <HeroMetric value={fmtMoney(d.annualSaved)} label={t.impact.calcAnnual} sub={`${fmtMoney(d.monthlySaved)}/mo`} accent />
           <HeroMetric value={fmtBytes(d.bwSavedGB)} label={t.impact.calcBandwidth} sub={`${fmtBytes(d.bwBeforeGB)} → ${fmtBytes(d.bwAfterGB)}`} accent />
           <HeroMetric value={fmt(d.failedUploads)} label={t.impact.calcFailures} sub={`${Math.round(d.failRate * 100)}% → 0%`} />
           <HeroMetric value={`${Math.round(d.totalTimeSavedHours)}h`} label={t.impact.calcTimeSaved} sub={`${fmtTime(d.uploadTimeBefore)} → ${fmtTime(d.uploadTimeAfter)}/file`} />
         </div>
 
-        {/* Cost breakdown */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.impact.calcCostBreakdown}</h3>
+          <div className="card p-5 sm:p-6">
+            <h3 className="card-heading">{t.impact.calcCostBreakdown}</h3>
             <div className="space-y-2.5">
               <CostRow label={t.impact.bandwidth} before={fmtMoney(d.costBwBefore)} after={fmtMoney(d.costBwAfter)} />
               <CostRow label={t.impact.calcProcessing} before={fmtMoney(d.costProcessingBefore)} after={fmtMoney(0)} />
               <CostRow label={t.impact.calcStorage} before={fmtMoney(d.costStorageBefore)} after={fmtMoney(d.costStorageAfter)} />
               <CostRow label={t.impact.calcSupport} before={fmtMoney(d.costSupportBefore)} after={fmtMoney(0)} />
-              <div className="pt-2 border-t border-gray-100">
+              <div className="pt-2 border-t border-line-dark">
                 <CostRow label="Total" before={fmtMoney(d.totalBefore)} after={fmtMoney(d.totalAfter)} bold />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.impact.calcUserImpact}</h3>
+          <div className="card p-5 sm:p-6">
+            <h3 className="card-heading">{t.impact.calcUserImpact}</h3>
             <div className="space-y-2.5">
               <ImpactRow label={t.impact.calcUploadSpeed} before={fmtTime(d.uploadTimeBefore)} after={fmtTime(d.uploadTimeAfter)} />
               <ImpactRow label={t.impact.calcRetries} before={fmt(d.retryAttempts)} after="0" />
@@ -159,11 +155,12 @@ export default function Impact({ t }) {
           </div>
         </div>
 
-        <div className="text-[10px] text-gray-400 text-center max-w-3xl mx-auto leading-relaxed space-y-1">
+        <div className="text-xs text-white/40 max-w-2xl mx-auto text-center leading-[1.55] space-y-2">
           <p>{t.impact.calcDisclaimer}</p>
-          <p className="text-gray-300">
+          <p>
             {t.impact.calcSources || 'Sources: AWS published pricing (us-east-1, 2024), HDI Support Center Practices & Salary Report 2023, GSMA Mobile Internet Connectivity 2024, Canvas API compression benchmarks on iPhone 15/Samsung Galaxy S24 test images.'}
           </p>
+        </div>
         </div>
       </div>
     </section>
@@ -173,19 +170,19 @@ export default function Impact({ t }) {
 function SliderInput({ label, value, min, max, step, display, onChange }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-gray-600 mb-2">{label}</label>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-brand-500 h-1.5" />
-      <div className="text-center text-lg font-bold text-brand-600 mt-1.5 tabular-nums">{display}</div>
+      <label className="block text-xs font-semibold text-white/55 mb-2">{label}</label>
+      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} className="w-full accent-cobalt h-1.5" />
+      <div className="text-center font-display text-lg font-semibold text-white mt-2 tabular-nums tracking-tight">{display}</div>
     </div>
   );
 }
 
 function HeroMetric({ value, label, sub, accent }) {
   return (
-    <div className="bg-white rounded-xl p-4 border border-gray-100 text-center">
-      <div className={`text-xl sm:text-2xl font-bold tabular-nums ${accent ? 'text-brand-600' : 'text-gray-900'}`}>{value}</div>
-      <div className="text-[0.65rem] text-gray-500 mt-1 font-medium">{label}</div>
-      <div className="text-[0.55rem] sm:text-[0.6rem] text-gray-400 mt-0.5 tabular-nums">{sub}</div>
+    <div className="card p-4 sm:p-5 text-center">
+      <div className={`font-display text-xl sm:text-2xl font-semibold tabular-nums tracking-tight leading-none ${accent ? 'text-brand' : 'text-white'}`}>{value}</div>
+      <div className="text-[0.6875rem] sm:text-xs text-white/55 mt-2 font-semibold leading-[1.4]">{label}</div>
+      <div className="text-[0.625rem] sm:text-[0.6875rem] text-white/40 mt-1 tabular-nums leading-snug">{sub}</div>
     </div>
   );
 }
@@ -193,10 +190,10 @@ function HeroMetric({ value, label, sub, accent }) {
 function CostRow({ label, before, after, bold }) {
   return (
     <div className={`flex items-center justify-between text-xs ${bold ? 'font-semibold' : ''}`}>
-      <span className="text-gray-600">{label}</span>
+      <span className="text-white/55">{label}</span>
       <div className="flex items-center gap-3 tabular-nums">
-        <span className="text-red-500/70 line-through">{before}</span>
-        <span className="text-brand-600 font-medium">{after}</span>
+        <span className="text-white/35 line-through">{before}</span>
+        <span className="text-brand font-semibold">{after}</span>
       </div>
     </div>
   );
@@ -205,11 +202,11 @@ function CostRow({ label, before, after, bold }) {
 function ImpactRow({ label, before, after }) {
   return (
     <div className="flex items-center justify-between text-xs">
-      <span className="text-gray-600">{label}</span>
+      <span className="text-white/55">{label}</span>
       <div className="flex items-center gap-2 tabular-nums">
-        <span className="text-gray-400">{before}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-        <span className="text-brand-600 font-medium">{after}</span>
+        <span className="text-white/35">{before}</span>
+        <span className="text-white/35">→</span>
+        <span className="text-brand font-semibold">{after}</span>
       </div>
     </div>
   );

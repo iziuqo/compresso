@@ -1,52 +1,116 @@
-export default function Problem({ t }) {
+'use client';
+
+import Reveal from './Reveal';
+import StoryChapter from './StoryChapter';
+
+function FileIcon() {
   return (
-    <section className="py-20 sm:py-28">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold mb-4">{t.problem.title}</h2>
-          <p className="text-gray-600 text-lg max-w-3xl mx-auto">{t.problem.subtitle}</p>
-        </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16.5V5.25a2.25 2.25 0 012.25-2.25h6.5L18 7.5v9a2.25 2.25 0 01-2.25 2.25h-9.5A2.25 2.25 0 014 16.5z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14 2.25v5.25H18" />
+    </svg>
+  );
+}
 
-        <div className="grid grid-cols-3 gap-6 sm:gap-8 max-w-2xl mx-auto mb-16">
-          <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold text-red-500">{t.problem.stat1Value}</div>
-            <div className="text-sm text-gray-500 mt-2">{t.problem.stat1}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold text-amber-500">{t.problem.stat2Value}</div>
-            <div className="text-sm text-gray-500 mt-2">{t.problem.stat2}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl sm:text-4xl font-bold text-orange-500">{t.problem.stat3Value}</div>
-            <div className="text-sm text-gray-500 mt-2">{t.problem.stat3}</div>
-          </div>
-        </div>
+export default function Problem({ t }) {
+  const p = t.problem;
+  const facts = [
+    { value: p.stat2Value, label: p.stat2 },
+    { value: p.stat3Value, label: p.stat3 },
+    { value: p.stat1Value, label: p.stat1 },
+  ];
 
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="bg-red-50 border border-red-100 rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                </svg>
+  return (
+    <section id="problem" className="problem-section section-block">
+      <div className="site-wrap">
+        <Reveal>
+          <StoryChapter title={p.title} desc={p.subtitle} />
+        </Reveal>
+
+        <Reveal delay={50}>
+          <p className="problem-facts-lead">{p.factsLead}</p>
+          <dl className="problem-facts">
+            {facts.map(({ value, label }) => (
+              <div key={label} className="problem-fact">
+                <dt className="problem-fact-value">{value}</dt>
+                <dd className="problem-fact-label">{label}</dd>
               </div>
-              <h3 className="font-semibold text-lg text-red-900">{t.problem.card1Title}</h3>
-            </div>
-            <p className="text-red-800/80 leading-relaxed italic">{t.problem.card1Text}</p>
-          </div>
+            ))}
+          </dl>
+        </Reveal>
 
-          <div className="bg-brand-50 border border-brand-100 rounded-2xl p-6 sm:p-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" aria-hidden="true">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
+        <Reveal delay={100}>
+          <div className="problem-compare">
+            <article className="problem-card problem-card-broken" aria-labelledby="problem-broken-title">
+              <p className="problem-card-tag problem-card-tag-broken">{p.withoutLabel}</p>
+              <h3 id="problem-broken-title" className="problem-card-title">{p.withoutTitle}</h3>
+
+              <div className="problem-file">
+                <span className="problem-file-icon" aria-hidden="true"><FileIcon /></span>
+                <span className="problem-file-name">{p.mockFile}</span>
+                <span className="problem-file-size problem-file-size-bad">{p.mockFileSize}</span>
               </div>
-              <h3 className="font-semibold text-lg text-brand-900">{t.problem.card2Title}</h3>
+
+              <div className="problem-alert" role="status">
+                <p className="problem-alert-text">{p.mockError}</p>
+              </div>
+
+              <blockquote className="problem-quote">&ldquo;{p.userQuote}&rdquo;</blockquote>
+
+              <p className="problem-footnote problem-footnote-bad">{p.deadEnd}</p>
+            </article>
+
+            <div className="problem-divider" aria-hidden="true">
+              <span className="problem-divider-line" />
+              <span className="problem-divider-label">{p.withLabel}</span>
+              <span className="problem-divider-line" />
             </div>
-            <p className="text-brand-800/80 leading-relaxed">{t.problem.card2Text}</p>
+
+            <article className="problem-card problem-card-fixed" aria-labelledby="problem-fixed-title">
+              <p className="problem-card-tag problem-card-tag-fixed">{p.withLabel}</p>
+              <h3 id="problem-fixed-title" className="problem-card-title">{p.withTitle}</h3>
+
+              <div className="problem-file">
+                <span className="problem-file-icon" aria-hidden="true"><FileIcon /></span>
+                <span className="problem-file-name">{p.mockFile}</span>
+                <span className="problem-file-size problem-file-size-good">{p.mockOptimized}</span>
+              </div>
+
+              <div className="problem-transform" aria-label={`${p.mockFileSize} to ${p.mockOptimized}`}>
+                <span className="problem-transform-before">{p.mockFileSize}</span>
+                <svg className="problem-transform-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+                <span className="problem-transform-after">{p.mockOptimized}</span>
+                <span className="problem-transform-savings">{p.mockSavings}</span>
+              </div>
+
+              <p className="problem-ready">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+                {p.mockReady}
+              </p>
+
+              <ul className="problem-wins">
+                <li>{p.outcomeUser}</li>
+                <li>{p.outcomeBusiness}</li>
+              </ul>
+            </article>
           </div>
-        </div>
+        </Reveal>
+
+        <Reveal delay={140}>
+          <div className="problem-close">
+            <p className="problem-insight">{p.insight}</p>
+            <a href="#playground" className="story-cta">
+              {p.solutionCta}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </a>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

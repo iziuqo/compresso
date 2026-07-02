@@ -2,7 +2,15 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-export default function BeforeAfter({ originalUrl, optimizedUrl, originalLabel, optimizedLabel, dragLabel, fill }) {
+export default function BeforeAfter({
+  originalUrl,
+  optimizedUrl,
+  originalLabel,
+  optimizedLabel,
+  dragLabel,
+  fill,
+  dark = false,
+}) {
   const [position, setPosition] = useState(50);
   const [dragging, setDragging] = useState(false);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -33,13 +41,8 @@ export default function BeforeAfter({ originalUrl, optimizedUrl, originalLabel, 
 
   useEffect(() => {
     if (!dragging) return;
-
-    const onMove = (e) => {
-      e.preventDefault();
-      updatePosition(e.clientX);
-    };
+    const onMove = (e) => { e.preventDefault(); updatePosition(e.clientX); };
     const onUp = () => setDragging(false);
-
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
     return () => {
@@ -56,8 +59,7 @@ export default function BeforeAfter({ originalUrl, optimizedUrl, originalLabel, 
   return (
     <div
       ref={containerRef}
-      className={`relative w-full overflow-hidden bg-gray-100 select-none ${fill ? 'h-full' : 'rounded-2xl'}`}
-      style={{ ...(!fill && { aspectRatio: '16 / 10' }), cursor: 'ew-resize', touchAction: 'pan-y' }}
+      className={`relative w-full h-full overflow-hidden select-none comparison-slider ${fill ? '' : 'aspect-[16/10]'}`}
       onPointerDown={handlePointerDown}
       role="slider"
       aria-label={dragLabel}
@@ -67,49 +69,45 @@ export default function BeforeAfter({ originalUrl, optimizedUrl, originalLabel, 
       tabIndex={0}
       onKeyDown={handleKeyDown}
     >
-      {/* Optimized — full background */}
       <img
         src={optimizedUrl}
         alt={optimizedLabel}
-        className="absolute inset-0 w-full h-full object-contain"
+        className="absolute inset-0 w-full h-full object-contain drop-shadow-2xl"
         draggable={false}
       />
 
-      {/* Original — clipped to left side */}
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ width: `${position}%` }}
-      >
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${position}%` }}>
         <img
           src={originalUrl}
           alt={originalLabel}
-          className="absolute inset-0 h-full object-contain"
+          className="absolute inset-0 h-full object-contain drop-shadow-2xl"
           style={{ width: containerWidth > 0 ? `${containerWidth}px` : '100%', maxWidth: 'none' }}
           draggable={false}
         />
       </div>
 
-      {/* Divider */}
       <div
-        className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg z-10 pointer-events-none"
+        className={`absolute top-0 bottom-0 z-10 pointer-events-none comparison-divider ${dragging ? 'is-dragging' : ''}`}
         style={{ left: `${position}%`, transform: 'translateX(-50%)' }}
       >
-        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-            <path d="M6 10L2 10M14 10L18 10" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" />
-            <path d="M6 6L2 10L6 14" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M14 6L18 10L14 14" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <div className={`w-px h-full ${dragging ? 'bg-white' : 'bg-white/80'} shadow-[0_0_12px_rgba(0,0,0,0.5)]`} />
+        <div
+          className={`absolute top-1/2 left-0 -translate-y-1/2 -translate-x-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
+            dragging
+              ? 'scale-110 bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.25),0_4px_16px_rgba(0,0,0,0.4)]'
+              : 'bg-white/95 shadow-[0_2px_12px_rgba(0,0,0,0.35)] ring-1 ring-black/10'
+          }`}
+        >
+          <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M7 10H3M13 10H17" stroke="#86868b" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M7 7L3 10L7 13" stroke="#86868b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M13 7L17 10L13 13" stroke="#86868b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
       </div>
 
-      {/* Labels */}
-      <div className="absolute top-3 left-3 bg-black/60 text-white text-xs font-medium px-2.5 py-1 rounded-lg backdrop-blur-sm z-10">
-        {originalLabel}
-      </div>
-      <div className="absolute top-3 right-3 bg-black/60 text-white text-xs font-medium px-2.5 py-1 rounded-lg backdrop-blur-sm z-10">
-        {optimizedLabel}
-      </div>
+      <div className="absolute top-4 left-4 z-10 pro-badge animate-pro-badge-in">{originalLabel}</div>
+      <div className="absolute top-4 right-4 z-10 pro-badge animate-pro-badge-in">{optimizedLabel}</div>
     </div>
   );
 }

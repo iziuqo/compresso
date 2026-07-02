@@ -5,8 +5,8 @@
   "start_url": "/tool/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#22c55e",
+  "background_color": "#000000",
+  "theme_color": "#494fdf",
   "orientation": "any",
   "categories": ["utilities", "photo"],
   "icons": [

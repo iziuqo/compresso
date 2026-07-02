@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getTranslations, locales, defaultLocale, getLocaleLabel } from '../../i18n';
+import Logo from '../../components/Logo';
 
 function detectBasePath() {
   if (typeof window === "undefined") return "";
@@ -46,50 +47,46 @@ export default function DocsPage() {
   const t = getTranslations(locale);
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-          <a href={`${basePath}/`} className="flex items-center gap-2 font-bold text-xl">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-              <rect width="32" height="32" rx="8" className="fill-brand-500" />
-              <path d="M8 16C8 11.58 11.58 8 16 8V12C13.79 12 12 13.79 12 16H8Z" fill="white" />
-              <path d="M16 8C20.42 8 24 11.58 24 16H20C20 13.79 18.21 12 16 12V8Z" fill="white" />
-              <path d="M24 16C24 20.42 20.42 24 16 24V20C18.21 20 20 18.21 20 16H24Z" fill="white" />
-              <path d="M16 24C11.58 24 8 20.42 8 16H12C12 18.21 13.79 20 16 20V24Z" fill="white" />
-            </svg>
-            <span>Compresso</span>
-            <span className="text-sm font-normal text-gray-400 ml-1">{t.docs.title}</span>
-          </a>
-          <div className="flex items-center gap-4">
-            <select
-              value={locale}
-              onChange={(e) => { setLocale(e.target.value); localStorage.setItem('compresso-locale', e.target.value); }}
-              className="appearance-none bg-gray-100 text-sm rounded-lg px-3 py-1.5 pr-8 cursor-pointer focus:outline-none focus:ring-2 focus:ring-brand-500"
-              aria-label="Language"
-            >
-              {locales.map((l) => (
-                <option key={l} value={l}>{getLocaleLabel(l)}</option>
-              ))}
-            </select>
-            <a href="https://github.com/iziuqo/compresso" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-700">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-              </svg>
+    <div className="min-h-screen bg-cream-light">
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 pt-4">
+        <div className="max-w-site mx-auto">
+          <div className="flex items-center justify-between h-14 px-4 sm:px-5 rounded-pill bg-cream-light/90 backdrop-blur-md border border-line/80 shadow-nav">
+            <a href={`${basePath}/`} className="flex items-center gap-2.5">
+              <Logo size={26} />
+              <span className="text-[0.9375rem] font-bold text-ink tracking-tight">Compresso</span>
+              <span className="text-sm font-medium text-ink-faint hidden sm:inline">/ {t.docs.title}</span>
             </a>
+            <div className="flex items-center gap-3">
+              <select
+                value={locale}
+                onChange={(e) => { setLocale(e.target.value); localStorage.setItem('compresso-locale', e.target.value); }}
+                className="appearance-none bg-transparent text-sm font-medium text-ink-muted hover:text-plum px-2 py-1.5 cursor-pointer focus:outline-none rounded-ui"
+                aria-label="Language"
+              >
+                {locales.map((l) => (
+                  <option key={l} value={l}>{getLocaleLabel(l)}</option>
+                ))}
+              </select>
+              <a href="https://github.com/iziuqo/compresso" target="_blank" rel="noopener noreferrer" className="text-ink-muted hover:text-plum transition-colors p-1.5">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="lg:grid lg:grid-cols-[240px_1fr] lg:gap-12">
+      <div className="max-w-site mx-auto pt-28 pb-16 px-5 sm:px-8">
+        <div className="lg:grid lg:grid-cols-[220px_1fr] lg:gap-12">
           {/* Sidebar */}
-          <aside className="hidden lg:block sticky top-24 h-fit">
-            <nav className="space-y-1" aria-label="Documentation">
+          <aside className="hidden lg:block sticky top-28 h-fit">
+            <nav className="space-y-0.5" aria-label="Documentation">
               {sections.map((s) => (
                 <a
                   key={s.id}
                   href={`#${s.id}`}
-                  className="block text-sm py-1.5 px-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                  className="block text-sm py-2 px-3 rounded-ui text-ink-muted hover:text-plum hover:bg-plum-light transition-colors"
                 >
                   {t.docs[s.titleKey]}
                 </a>
@@ -98,7 +95,7 @@ export default function DocsPage() {
           </aside>
 
           {/* Content */}
-          <main className="prose prose-gray max-w-none prose-headings:scroll-mt-24 prose-headings:text-gray-900 prose-p:text-gray-700 prose-li:text-gray-700 prose-td:text-gray-700 prose-th:text-gray-900 prose-strong:text-gray-900 prose-code:bg-gray-100 prose-code:text-gray-800 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:bg-gray-950 prose-pre:text-gray-100">
+          <main className="prose max-w-none prose-headings:scroll-mt-28 prose-headings:font-display prose-headings:tracking-tight prose-headings:text-ink prose-p:text-ink-muted prose-li:text-ink-muted prose-td:text-ink-muted prose-th:text-ink prose-strong:text-ink prose-a:text-plum prose-a:no-underline hover:prose-a:text-plum-hover prose-code:bg-cream prose-code:text-plum prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none prose-pre:bg-plum-ink prose-pre:text-[#E8E0EA] prose-pre:rounded-ui-xl prose-pre:border prose-pre:border-line">
             <h1>{t.docs.title}</h1>
 
             <h2 id="installation">{t.docs.installation}</h2>
