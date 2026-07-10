@@ -49,7 +49,7 @@
   "license": "MIT WITH Commons-Clause",
   "repository": {
     "type": "git",
-    "url": "https://github.com/iziuqo/compresso"
+    "url": "git+https://github.com/iziuqo/compresso.git"
   },
   "homepage": "https://compresso.izaias.xyz",
   "bugs": {
