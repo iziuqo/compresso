@@ -34,8 +34,9 @@ This is what researchers call **externalized processing**: systems shift automat
 
 ## Why Compresso
 
-- **~3 KB gzipped** — smaller than most icons
-- **Zero dependencies** — nothing to audit, nothing to break
+- **~2 KB gzipped core** — smaller than most icons
+- **Zero required dependencies** — the core is codec-free; HEIC/HEIF input lazy-loads an optional decoder only when needed
+- **iPhone-ready** — HEIC/HEIF photos just work: Safari decodes natively, other browsers convert on the fly
 - **Runs in the browser** — no server-side processing, no API keys, no costs that scale with traffic
 - **Works everywhere** — any framework, any browser, any device
 - **Virtually lossless** — smart quality tuning preserves visual fidelity while drastically cutting file size
@@ -97,7 +98,7 @@ Compresses a single image.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `source` | `File \| Blob \| string` | Image file, blob, or URL |
+| `source` | `File \| Blob \| string` | Image file, blob, or URL (HEIC/HEIF accepted) |
 | `options` | `CompressOptions` | See below |
 
 #### Options
@@ -272,9 +273,11 @@ async function handleFile(e) {
 
 When `format: 'auto'`, Compresso detects the best format supported by the browser.
 
+**HEIC/HEIF input** works everywhere: Safari 17+ / iOS 17+ decode natively, and other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they encounter a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format; HEIC is input-only (use AVIF for HEIC-class output compression).
+
 ## How It Works
 
-Compresso uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips.
+Compresso's ~2 KB core uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips. The one exception is HEIC/HEIF input on non-Safari browsers, which lazily pulls in a WASM decoder on demand (see [Browser Support](#browser-support)).
 
 1. **Load** — Read the image into an `<img>` element
 2. **Resize** — Calculate target dimensions (preserving aspect ratio), using step-down resizing for quality

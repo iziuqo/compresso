@@ -2,7 +2,7 @@
 
 Tiny, zero-dependency image optimizer that runs entirely in the browser. Compress, resize, and convert images on the client side — no server needed.
 
-**~2 KB gzipped** · **Zero dependencies** · **Works everywhere**
+**~2 KB gzipped core** · **Zero required dependencies** · **HEIC/HEIF input** · **Works everywhere**
 
 [Website](https://compresso.izaias.xyz) · [Documentation](https://compresso.izaias.xyz/docs) · [GitHub](https://github.com/iziuqo/compresso)
 
@@ -45,6 +45,14 @@ const result = await compress(file, {
   format: 'jpeg',
 });
 ```
+
+## HEIC/HEIF input
+
+iPhone HEIC/HEIF photos are accepted as input and converted to a web format. Safari
+and iOS decode them natively; other browsers lazily load an optional WASM decoder
+([`heic-to`](https://www.npmjs.com/package/heic-to)) on the first HEIC image, so the
+~2 KB core stays codec-free for every other format. Output is input-only web formats —
+choose AVIF for HEIC-class output compression.
 
 ## Options
 

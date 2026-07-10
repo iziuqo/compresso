@@ -6,6 +6,7 @@ import {
   DEFAULT_FORMAT,
   DEFAULT_QUALITY,
   isImageFile,
+  toPreviewUrl,
 } from '../lib/compress';
 
 export function useCompressor() {
@@ -56,13 +57,17 @@ export function useCompressor() {
     if (originalUrl) URL.revokeObjectURL(originalUrl);
     if (result?.url) URL.revokeObjectURL(result.url);
     setFile(imageFile);
-    setOriginalUrl(URL.createObjectURL(imageFile));
     setResult(null);
     setInitialLoading(true);
     setViewMode('compare');
     skipReprocessRef.current = true;
     try {
-      setResult(await compressImage(imageFile, getOpts()));
+      const [previewUrl, result] = await Promise.all([
+        toPreviewUrl(imageFile),
+        compressImage(imageFile, getOpts()),
+      ]);
+      setOriginalUrl(previewUrl);
+      setResult(result);
     } catch (err) {
       console.error(err);
       setError(err.message || 'Failed to process image');

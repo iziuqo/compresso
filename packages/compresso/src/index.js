@@ -1,5 +1,6 @@
 export { compress } from './compress.js';
 export { isFormatSupported, getBestFormat, detectFormat } from './utils.js';
+export { isHeicSource, decodeHeic } from './heic.js';
 
 export function compressFile(file, options = {}) {
   return compress(file, options);

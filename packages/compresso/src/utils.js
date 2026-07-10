@@ -1,3 +1,5 @@
+import { isHeicSource, decodeHeic } from './heic.js';
+
 const MIME_TYPES = {
   jpeg: 'image/jpeg',
   jpg: 'image/jpeg',
@@ -60,14 +62,14 @@ export function canvasToBlob(canvas, mimeType, quality) {
   });
 }
 
-export function loadImage(source) {
+function nativeLoad(source) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('Failed to load image'));
 
     if (typeof source === 'string') {
       img.crossOrigin = 'anonymous';
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('Failed to load image'));
       img.src = source;
     } else if (source instanceof Blob) {
       const url = URL.createObjectURL(source);
@@ -84,6 +86,17 @@ export function loadImage(source) {
       reject(new Error('Invalid source: expected File, Blob, or URL string'));
     }
   });
+}
+
+export async function loadImage(source) {
+  try {
+    // Native decode first: free on Safari/iOS, and the common path everywhere else.
+    return await nativeLoad(source);
+  } catch (err) {
+    // Only HEIC/HEIF sources get the lazy WASM fallback; everything else keeps its error.
+    if (!isHeicSource(source)) throw err;
+    return nativeLoad(await decodeHeic(source));
+  }
 }
 
 export function isFormatSupported(format) {

@@ -3,6 +3,7 @@ import terser from '@rollup/plugin-terser';
 export default [
   {
     input: 'src/index.js',
+    external: ['heic-to'],
     output: [
       {
         file: 'dist/compresso.mjs',

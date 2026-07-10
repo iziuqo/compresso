@@ -64,6 +64,10 @@ export interface CompressResult {
 
 /**
  * Compress a single image file, blob, or URL.
+ *
+ * HEIC/HEIF input is accepted: Safari/iOS decode it natively, while other
+ * browsers lazily load an optional codec (`heic-to`) on the first HEIC image.
+ * Output is always one of the web formats above — HEIC is input-only.
  */
 export function compress(
   source: File | Blob | string,
@@ -116,6 +120,18 @@ export function getBestFormat(): string;
  * Detect the format of a file from its MIME type or extension.
  */
 export function detectFormat(file: File | Blob | string): string | null;
+
+/**
+ * Heuristic check for whether a source is HEIC/HEIF (by MIME type or extension).
+ * Useful for showing a "converting…" hint before the lazy codec loads.
+ */
+export function isHeicSource(source: File | Blob | string): boolean;
+
+/**
+ * Decode a HEIC/HEIF source to a displayable PNG Blob using a lazily-loaded codec.
+ * Handy for previewing a HEIC file in browsers that can't render it natively.
+ */
+export function decodeHeic(source: File | Blob | string): Promise<Blob>;
 
 /**
  * Format bytes into a human-readable string.

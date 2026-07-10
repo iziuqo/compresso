@@ -1,7 +1,7 @@
 {
   "name": "compresso.js",
-  "version": "0.1.1",
-  "description": "Tiny, zero-dependency image optimizer that runs entirely in the browser. Compress, resize, and convert images on the client side — no server needed.",
+  "version": "0.2.0",
+  "description": "Tiny image optimizer that runs entirely in the browser — a ~2 KB core with zero required dependencies. Compress, resize, and convert images (HEIC/HEIF input supported) on the client side — no server needed.",
   "type": "module",
   "main": "dist/compresso.cjs",
   "module": "dist/compresso.mjs",
@@ -36,6 +36,8 @@
     "avif",
     "jpeg",
     "png",
+    "heic",
+    "heif",
     "canvas",
     "file-upload",
     "image-processing",
@@ -56,6 +58,9 @@
   "devDependencies": {
     "rollup": "^4.28.0",
     "@rollup/plugin-terser": "^0.4.4"
+  },
+  "optionalDependencies": {
+    "heic-to": "^1.5.2"
   },
   "sideEffects": false
 }

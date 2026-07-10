@@ -30,7 +30,7 @@ export default function EmbedMobileEmpty({ t, dropzoneProps }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A4.5 4.5 0 0118 19.5H6.75z" />
           </svg>
           <span className="demo-widget-drop-text">{t.playground.dropzoneShort || 'Tap to upload'}</span>
-          <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+          <input ref={inputRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={onFileChange} />
         </div>
       )}
       bar={(

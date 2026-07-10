@@ -12,6 +12,7 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "compresso.js": "*",
     "geist": "^1.7.2",
     "next": "^14.2.0",
     "react": "^18.3.0",

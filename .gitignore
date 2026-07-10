@@ -11,3 +11,7 @@ out/
 *.log
 coverage/
 .turbo/
+
+# Local-only test assets & QA artifacts (not for the repo)
+_assets/
+_qa/

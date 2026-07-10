@@ -45,7 +45,7 @@ export default function Dropzone({
           <span className="text-ink-faint/40">·</span>
           <span>drag & drop</span>
         </p>
-        <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+        <input ref={inputRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={onFileChange} />
       </div>
 
       <p className={`pro-group-label text-center mb-2 ${compact ? 'mt-3 text-[0.625rem]' : 'mt-8 mb-3'}`}>

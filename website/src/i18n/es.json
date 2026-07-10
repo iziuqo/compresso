@@ -49,7 +49,7 @@
     "chapter": "02",
     "dropzone": "Arrastra una imagen aquí o haz clic para seleccionar",
     "dropzoneShort": "Toca para subir",
-    "dropzoneHint": "Soporta JPEG, PNG, WebP, AVIF — hasta 50 MB",
+    "dropzoneHint": "Soporta JPEG, PNG, WebP, AVIF, HEIC — hasta 50 MB",
     "examples": "O prueba un ejemplo:",
     "original": "Original",
     "optimized": "Optimizado",
