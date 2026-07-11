@@ -5,42 +5,35 @@
 <h1 align="center">Compresso</h1>
 
 <p align="center">
-  <strong>Tiny, zero-dependency image optimizer that runs entirely in the browser.</strong><br />
-  Compress, resize, and convert images on the client side — no server needed.
+  <strong>Compress, resize, and convert images in the browser.</strong><br />
+  A 2 KB, zero-dependency image compressor with HEIC input and a never-bigger-output guarantee — no server needed.
 </p>
 
 <p align="center">
-  <a href="https://www.npmjs.com/package/compresso.js"><img src="https://img.shields.io/npm/v/compresso.js?color=%23059669&label=npm" alt="npm version" /></a>
-  <a href="https://bundlephobia.com/package/compresso.js"><img src="https://img.shields.io/badge/size-~2%20KB%20gzip-0284c7" alt="bundle size" /></a>
-  <a href="https://github.com/iziuqo/compresso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT%20%2B%20Commons%20Clause-6d28d9" alt="license" /></a>
+  <a href="https://www.npmjs.com/package/compresso.js"><img src="https://img.shields.io/npm/v/compresso.js?color=00a87e&label=npm" alt="npm version" /></a>
+  <a href="https://bundlephobia.com/package/compresso.js"><img src="https://img.shields.io/bundlephobia/minzip/compresso.js?color=0284c7&label=min%2Bgzip" alt="min+gzip size" /></a>
+  <a href="https://www.npmjs.com/package/compresso.js"><img src="https://img.shields.io/npm/dm/compresso.js?color=64748b&label=downloads" alt="npm downloads" /></a>
+  <a href="https://www.npmjs.com/package/compresso.js"><img src="https://img.shields.io/npm/types/compresso.js" alt="TypeScript types" /></a>
+  <a href="https://github.com/iziuqo/compresso/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-3ba55d" alt="MIT license" /></a>
   <a href="https://github.com/iziuqo/compresso/stargazers"><img src="https://img.shields.io/github/stars/iziuqo/compresso?style=social" alt="GitHub stars" /></a>
 </p>
 
 <p align="center">
-  <a href="https://compresso.izaias.xyz">Website</a> ·
+  <a href="https://compresso.izaias.xyz/tool"><strong>▶ Try the live demo</strong></a> ·
   <a href="https://compresso.izaias.xyz/docs">Documentation</a> ·
-  <a href="https://compresso.izaias.xyz/#playground">Try it live</a>
+  <a href="#comparison">Comparison</a> ·
+  <a href="#faq">FAQ</a>
 </p>
 
 ---
 
-## The Problem
-
-Every day, millions of people fail simple file uploads. Government portals, banking apps, and healthcare systems reject documents because of file size limits, unsupported formats, or obscure requirements. Users are forced to figure out compression, format conversion, and resizing on their own — tasks that systems should handle transparently.
-
-This is what researchers call **externalized processing**: systems shift automatable preprocessing tasks onto users, creating confusion, repeated failures, and task abandonment. *(Read the [full research paper](/_articles/))*
-
-**Compresso eliminates this problem.** Drop it into any file upload flow and images are automatically optimized — right format, right size, right dimensions — before they ever leave the browser.
-
 ## Why Compresso
 
-- **~2 KB gzipped core** — smaller than most icons
-- **Zero required dependencies** — the core is codec-free; HEIC/HEIF input lazy-loads an optional decoder only when needed
-- **iPhone-ready** — HEIC/HEIF photos just work: Safari decodes natively, other browsers convert on the fly
-- **Runs in the browser** — no server-side processing, no API keys, no costs that scale with traffic
-- **Works everywhere** — any framework, any browser, any device
-- **Virtually lossless** — smart quality tuning preserves visual fidelity while drastically cutting file size
-- **Accessibility-first** — designed for the users who need it most
+- **Smallest in its class — 2.3 KB, zero required dependencies.** Roughly **2× smaller than compressorjs** and **~9× smaller than browser-image-compression** ([see comparison](#comparison)). The core is pure Canvas API — no WASM, no codecs bundled.
+- **iPhone HEIC/HEIF input, everywhere.** Safari/iOS decode natively; other browsers lazy-load a WASM decoder *only* the first time a HEIC file appears, so the tiny core stays codec-free for every other format. No other browser compressor handles HEIC.
+- **Never returns a bigger file.** Lossy output is guaranteed to be no larger than the original — if a format can't beat an already-efficient source, Compresso adapts (quality/resolution) instead of inflating it. No rival makes this guarantee.
+- **Modern by default** — `format: 'auto'` picks AVIF → WebP → JPEG per browser, promise-based API, first-class TypeScript types, and it's actively maintained.
+- **100% client-side** — no server round-trips, no API keys, no upload of user images anywhere. Private by construction.
 
 ## Install
 
@@ -48,7 +41,7 @@ This is what researchers call **externalized processing**: systems shift automat
 npm install compresso.js
 ```
 
-Or use from a CDN:
+Or from a CDN:
 
 ```html
 <script src="https://unpkg.com/compresso.js/dist/compresso.umd.js"></script>
@@ -67,7 +60,7 @@ input.addEventListener('change', async (e) => {
   const result = await compress(file, {
     quality: 0.8,
     maxWidth: 1920,
-    format: 'webp',
+    format: 'auto', // AVIF / WebP / JPEG — best the browser supports
   });
 
   console.log(`${result.savings}% smaller`);
@@ -77,18 +70,41 @@ input.addEventListener('change', async (e) => {
 });
 ```
 
+## Comparison
+
+How Compresso compares to the popular browser-side image libraries:
+
+| | **compresso.js** | compressorjs | browser-image-compression | pica |
+|---|:---:|:---:|:---:|:---:|
+| Bundle, min+gzip <sup>1</sup> | **2.3 KB** | 4.5 KB | 20.0 KB | 14.8 KB |
+| Required dependencies | **0** | 2 | 1 | 2 |
+| HEIC / HEIF input | **✅** | ❌ | ❌ | ❌ |
+| AVIF output | **✅** | ❌ | ❌ | ❌ |
+| Auto best-format | **✅** | ❌ | ❌ | ❌ |
+| Never larger than input | **✅** | ❌ | ❌ | ❌ |
+| Target max file size | ✅ | ❌ | ✅ | ❌ |
+| Non-blocking (Web Worker) | 🔜 v1.0 | ❌ | ✅ | ✅ |
+| API style | Promise | Callbacks | Promise | Promise |
+| TypeScript types | ✅ | ✅ | ✅ | ✅ |
+| Latest release <sup>2</sup> | 2026-07 | 2026-04 | 2023-03 | 2026-06 |
+| License | MIT | MIT | MIT | MIT |
+
+<sup>1</sup> Minified CDN bundle (unpkg), gzipped. Reproduce: `curl -sL <unpkg dist URL> | gzip -9 | wc -c`. <sup>2</sup> npm latest-publish date. Figures verified 2026-07.
+
+**When *not* to use Compresso:** for server-side/batch processing use [sharp](https://github.com/lovell/sharp); for pixel-level image editing use [Jimp](https://github.com/jimp-dev/jimp); if you only need the highest-quality downscale, [pica](https://github.com/nodeca/pica) specializes in that. Compresso is for *optimizing user-selected images in the browser before upload.*
+
 ## Target a Maximum File Size
 
 Perfect for systems with strict upload limits:
 
 ```js
 const result = await compress(file, {
-  maxSizeMB: 2,       // Will never exceed 2 MB
+  maxSizeMB: 2,       // never exceeds 2 MB
   format: 'jpeg',
 });
 ```
 
-Compresso uses iterative quality search — it binary-searches for the highest quality that fits within your size constraint.
+Compresso binary-searches for the highest quality that fits within your size constraint.
 
 ## API
 
@@ -106,13 +122,15 @@ Compresses a single image.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `quality` | `number` | `0.8` | Output quality, 0–1 |
-| `maxWidth` | `number` | `Infinity` | Maximum output width in px |
-| `maxHeight` | `number` | `Infinity` | Maximum output height in px |
+| `maxWidth` | `number` | unbounded <sup>†</sup> | Maximum output width in px |
+| `maxHeight` | `number` | unbounded <sup>†</sup> | Maximum output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'`, `'png'`, `'webp'`, `'avif'`, or `'auto'` |
-| `maxSizeMB` | `number` | `Infinity` | Maximum file size in MB |
+| `maxSizeMB` | `number` | source size <sup>‡</sup> | Maximum output file size in MB |
 | `backgroundColor` | `string` | `'#ffffff'` | Background for transparent → JPEG |
 | `onProgress` | `function` | — | Progress callback `({ progress, stage })` |
 | `signal` | `AbortSignal` | — | Cancel compression |
+
+<sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode. Pass `Infinity` to never cap. <sup>‡</sup> Lossy output is never larger than the source, regardless of this value.
 
 #### Result
 
@@ -121,10 +139,8 @@ Compresses a single image.
 | `file` | `File` | Optimized File object |
 | `blob` | `Blob` | Optimized Blob |
 | `url` | `string` | Object URL for preview |
-| `width` | `number` | Output width |
-| `height` | `number` | Output height |
-| `originalSize` | `number` | Original size in bytes |
-| `compressedSize` | `number` | Compressed size in bytes |
+| `width` / `height` | `number` | Output dimensions |
+| `originalSize` / `compressedSize` | `number` | Bytes before / after |
 | `savings` | `number` | Reduction percentage |
 | `format` | `string` | Output format |
 
@@ -137,12 +153,7 @@ Compress an array of files sequentially. Same options as `compress`, with an ext
 Create a reusable instance with preset options:
 
 ```js
-const optimizer = createCompressor({
-  quality: 0.7,
-  maxWidth: 1200,
-  format: 'webp',
-});
-
+const optimizer = createCompressor({ quality: 0.7, maxWidth: 1200, format: 'webp' });
 const result = await optimizer.compress(file);
 ```
 
@@ -171,14 +182,7 @@ function ImageUpload() {
   async function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
-
-    const optimized = await compress(file, {
-      quality: 0.8,
-      maxWidth: 1920,
-      format: 'webp',
-    });
-
-    setResult(optimized);
+    setResult(await compress(file, { quality: 0.8, maxWidth: 1920, format: 'auto' }));
   }
 
   return (
@@ -187,8 +191,7 @@ function ImageUpload() {
       {result && (
         <div>
           <img src={result.url} alt="Optimized" />
-          <p>{formatBytes(result.originalSize)} → {formatBytes(result.compressedSize)}</p>
-          <p>{result.savings}% smaller</p>
+          <p>{formatBytes(result.originalSize)} → {formatBytes(result.compressedSize)} ({result.savings}% smaller)</p>
         </div>
       )}
     </div>
@@ -211,12 +214,7 @@ const result = ref(null);
 async function handleFile(e) {
   const file = e.target.files[0];
   if (!file) return;
-
-  result.value = await compress(file, {
-    quality: 0.8,
-    maxWidth: 1920,
-    format: 'webp',
-  });
+  result.value = await compress(file, { quality: 0.8, maxWidth: 1920, format: 'auto' });
 }
 </script>
 
@@ -224,8 +222,7 @@ async function handleFile(e) {
   <input type="file" accept="image/*" @change="handleFile" />
   <div v-if="result">
     <img :src="result.url" alt="Optimized" />
-    <p>{{ formatBytes(result.originalSize) }} → {{ formatBytes(result.compressedSize) }}</p>
-    <p>{{ result.savings }}% smaller</p>
+    <p>{{ formatBytes(result.originalSize) }} → {{ formatBytes(result.compressedSize) }} ({{ result.savings }}% smaller)</p>
   </div>
 </template>
 ```
@@ -233,7 +230,7 @@ async function handleFile(e) {
 </details>
 
 <details>
-<summary><strong>Vanilla JS</strong></summary>
+<summary><strong>Vanilla JS (CDN)</strong></summary>
 
 ```html
 <input type="file" accept="image/*" id="upload" />
@@ -244,18 +241,10 @@ async function handleFile(e) {
   document.getElementById('upload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const result = await Compresso.compress(file, {
-      quality: 0.8,
-      format: 'webp',
-      maxSizeMB: 2,
-    });
-
-    document.getElementById('output').innerHTML = `
-      <img src="${result.url}" style="max-width: 400px" />
-      <p>${Compresso.formatBytes(result.originalSize)} → ${Compresso.formatBytes(result.compressedSize)}</p>
-      <p>${result.savings}% smaller</p>
-    `;
+    const result = await Compresso.compress(file, { quality: 0.8, format: 'auto', maxSizeMB: 2 });
+    document.getElementById('output').innerHTML =
+      `<img src="${result.url}" style="max-width:400px" />
+       <p>${Compresso.formatBytes(result.originalSize)} → ${Compresso.formatBytes(result.compressedSize)} (${result.savings}% smaller)</p>`;
   });
 </script>
 ```
@@ -271,48 +260,59 @@ async function handleFile(e) {
 | Safari 8+ | ✅ | ✅ (16+) | ✅ (16.4+) |
 | Edge 79+ | ✅ | ✅ | ✅ (121+) |
 
-When `format: 'auto'`, Compresso detects the best format supported by the browser.
+With `format: 'auto'`, Compresso picks the best format each browser supports. Safari can't *encode* WebP/AVIF from a canvas, so it falls back to JPEG — and Compresso caps resolution there to keep the file small (see the never-bigger guarantee).
 
-**HEIC/HEIF input** works everywhere: Safari 17+ / iOS 17+ decode natively, and other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they encounter a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format; HEIC is input-only (use AVIF for HEIC-class output compression).
+**HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression).
+
+## FAQ
+
+### How do I compress an image in the browser before uploading?
+Read the file from an `<input type="file">`, pass it to `compress(file, { quality, maxWidth })`, and upload `result.file`. See [Quick Start](#quick-start). Everything runs client-side — the image never leaves the browser until *you* upload it.
+
+### How do I convert a HEIC image to JPEG or WebP in JavaScript?
+Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes HEIC (natively on Safari, via a lazy WASM decoder elsewhere) and outputs a standard web format. See [Browser Support](#browser-support).
+
+### Why did my compressed image get *bigger* than the original?
+With most tools, re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can *inflate* it. Compresso guarantees this never happens: lossy output is capped at the source size, and on browsers that can't produce WebP/AVIF it reduces resolution instead of ballooning the file. ([The engineering story →](https://compresso.izaias.xyz/docs))
+
+### Does it need a server or backend?
+No. Compresso is 100% client-side (Canvas API). No servers, no API keys, no image ever uploaded to a third party.
+
+### Does it work with React, Vue, and Next.js?
+Yes — it's framework-agnostic. See [Framework Examples](#framework-examples).
 
 ## How It Works
 
-Compresso's ~2 KB core uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips. The one exception is HEIC/HEIF input on non-Safari browsers, which lazily pulls in a WASM decoder on demand (see [Browser Support](#browser-support)).
+Compresso's ~2 KB core uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips. (The one exception: HEIC/HEIF input on non-Safari browsers lazily pulls in a WASM decoder on demand.)
 
-1. **Load** — Read the image into an `<img>` element
-2. **Resize** — Calculate target dimensions (preserving aspect ratio), using step-down resizing for quality
-3. **Compress** — Draw to `<canvas>`, export as the target format with the desired quality
-4. **Fit** — If a max file size is set, binary-search for the highest quality that fits
+1. **Load** — read the image into an `<img>` element
+2. **Resize** — compute target dimensions (preserving aspect ratio), with step-down resizing for quality
+3. **Compress** — draw to `<canvas>`, export as the target format at the chosen quality
+4. **Fit** — if a max size is set (or to honor the never-bigger guarantee), binary-search for the highest quality that fits
 
-The result is a new `File` object ready for upload, plus metadata about the optimization.
+The result is a new `File` ready for upload, plus metadata about the optimization.
 
-## The Impact
+## Why This Exists
 
-For a typical government document upload system processing **100,000 submissions/month**:
+Every day, millions of people fail simple file uploads — government portals, banking apps, and healthcare systems reject documents over size limits, unsupported formats, or obscure requirements. Users are forced to figure out compression, conversion, and resizing themselves: tasks systems should handle transparently. Researchers call this **externalized processing**. Compresso eliminates it — drop it into any upload flow and images are optimized before they ever leave the browser.
 
-| Metric | Without Compresso | With Compresso |
-|--------|------------------|----------------|
+For a government document system handling **100,000 submissions/month**:
+
+| Metric | Without | With Compresso |
+|--------|---------|----------------|
 | Avg. file size | 4.2 MB | 0.4 MB |
 | Monthly bandwidth | 420 GB | 40 GB |
 | Upload failures | ~15% | ~0% |
-| Server processing | Heavy | None |
-| User confusion | High | None |
 
-**90% less bandwidth. Zero upload failures. Zero server-side processing.**
+This project is grounded in research on cognitive distance and externalized processing in document-submission systems (*Izaias Cavalcanti*). See the [research](https://compresso.izaias.xyz).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) and the [good first issues](https://github.com/iziuqo/compresso/issues). Bug reports, framework recipes, and benchmark additions are all appreciated.
 
 ## License
 
-[MIT + Commons Clause](LICENSE) — Free for non-commercial use. For commercial use, contact [iz.iuqo@gmail.com](mailto:iz.iuqo@gmail.com).
-
-## Research
-
-This project is grounded in research on cognitive distance and externalized processing in information systems. Read the papers:
-
-- *Cognitive Distance in Document Submission Systems: Why Users Struggle with Simple Digital Tasks* — Izaias Cavalcanti
+[MIT](LICENSE) © Izaias Cavalcanti
 
 ---
 

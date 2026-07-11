@@ -3,7 +3,7 @@
     "title": "Compresso — Instant Image Optimization in the Browser",
     "description": "Tiny, zero-dependency image optimizer. Compress, resize, and convert images on the client side — no server needed. Try it free.",
     "ogTitle": "Compresso — Images optimized instantly, right in the browser",
-    "ogDescription": "~3 KB library that compresses, resizes, and converts images before upload. Zero server load. Works everywhere."
+    "ogDescription": "~2 KB library that compresses, resizes, and converts images before upload. Zero server load. Works everywhere."
   },
   "nav": {
     "playground": "Try it",
@@ -12,7 +12,7 @@
     "getStarted": "Get started"
   },
   "hero": {
-    "badge": "Open source · ~3 KB · zero dependencies",
+    "badge": "Open source · ~2 KB · zero dependencies",
     "title": "Stop fighting file uploads.",
     "subtitle": "Compress, resize, and convert images instantly — right in the browser. No server needed.",
     "cta": "Try it now",
@@ -38,7 +38,7 @@
     "codeStep1": "Install",
     "codeStep2": "Wire up",
     "codeStep3": "Done",
-    "codeStep1Desc": "One npm package, ~3 KB",
+    "codeStep1Desc": "One npm package, ~2 KB",
     "codeStep2Desc": "Hook your file input",
     "codeStep3Desc": "Uploads just work"
   },
@@ -104,7 +104,7 @@
     "userQuote": "Now what? How do I make it smaller?",
     "deadEnd": "15% of users abandon here",
     "outcomeUser": "No resizing · no format jargon",
-    "outcomeBusiness": "~3 KB · zero server cost",
+    "outcomeBusiness": "~2 KB · zero server cost",
     "insight": "The real gap isn't technical — it's cognitive. Users don't know how to preprocess images, and systems shouldn't ask them to.",
     "solutionCta": "Try the live demo"
   },
@@ -113,7 +113,7 @@
     "subtitle": "Built for the systems that serve everyone.",
     "chapter": "04",
     "label": "The fix",
-    "tiny": "~3 KB gzipped",
+    "tiny": "~2 KB gzipped",
     "tinyDesc": "Smaller than most icons. Loads instantly on any connection.",
     "zeroDeps": "Zero dependencies",
     "zeroDepsDesc": "Nothing to audit, nothing to break. Pure browser APIs.",
@@ -191,7 +191,7 @@
     "examples": "Examples",
     "contributing": "Contributing",
     "project": "Project",
-    "license": "License (MIT + Commons Clause)",
+    "license": "License (MIT)",
     "security": "Security",
     "codeOfConduct": "Code of Conduct"
   },

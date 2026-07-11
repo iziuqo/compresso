@@ -72,4 +72,4 @@ choose AVIF for HEIC-class output compression.
 
 ## License
 
-[MIT + Commons Clause](https://github.com/iziuqo/compresso/blob/main/LICENSE) — Free for non-commercial use. For commercial use, contact [iz.iuqo@gmail.com](mailto:iz.iuqo@gmail.com).
+[MIT](https://github.com/iziuqo/compresso/blob/main/LICENSE) © Izaias Cavalcanti

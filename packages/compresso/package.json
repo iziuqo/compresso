@@ -1,6 +1,6 @@
 {
   "name": "compresso.js",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Tiny image optimizer that runs entirely in the browser — a ~2 KB core with zero required dependencies. Compress, resize, and convert images (HEIC/HEIF input supported) on the client side — no server needed.",
   "type": "module",
   "main": "dist/compresso.cjs",
@@ -43,10 +43,16 @@
     "image-processing",
     "zero-dependency",
     "lightweight",
-    "accessibility"
+    "accessibility",
+    "image-compressor",
+    "compress-image",
+    "image-optimizer",
+    "image-resize",
+    "typescript",
+    "exif"
   ],
   "author": "Izaias Cavalcanti",
-  "license": "MIT WITH Commons-Clause",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iziuqo/compresso.git"

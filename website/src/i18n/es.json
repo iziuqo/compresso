@@ -3,7 +3,7 @@
     "title": "Compresso — Optimización Instantánea de Imágenes en el Navegador",
     "description": "Optimizador de imágenes ultraligero, sin dependencias. Comprime, redimensiona y convierte imágenes del lado del cliente — sin servidor. Pruébalo gratis.",
     "ogTitle": "Compresso — Imágenes optimizadas al instante, directo en el navegador",
-    "ogDescription": "Librería de ~3 KB que comprime, redimensiona y convierte imágenes antes de subirlas. Cero carga en el servidor. Funciona en todas partes."
+    "ogDescription": "Librería de ~2 KB que comprime, redimensiona y convierte imágenes antes de subirlas. Cero carga en el servidor. Funciona en todas partes."
   },
   "nav": {
     "playground": "Probar",
@@ -12,7 +12,7 @@
     "getStarted": "Empezar"
   },
   "hero": {
-    "badge": "Código abierto · ~3 KB · cero dependencias",
+    "badge": "Código abierto · ~2 KB · cero dependencias",
     "title": "Deja de pelear con la subida de archivos.",
     "subtitle": "Comprime, redimensiona y convierte imágenes al instante — directo en el navegador. Sin servidor.",
     "cta": "Pruébalo ahora",
@@ -38,7 +38,7 @@
     "codeStep1": "Instalar",
     "codeStep2": "Conectar",
     "codeStep3": "Listo",
-    "codeStep1Desc": "Un paquete npm, ~3 KB",
+    "codeStep1Desc": "Un paquete npm, ~2 KB",
     "codeStep2Desc": "Conecta tu input de archivo",
     "codeStep3Desc": "Las subidas simplemente funcionan"
   },
@@ -104,7 +104,7 @@
     "userQuote": "¿Y ahora qué? ¿Cómo la hago más pequeña?",
     "deadEnd": "El 15% de usuarios abandona aquí",
     "outcomeUser": "Sin redimensionar · sin jerga de formatos",
-    "outcomeBusiness": "~3 KB · cero costo en servidor",
+    "outcomeBusiness": "~2 KB · cero costo en servidor",
     "insight": "La brecha real no es técnica — es cognitiva. Los usuarios no saben preprocesar imágenes, y los sistemas no deberían pedírselo.",
     "solutionCta": "Probar la demo en vivo"
   },
@@ -113,7 +113,7 @@
     "subtitle": "Construido para los sistemas que sirven a todos.",
     "chapter": "04",
     "label": "La solución",
-    "tiny": "~3 KB comprimido",
+    "tiny": "~2 KB comprimido",
     "tinyDesc": "Más pequeño que la mayoría de los íconos. Carga instantánea en cualquier conexión.",
     "zeroDeps": "Cero dependencias",
     "zeroDepsDesc": "Nada que auditar, nada que se rompa. APIs puras del navegador.",
@@ -191,7 +191,7 @@
     "examples": "Ejemplos",
     "contributing": "Contribuir",
     "project": "Proyecto",
-    "license": "Licencia (MIT + Commons Clause)",
+    "license": "Licencia (MIT)",
     "security": "Seguridad",
     "codeOfConduct": "Código de Conducta"
   },

@@ -42,7 +42,7 @@ export default function Footer({ t, basePath = '' }) {
         </div>
 
         <div className="border-t border-line-dark pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-white/45 leading-snug">
-          <span>&copy; {new Date().getFullYear()} Compresso. MIT + Commons Clause.</span>
+          <span>&copy; {new Date().getFullYear()} Compresso. MIT License.</span>
           <a href={`${basePath}/tool/`} className="hover:text-white transition-colors text-sm font-semibold text-white/70">
             Open tool →
           </a>
