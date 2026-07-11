@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { formatBytes } from '../../lib/compress';
+import { formatBytes, formatSavings } from '../../lib/compress';
 import { useCompressor } from '../../hooks/useCompressor';
 import ControlPanel from './ControlPanel';
 import Dropzone from './Dropzone';
@@ -24,7 +24,7 @@ function FileChip({ file, originalUrl, result, onClear }) {
         <p className="text-[0.6875rem] text-ink-faint tabular-nums mt-0.5">
           {formatBytes(file.size)}
           {result && (
-            <span className="text-brand font-semibold"> · −{result.savings}%</span>
+            <span className={`font-semibold ${result.savings < 0 ? 'text-ink-faint' : 'text-brand'}`}> · {formatSavings(result.savings)}</span>
           )}
         </p>
       </div>
@@ -157,6 +157,8 @@ export default function CompressorApp({
     setMaxHeight: c.setMaxHeight,
     maxSizeMB: c.maxSizeMB,
     setMaxSizeMB: c.setMaxSizeMB,
+    result: c.result,
+    onAuto: () => c.setFormat('auto'),
   };
 
   const previewProps = {
@@ -210,7 +212,7 @@ export default function CompressorApp({
     }
 
     const headerSubtitle = c.result
-      ? `${formatBytes(c.file.size)} → ${formatBytes(c.result.compressedSize)} · −${c.result.savings}%`
+      ? `${formatBytes(c.file.size)} → ${formatBytes(c.result.compressedSize)} · ${formatSavings(c.result.savings)}`
       : formatBytes(c.file.size);
 
     const mobileSheetProps = {

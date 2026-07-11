@@ -376,6 +376,63 @@
     @apply text-[0.6875rem] font-semibold tabular-nums text-brand bg-brand-light/80 px-2 py-0.5 rounded-md;
   }
 
+  /* Auto-settings readout — reveals what the "Auto" format resolved to */
+  .pro-auto {
+    @apply mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 px-1 text-[0.6875rem] text-ink-faint;
+  }
+  .pro-auto b {
+    @apply font-semibold text-ink;
+  }
+  .pro-auto-arrow {
+    @apply font-semibold text-brand;
+  }
+  .pro-auto-sep {
+    @apply opacity-30;
+  }
+  .pro-auto-note {
+    @apply w-full pl-0.5 opacity-70;
+  }
+
+  /* Warning when the optimized file ends up larger than the original */
+  .pro-warn {
+    @apply flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-4 rounded-[10px] border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[0.75rem] font-medium text-amber-700;
+  }
+  .pro-warn-icon {
+    @apply shrink-0 text-amber-500;
+  }
+  .pro-warn-text b {
+    @apply font-semibold;
+  }
+  .pro-warn-btn {
+    @apply ml-auto shrink-0 rounded-md bg-amber-500 px-2.5 py-1 text-[0.6875rem] font-semibold text-white transition-colors hover:bg-amber-600;
+  }
+
+  /* Dark surfaces: desktop tool sidebar + mobile tool sheet (embed variant stays light) */
+  .tool-sidebar .pro-auto,
+  .tool-mobile-sheet:not(.tool-mobile-sheet-embed) .pro-auto {
+    @apply text-white/45;
+  }
+  .tool-sidebar .pro-auto b,
+  .tool-mobile-sheet:not(.tool-mobile-sheet-embed) .pro-auto b {
+    @apply text-white/90;
+  }
+  .tool-sidebar .pro-auto-arrow,
+  .tool-mobile-sheet:not(.tool-mobile-sheet-embed) .pro-auto-arrow {
+    @apply text-brand-soft;
+  }
+  .tool-sidebar .pro-warn,
+  .tool-mobile-sheet:not(.tool-mobile-sheet-embed) .pro-warn {
+    @apply border-amber-400/30 bg-amber-400/[0.12] text-amber-200;
+  }
+  .tool-sidebar .pro-warn-icon,
+  .tool-mobile-sheet:not(.tool-mobile-sheet-embed) .pro-warn-icon {
+    @apply text-amber-300;
+  }
+  .tool-sidebar .pro-warn-btn,
+  .tool-mobile-sheet:not(.tool-mobile-sheet-embed) .pro-warn-btn {
+    @apply bg-amber-400 text-black/80 hover:bg-amber-300;
+  }
+
   .pro-cell {
     @apply bg-white/90 px-3 py-2.5;
   }

@@ -5,6 +5,11 @@ import { compress, decodeHeic, formatBytes, isFormatSupported, isHeicSource } fr
 
 export { formatBytes };
 
+/** Signed savings string: "−80%" when smaller, "+37%" when the output grew. */
+export function formatSavings(savings) {
+  return savings < 0 ? `+${-savings}%` : `−${savings}%`;
+}
+
 export const DEFAULT_QUALITY = 0.8;
 export const DEFAULT_FORMAT = 'auto';
 

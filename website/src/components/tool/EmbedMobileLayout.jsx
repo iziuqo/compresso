@@ -1,6 +1,6 @@
 'use client';
 
-import { formatBytes } from '../../lib/compress';
+import { formatBytes, formatSavings } from '../../lib/compress';
 import PreviewWorkspace from './PreviewWorkspace';
 import EmbedMobileShell from './EmbedMobileShell';
 
@@ -44,7 +44,7 @@ export default function EmbedMobileLayout({ t, c, previewProps, fullscreen = fal
             <span>{formatBytes(c.result.originalSize)}</span>
             <span className="demo-widget-stats-arrow">→</span>
             <span className="demo-widget-stats-accent">{formatBytes(c.result.compressedSize)}</span>
-            <span className="demo-widget-stats-badge">−{c.result.savings}%</span>
+            <span className="demo-widget-stats-badge">{formatSavings(c.result.savings)}</span>
           </p>
           <button
             type="button"

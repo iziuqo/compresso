@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { formatBytes } from '../../lib/compress';
+import { formatBytes, formatSavings } from '../../lib/compress';
 
 export default function StatsBar({ t, result, layout = 'hud', reprocessing = false }) {
   const prevSizesRef = useRef({ compressed: null, savings: null });
@@ -26,7 +26,7 @@ export default function StatsBar({ t, result, layout = 'hud', reprocessing = fal
   // Negative savings means the output grew (only possible for lossless PNG output,
   // which the library never shrinks below the source). Render it honestly as +X%.
   const grew = result.savings < 0;
-  const reductionValue = grew ? `+${-result.savings}%` : `−${result.savings}%`;
+  const reductionValue = formatSavings(result.savings);
 
   const items = [
     { label: t.playground.originalSize, value: formatBytes(result.originalSize), highlight: false },

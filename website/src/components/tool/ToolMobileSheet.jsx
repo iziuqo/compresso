@@ -1,10 +1,10 @@
 'use client';
 
-import { formatBytes } from '../../lib/compress';
-import { getFormatOptions } from '../../lib/compress';
+import { formatBytes, formatSavings, getFormatOptions } from '../../lib/compress';
 import ControlPanel from './ControlPanel';
 import SegmentedControl from './SegmentedControl';
 import { ViewTabs } from './PreviewWorkspace';
+import { AutoSummary, OptimizedWarning } from './AutoInfo';
 
 export default function ToolMobileSheet({
   t,
@@ -45,7 +45,7 @@ export default function ToolMobileSheet({
             <span className="tool-mobile-stat-inline">
               <span className="tool-mobile-stat-val">{formatBytes(c.result.originalSize)}</span>
               <span className="tool-mobile-stat-arrow">→</span>
-              <span className="tool-mobile-stat-val tool-mobile-stat-accent">−{c.result.savings}%</span>
+              <span className="tool-mobile-stat-val tool-mobile-stat-accent">{formatSavings(c.result.savings)}</span>
               <span className="tool-mobile-stat-val tool-mobile-stat-accent">{formatBytes(c.result.compressedSize)}</span>
             </span>
           </div>
@@ -63,6 +63,8 @@ export default function ToolMobileSheet({
       {/* Expanded: full controls */}
       {expanded && (
         <div className="tool-mobile-expanded-body tool-mobile-expanded animate-pro-fade-in">
+          <OptimizedWarning result={c.result} format={c.format} onAuto={() => c.setFormat('auto')} />
+
           {c.result && (
             <div className="tool-mobile-stats">
               <div className="tool-mobile-stat">
@@ -70,7 +72,7 @@ export default function ToolMobileSheet({
                 <span className="tool-mobile-stat-label">{t.playground.original}</span>
               </div>
               <div className="tool-mobile-stat tool-mobile-stat-accent">
-                <span className="tool-mobile-stat-val">−{c.result.savings}%</span>
+                <span className="tool-mobile-stat-val">{formatSavings(c.result.savings)}</span>
                 <span className="tool-mobile-stat-label">{t.playground.reduction}</span>
               </div>
               <div className="tool-mobile-stat tool-mobile-stat-accent">
@@ -110,6 +112,7 @@ export default function ToolMobileSheet({
               onChange={c.setFormat}
               variant="dark"
             />
+            <AutoSummary result={c.result} quality={c.quality} format={c.format} />
           </div>
 
           <ControlPanel {...panelProps} sections="dimensions" />

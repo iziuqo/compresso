@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { getFormatOptions } from '../../lib/compress';
 import SegmentedControl from './SegmentedControl';
+import { AutoSummary, OptimizedWarning } from './AutoInfo';
 
 function ProGroup({ label, children, delay = 0 }) {
   return (
@@ -52,6 +53,8 @@ export default function ControlPanel({
   setMaxHeight,
   maxSizeMB,
   setMaxSizeMB,
+  result,
+  onAuto,
   sections = 'all',
 }) {
   const formats = getFormatOptions();
@@ -65,26 +68,30 @@ export default function ControlPanel({
   return (
     <div>
       {sections !== 'dimensions' && (
-        <ProGroup label="Output" delay={80}>
-          <ProRow label={t.playground.quality} value={`${Math.round(quality * 100)}%`} valuePop={qualityPop}>
-            <input
-              type="range"
-              min="0.05"
-              max="1"
-              step="0.05"
-              value={quality}
-              onChange={(e) => setQuality(parseFloat(e.target.value))}
-              className="range-apple"
-            />
-          </ProRow>
-          <ProRow label={t.playground.format} last>
-            <SegmentedControl
-              options={formatOptions}
-              value={format}
-              onChange={setFormat}
-            />
-          </ProRow>
-        </ProGroup>
+        <>
+          <OptimizedWarning result={result} format={format} onAuto={onAuto} />
+          <ProGroup label="Output" delay={80}>
+            <ProRow label={t.playground.quality} value={`${Math.round(quality * 100)}%`} valuePop={qualityPop}>
+              <input
+                type="range"
+                min="0.05"
+                max="1"
+                step="0.05"
+                value={quality}
+                onChange={(e) => setQuality(parseFloat(e.target.value))}
+                className="range-apple"
+              />
+            </ProRow>
+            <ProRow label={t.playground.format} last>
+              <SegmentedControl
+                options={formatOptions}
+                value={format}
+                onChange={setFormat}
+              />
+              <AutoSummary result={result} quality={quality} format={format} />
+            </ProRow>
+          </ProGroup>
+        </>
       )}
 
       {sections !== 'output' && (
