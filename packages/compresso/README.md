@@ -59,12 +59,16 @@ choose AVIF for HEIC-class output compression.
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `quality` | `number` | `0.8` | Output quality, 0–1 |
-| `maxWidth` | `number` | `Infinity` | Max output width in px |
-| `maxHeight` | `number` | `Infinity` | Max output height in px |
+| `maxWidth` | `number` | unbounded¹ | Max output width in px |
+| `maxHeight` | `number` | unbounded¹ | Max output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'` \| `'png'` \| `'webp'` \| `'avif'` \| `'auto'` |
-| `maxSizeMB` | `number` | `Infinity` | Max file size in MB |
+| `maxSizeMB` | `number` | source size² | Max file size in MB |
 | `onProgress` | `function` | — | Progress callback |
 | `signal` | `AbortSignal` | — | Cancel compression |
+
+¹ Original resolution is kept by default. The one exception: when neither `maxWidth` nor `maxHeight` is set **and** the browser can't encode WebP/AVIF (auto-format falls back to JPEG — e.g. Safari), output is capped to a **2048px long edge**, because a full-resolution JPEG re-encode could otherwise grow larger than the original. Browsers with a modern format keep the original dimensions. Set either axis to constrain it yourself, or pass `maxWidth: Infinity` to never cap.
+
+² **Lossy output (JPEG/WebP/AVIF) is never larger than the source**, regardless of `maxSizeMB`. PNG output is exempt, since it's lossless and ignores quality.
 
 ## License
 

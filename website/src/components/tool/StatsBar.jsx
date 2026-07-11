@@ -23,10 +23,15 @@ export default function StatsBar({ t, result, layout = 'hud', reprocessing = fal
 
   if (!result) return null;
 
+  // Negative savings means the output grew (only possible for lossless PNG output,
+  // which the library never shrinks below the source). Render it honestly as +X%.
+  const grew = result.savings < 0;
+  const reductionValue = grew ? `+${-result.savings}%` : `−${result.savings}%`;
+
   const items = [
     { label: t.playground.originalSize, value: formatBytes(result.originalSize), highlight: false },
     { label: t.playground.newSize, value: formatBytes(result.compressedSize), highlight: true, flash: true },
-    { label: t.playground.reduction, value: `−${result.savings}%`, highlight: true, flash: true },
+    { label: t.playground.reduction, value: reductionValue, highlight: !grew, flash: true },
     { label: t.playground.dimensions, value: `${result.width}×${result.height}`, highlight: false },
   ];
 
@@ -37,7 +42,7 @@ export default function StatsBar({ t, result, layout = 'hud', reprocessing = fal
         <span className="text-ink-faint/50">→</span>
         <span className="text-brand font-semibold tabular-nums">{formatBytes(result.compressedSize)}</span>
         <span className="text-ink-faint/30">|</span>
-        <span className="text-brand font-semibold tabular-nums">−{result.savings}%</span>
+        <span className={`font-semibold tabular-nums ${grew ? 'text-ink-faint' : 'text-brand'}`}>{reductionValue}</span>
       </div>
     );
   }

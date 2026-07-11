@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev", "-w", "website"],
       "port": 3001,
       "autoPort": true
+    },
+    {
+      "name": "website-prod",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "serve@latest", "website/out", "-l", "3005"],
+      "port": 3005,
+      "autoPort": true
     }
   ]
 }

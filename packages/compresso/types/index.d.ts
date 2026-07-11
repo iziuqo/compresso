@@ -1,13 +1,26 @@
 export interface CompressOptions {
   /** Output quality from 0 to 1. Default: 0.8 */
   quality?: number;
-  /** Maximum output width in pixels. Default: Infinity */
+  /**
+   * Maximum output width in pixels. Default: unbounded, except when neither
+   * `maxWidth` nor `maxHeight` is set AND the browser can't encode WebP/AVIF (so
+   * auto-format falls back to JPEG, e.g. Safari) — then output is capped to a
+   * 2048px long edge to avoid a bloated re-encode. Pass `Infinity` to never cap.
+   */
   maxWidth?: number;
-  /** Maximum output height in pixels. Default: Infinity */
+  /**
+   * Maximum output height in pixels. Default: unbounded, except when neither
+   * `maxWidth` nor `maxHeight` is set AND the browser can't encode WebP/AVIF (so
+   * auto-format falls back to JPEG, e.g. Safari) — then output is capped to a
+   * 2048px long edge to avoid a bloated re-encode. Pass `Infinity` to never cap.
+   */
   maxHeight?: number;
   /** Output format. Default: 'auto' (best supported) */
   format?: 'jpeg' | 'png' | 'webp' | 'avif' | 'auto';
-  /** Maximum output file size in MB. Default: Infinity */
+  /**
+   * Maximum output file size in MB. Lossy output is additionally never larger
+   * than the source, regardless of this value. Default: source size.
+   */
   maxSizeMB?: number;
   /** Background color for JPEG conversion. Default: '#ffffff' */
   backgroundColor?: string;
