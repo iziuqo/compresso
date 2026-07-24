@@ -4,6 +4,24 @@ All notable changes to `compresso.js` are documented here. The format is based o
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] — 2026-07-11
+
+### Changed
+- **Internal worker-ready refactor** (no public API change). Host I/O (image decode,
+  canvas, encode, format-capability detection) is now isolated behind a single
+  `platform` seam, leaving the compression pipeline free of DOM APIs — so a Web
+  Worker backend can be added later with no pipeline changes. Format-support
+  detection is now memoized (was re-probed on every call).
+
+### Improved
+- Higher-quality image resampling (`imageSmoothingQuality: 'high'`) — downscaled
+  output is now slightly smaller *and* higher quality. Verified byte-equivalent to
+  0.3.1 on all non-downscaled paths across a 75-case image matrix.
+
+### Deprecated
+- `preserveAspectRatio` option — a no-op (aspect ratio is always preserved). Kept
+  in the types for compatibility; will be removed in a future major version.
+
 ## [0.3.1] — 2026-07-11
 
 ### Changed

@@ -24,7 +24,7 @@ export interface CompressOptions {
   maxSizeMB?: number;
   /** Background color for JPEG conversion. Default: '#ffffff' */
   backgroundColor?: string;
-  /** Preserve aspect ratio when resizing. Default: true */
+  /** @deprecated No-op — aspect ratio is always preserved when resizing. */
   preserveAspectRatio?: boolean;
   /** AbortSignal to cancel compression */
   signal?: AbortSignal;

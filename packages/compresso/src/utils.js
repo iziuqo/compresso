@@ -1,4 +1,4 @@
-import { isHeicSource, decodeHeic } from './heic.js';
+import { capabilities } from './platform.js';
 
 const MIME_TYPES = {
   jpeg: 'image/jpeg',
@@ -28,9 +28,7 @@ export function detectFormat(file) {
     const ext = file.split('.').pop().toLowerCase();
     return MIME_TYPES[ext] ? ext : null;
   }
-  if (file.type) {
-    return EXTENSIONS[file.type] || null;
-  }
+  if (file.type) return EXTENSIONS[file.type] || null;
   if (file.name) {
     const ext = file.name.split('.').pop().toLowerCase();
     return MIME_TYPES[ext] ? ext : null;
@@ -40,79 +38,19 @@ export function detectFormat(file) {
 
 export function generateFileName(source, format) {
   const ext = mimeToExtension(formatToMime(format));
-  let baseName = 'image';
-
-  if (source && source.name) {
-    baseName = source.name.replace(/\.[^.]+$/, '');
-  }
-
+  const baseName = source?.name ? source.name.replace(/\.[^.]+$/, '') : 'image';
   return `${baseName}.${ext}`;
 }
 
-export function canvasToBlob(canvas, mimeType, quality) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      (blob) => {
-        if (blob) resolve(blob);
-        else reject(new Error(`Failed to encode image as ${mimeType}`));
-      },
-      mimeType,
-      quality
-    );
-  });
-}
-
-function nativeLoad(source) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-
-    if (typeof source === 'string') {
-      img.crossOrigin = 'anonymous';
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error('Failed to load image'));
-      img.src = source;
-    } else if (source instanceof Blob) {
-      const url = URL.createObjectURL(source);
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        resolve(img);
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error('Failed to load image from Blob'));
-      };
-      img.src = url;
-    } else {
-      reject(new Error('Invalid source: expected File, Blob, or URL string'));
-    }
-  });
-}
-
-export async function loadImage(source) {
-  try {
-    // Native decode first: free on Safari/iOS, and the common path everywhere else.
-    return await nativeLoad(source);
-  } catch (err) {
-    // Only HEIC/HEIF sources get the lazy WASM fallback; everything else keeps its error.
-    if (!isHeicSource(source)) throw err;
-    return nativeLoad(await decodeHeic(source));
-  }
-}
-
+/** Can this browser *encode* the given output format? JPEG/PNG are always available. */
 export function isFormatSupported(format) {
-  try {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1;
-    canvas.height = 1;
-    const dataUrl = canvas.toDataURL(formatToMime(format));
-    return dataUrl.startsWith(`data:${formatToMime(format)}`);
-  } catch {
-    return false;
-  }
+  const f = format.toLowerCase();
+  if (f === 'jpeg' || f === 'jpg' || f === 'png') return true;
+  return !!capabilities()[f];
 }
 
+/** Best output format the browser can encode: AVIF → WebP → JPEG. */
 export function getBestFormat() {
-  if (isFormatSupported('avif')) return 'avif';
-  if (isFormatSupported('webp')) return 'webp';
-  return 'jpeg';
+  const caps = capabilities();
+  return caps.avif ? 'avif' : caps.webp ? 'webp' : 'jpeg';
 }

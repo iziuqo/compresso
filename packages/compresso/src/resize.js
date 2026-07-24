@@ -1,78 +1,42 @@
-export function calculateDimensions(
-  originalWidth,
-  originalHeight,
-  maxWidth,
-  maxHeight
-) {
-  let width = originalWidth;
-  let height = originalHeight;
+import { createCanvas } from './platform.js';
 
-  if (width <= maxWidth && height <= maxHeight) {
-    return { width, height };
-  }
-
-  const aspectRatio = width / height;
-
-  if (width > maxWidth) {
-    width = maxWidth;
-    height = Math.round(width / aspectRatio);
-  }
-
-  if (height > maxHeight) {
-    height = maxHeight;
-    width = Math.round(height * aspectRatio);
-  }
-
-  return { width: Math.max(1, width), height: Math.max(1, height) };
+/**
+ * Fit `width`×`height` within `maxWidth`×`maxHeight`, preserving aspect ratio and
+ * never upscaling. A single scale factor handles both axes uniformly.
+ */
+export function calculateDimensions(width, height, maxWidth, maxHeight) {
+  const scale = Math.min(1, maxWidth / width, maxHeight / height);
+  return {
+    width: Math.max(1, Math.round(width * scale)),
+    height: Math.max(1, Math.round(height * scale)),
+  };
 }
 
-export function drawToCanvas(img, width, height, fillColor) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
+/**
+ * Draw `image` (with known source dimensions) into a target canvas of `dstWidth`×
+ * `dstHeight`. For large downscales it steps down by halves first — higher quality
+ * than a single large draw. `image` is any canvas-drawable (an HTMLImageElement
+ * today, an ImageBitmap in a worker); source dimensions are passed in, never read
+ * off the object.
+ */
+export function renderToCanvas(image, srcWidth, srcHeight, dstWidth, dstHeight, fillColor) {
+  let src = image;
+  let curWidth = srcWidth;
+  let curHeight = srcHeight;
 
+  while (curWidth > dstWidth * 2 || curHeight > dstHeight * 2) {
+    curWidth = Math.max(Math.round(curWidth / 2), dstWidth);
+    curHeight = Math.max(Math.round(curHeight / 2), dstHeight);
+    const step = createCanvas(curWidth, curHeight);
+    step.ctx.drawImage(src, 0, 0, curWidth, curHeight);
+    src = step.canvas;
+  }
+
+  const { canvas, ctx } = createCanvas(dstWidth, dstHeight);
   if (fillColor) {
     ctx.fillStyle = fillColor;
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(0, 0, dstWidth, dstHeight);
   }
-
-  if (img.naturalWidth > width * 2) {
-    return stepDownResize(img, width, height, fillColor);
-  }
-
-  ctx.drawImage(img, 0, 0, width, height);
+  ctx.drawImage(src, 0, 0, dstWidth, dstHeight);
   return canvas;
-}
-
-function stepDownResize(img, targetWidth, targetHeight, fillColor) {
-  let currentWidth = img.naturalWidth;
-  let currentHeight = img.naturalHeight;
-
-  let source = img;
-
-  while (currentWidth > targetWidth * 2 || currentHeight > targetHeight * 2) {
-    currentWidth = Math.max(Math.round(currentWidth / 2), targetWidth);
-    currentHeight = Math.max(Math.round(currentHeight / 2), targetHeight);
-
-    const step = document.createElement('canvas');
-    step.width = currentWidth;
-    step.height = currentHeight;
-    const ctx = step.getContext('2d');
-    ctx.drawImage(source, 0, 0, currentWidth, currentHeight);
-    source = step;
-  }
-
-  const final = document.createElement('canvas');
-  final.width = targetWidth;
-  final.height = targetHeight;
-  const ctx = final.getContext('2d');
-
-  if (fillColor) {
-    ctx.fillStyle = fillColor;
-    ctx.fillRect(0, 0, targetWidth, targetHeight);
-  }
-
-  ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
-  return final;
 }

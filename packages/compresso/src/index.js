@@ -1,6 +1,10 @@
-export { compress } from './compress.js';
+import { compress } from './compress.js';
+
+export { compress };
 export { isFormatSupported, getBestFormat, detectFormat } from './utils.js';
 export { isHeicSource, decodeHeic } from './heic.js';
+// Capability injection — lets a worker reuse the main thread's format detection.
+export { __setCapabilities, __resetCapabilities } from './platform.js';
 
 export function compressFile(file, options = {}) {
   return compress(file, options);
@@ -47,5 +51,3 @@ export function formatBytes(bytes) {
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }
-
-import { compress } from './compress.js';

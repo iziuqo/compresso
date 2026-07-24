@@ -1,5 +1,6 @@
-import { loadImage, canvasToBlob, formatToMime, generateFileName, getBestFormat } from './utils.js';
-import { calculateDimensions, drawToCanvas } from './resize.js';
+import { formatToMime, generateFileName, getBestFormat } from './utils.js';
+import { decode, encode } from './platform.js';
+import { calculateDimensions, renderToCanvas } from './resize.js';
 
 const DEFAULTS = {
   quality: 0.8,
@@ -8,14 +9,13 @@ const DEFAULTS = {
   format: 'auto',
   maxSizeMB: Infinity,
   backgroundColor: '#ffffff',
-  preserveAspectRatio: true,
   signal: null,
   onProgress: null,
 };
 
 /**
- * Default long-edge cap (px), applied only when auto-format selection falls back
- * to JPEG because the browser can't encode WebP/AVIF (notably Safari). There, a
+ * Default long-edge cap (px), applied only when auto-format selection falls back to
+ * JPEG because the browser can't encode WebP/AVIF (notably Safari). There, a
  * full-resolution JPEG re-encode of a ~12 MP photo can end up larger than the
  * original, so capping keeps output small. Browsers with a modern format — and any
  * call that sets an explicit dimension or format — keep the original resolution.
@@ -23,78 +23,50 @@ const DEFAULTS = {
  */
 const DEFAULT_MAX_DIMENSION = 2048;
 
+const MAX_QUALITY_STEPS = 10;
+
 export async function compress(source, options = {}) {
   const opts = { ...DEFAULTS, ...options };
-
-  if (opts.signal?.aborted) {
-    throw new DOMException('Compression aborted', 'AbortError');
-  }
+  throwIfAborted(opts.signal);
 
   const format = opts.format === 'auto' ? getBestFormat() : opts.format;
   const mimeType = formatToMime(format);
-  const needsBackground = mimeType === 'image/jpeg' && !opts.backgroundColor;
-  const bgColor = mimeType === 'image/jpeg' ? (opts.backgroundColor || '#ffffff') : null;
+  const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;
 
   report(opts, 0.1, 'loading');
-
-  const img = await loadImage(source);
-  const originalWidth = img.naturalWidth;
-  const originalHeight = img.naturalHeight;
-
-  if (opts.signal?.aborted) {
-    throw new DOMException('Compression aborted', 'AbortError');
-  }
+  const { image, width: originalWidth, height: originalHeight } = await decode(source);
+  throwIfAborted(opts.signal);
 
   report(opts, 0.3, 'resizing');
-
-  // Default cap only when auto-format had to fall back to JPEG — i.e. the browser
-  // can't encode WebP/AVIF (Safari), where a full-resolution JPEG re-encode would
-  // otherwise bloat the file. Browsers with a modern format keep the original
-  // dimensions. Any explicit dimension is always honored (the other axis stays
-  // unbounded); read from raw `options` so an unset axis differs from an explicit
-  // Infinity.
+  // Cap only when auto-format had to fall back to JPEG (the browser can't encode
+  // WebP/AVIF — Safari) and the caller constrained neither axis. Read from raw
+  // `options` so an unset axis differs from an explicit `Infinity`.
   const noExplicitCaps = options.maxWidth == null && options.maxHeight == null;
-  const capToDefault = noExplicitCaps && opts.format === 'auto' && format === 'jpeg';
-  const maxWidth = options.maxWidth ?? (capToDefault ? DEFAULT_MAX_DIMENSION : Infinity);
-  const maxHeight = options.maxHeight ?? (capToDefault ? DEFAULT_MAX_DIMENSION : Infinity);
-
+  const cap = noExplicitCaps && opts.format === 'auto' && format === 'jpeg' ? DEFAULT_MAX_DIMENSION : Infinity;
   const { width, height } = calculateDimensions(
     originalWidth,
     originalHeight,
-    maxWidth,
-    maxHeight
+    options.maxWidth ?? cap,
+    options.maxHeight ?? cap
   );
-
-  const canvas = drawToCanvas(img, width, height, bgColor);
+  const canvas = renderToCanvas(image, originalWidth, originalHeight, width, height, bgColor);
 
   report(opts, 0.5, 'compressing');
+  const originalSize = sourceSize(source);
+  // A compressor must never return a file larger than its input. For lossy formats,
+  // cap output at the smaller of any explicit `maxSizeMB` and the source's own size.
+  // PNG is exempt: it ignores quality, so a size search can't help.
+  const ceilingBytes =
+    mimeType === 'image/png' ? Infinity : Math.min(opts.maxSizeMB * 1024 * 1024, originalSize || Infinity);
 
-  const quality = opts.quality;
-  const originalSize = getSourceSize(source);
-
-  // A compressor must never hand back a file larger than its input. For lossy
-  // formats, cap output at the smaller of any explicit `maxSizeMB` budget and the
-  // source's own size, lowering quality only if the first encode overshoots. PNG
-  // is exempt: it ignores the quality knob, so a size search cannot help and would
-  // only repeat the same full-canvas encode.
-  const isLossy = mimeType !== 'image/png';
-  const ceilingBytes = isLossy
-    ? Math.min(opts.maxSizeMB * 1024 * 1024, originalSize || Infinity)
-    : Infinity;
-
-  let blob = await canvasToBlob(canvas, mimeType, quality);
+  let blob = await encode(canvas, mimeType, opts.quality);
   if (blob.size > ceilingBytes) {
-    blob = await compressToTargetSize(canvas, mimeType, quality, ceilingBytes, opts, blob);
+    blob = await shrinkToFit(canvas, mimeType, opts.quality, ceilingBytes, opts, blob);
   }
-
-  if (opts.signal?.aborted) {
-    throw new DOMException('Compression aborted', 'AbortError');
-  }
+  throwIfAborted(opts.signal);
 
   report(opts, 1, 'done');
-
-  const fileName = generateFileName(source, format);
-  const file = new File([blob], fileName, { type: mimeType });
+  const file = new File([blob], generateFileName(source, format), { type: mimeType });
 
   return {
     file,
@@ -106,58 +78,48 @@ export async function compress(source, options = {}) {
     originalHeight,
     originalSize,
     compressedSize: blob.size,
-    savings: originalSize > 0
-      ? Math.round((1 - blob.size / originalSize) * 1000) / 10
-      : 0,
+    savings: originalSize > 0 ? Math.round((1 - blob.size / originalSize) * 1000) / 10 : 0,
     format,
     mimeType,
   };
 }
 
-async function compressToTargetSize(canvas, mimeType, initialQuality, maxBytes, opts, firstBlob) {
-  let blob = firstBlob ?? (await canvasToBlob(canvas, mimeType, initialQuality));
+/** Binary-search the highest quality whose encode fits within `maxBytes`. */
+async function shrinkToFit(canvas, mimeType, initialQuality, maxBytes, opts, firstBlob) {
+  let blob = firstBlob ?? (await encode(canvas, mimeType, initialQuality));
   if (blob.size <= maxBytes) return blob;
 
   let low = 0;
   let high = initialQuality;
-  let bestBlob = blob;
-  const maxIterations = 10;
+  let best = blob;
 
-  for (let i = 0; i < maxIterations; i++) {
-    if (opts.signal?.aborted) {
-      throw new DOMException('Compression aborted', 'AbortError');
-    }
-
+  for (let i = 0; i < MAX_QUALITY_STEPS; i++) {
+    throwIfAborted(opts.signal);
     const mid = (low + high) / 2;
-    blob = await canvasToBlob(canvas, mimeType, mid);
-
+    blob = await encode(canvas, mimeType, mid);
     if (blob.size <= maxBytes) {
-      bestBlob = blob;
+      best = blob;
       low = mid;
     } else {
       high = mid;
     }
-
-    if (Math.abs(high - low) < 0.01) break;
-
-    report(opts, 0.5 + (i / maxIterations) * 0.4, 'compressing');
+    if (high - low < 0.01) break;
+    report(opts, 0.5 + (i / MAX_QUALITY_STEPS) * 0.4, 'compressing');
   }
 
-  if (bestBlob.size > maxBytes) {
-    bestBlob = await canvasToBlob(canvas, mimeType, 0.1);
-  }
-
-  return bestBlob;
+  if (best.size > maxBytes) best = await encode(canvas, mimeType, 0.1);
+  return best;
 }
 
-function getSourceSize(source) {
-  if (source instanceof File) return source.size;
-  if (source instanceof Blob) return source.size;
-  return 0;
+function throwIfAborted(signal) {
+  if (signal?.aborted) throw new DOMException('Compression aborted', 'AbortError');
 }
 
 function report(opts, progress, stage) {
-  if (opts.onProgress) {
-    opts.onProgress({ progress, stage });
-  }
+  opts.onProgress?.({ progress, stage });
+}
+
+// File extends Blob, so this covers both; URL/string sources have no known size.
+function sourceSize(source) {
+  return source instanceof Blob ? source.size : 0;
 }
