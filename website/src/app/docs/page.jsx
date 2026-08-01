@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getTranslations, locales, defaultLocale, getLocaleLabel } from '../../i18n';
+import { getTranslations, defaultLocale, detectLocale, storeLocale, locales, getLocaleLabel } from '../../i18n';
 import Logo from '../../components/Logo';
 
 function detectBasePath() {
@@ -9,16 +9,6 @@ function detectBasePath() {
   const path = window.location.pathname;
   if (path.startsWith("/compresso")) return "/compresso";
   return "";
-}
-
-function detectLocale() {
-  if (typeof window === 'undefined') return defaultLocale;
-  const saved = localStorage.getItem('compresso-locale');
-  if (saved && locales.includes(saved)) return saved;
-  const browserLang = navigator.language?.toLowerCase() || '';
-  if (browserLang.startsWith('pt')) return 'pt-br';
-  if (browserLang.startsWith('es')) return 'es';
-  return 'en';
 }
 
 const sections = [
@@ -40,9 +30,17 @@ export default function DocsPage() {
   const [basePath, setBasePath] = useState('');
 
   useEffect(() => {
-    setLocale(detectLocale());
+    const next = detectLocale();
+    setLocale(next);
     setBasePath(detectBasePath());
+    document.documentElement.lang = next;
   }, []);
+
+  function changeLocale(next) {
+    setLocale(next);
+    storeLocale(next);
+    document.documentElement.lang = next;
+  }
 
   const t = getTranslations(locale);
 
@@ -59,7 +57,7 @@ export default function DocsPage() {
             <div className="flex items-center gap-3">
               <select
                 value={locale}
-                onChange={(e) => { setLocale(e.target.value); localStorage.setItem('compresso-locale', e.target.value); }}
+                onChange={(e) => changeLocale(e.target.value)}
                 className="appearance-none bg-transparent text-sm font-medium text-ink-muted hover:text-plum px-2 py-1.5 cursor-pointer focus:outline-none rounded-ui"
                 aria-label="Language"
               >

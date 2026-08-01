@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getTranslations, locales, defaultLocale } from '../i18n';
+import { getTranslations, defaultLocale, detectLocale, storeLocale } from '../i18n';
 import Header from '../components/marketing/Header';
 import Hero from '../components/marketing/Hero';
 import Proof from '../components/marketing/Proof';
@@ -9,16 +9,6 @@ import AppSection from '../components/marketing/AppSection';
 import Library from '../components/marketing/Library';
 import Close from '../components/marketing/Close';
 import Footer from '../components/marketing/Footer';
-
-function detectLocale() {
-  if (typeof window === 'undefined') return defaultLocale;
-  const saved = localStorage.getItem('compresso-locale');
-  if (saved && locales.includes(saved)) return saved;
-  const browserLang = navigator.language?.toLowerCase() || '';
-  if (browserLang.startsWith('pt')) return 'pt-br';
-  if (browserLang.startsWith('es')) return 'es';
-  return 'en';
-}
 
 function detectBasePath() {
   if (typeof window === 'undefined') return '';
@@ -28,24 +18,35 @@ function detectBasePath() {
 export default function Home() {
   const [locale, setLocale] = useState(defaultLocale);
   const [basePath, setBasePath] = useState('');
+  const [swapping, setSwapping] = useState(false);
 
   useEffect(() => {
     const next = detectLocale();
     setLocale(next);
     setBasePath(detectBasePath());
-    document.documentElement.lang = next === 'pt-br' ? 'pt-BR' : next;
+    document.documentElement.lang = next;
   }, []);
 
+  /**
+   * The swap is deferred by one fade so the page turns rather than snapping.
+   * Storing the choice happens immediately: if the tab dies mid-transition the
+   * preference should still have been kept.
+   */
   function changeLocale(next) {
-    setLocale(next);
-    localStorage.setItem('compresso-locale', next);
-    document.documentElement.lang = next === 'pt-br' ? 'pt-BR' : next;
+    if (next === locale) return;
+    storeLocale(next);
+    setSwapping(true);
+    window.setTimeout(() => {
+      setLocale(next);
+      document.documentElement.lang = next;
+      setSwapping(false);
+    }, 130);
   }
 
   const t = getTranslations(locale);
 
   return (
-    <div className="mk">
+    <div className={`mk ${swapping ? 'is-swapping' : ''}`}>
       <Header t={t} locale={locale} onLocaleChange={changeLocale} basePath={basePath} />
       <main>
         <Hero t={t} />

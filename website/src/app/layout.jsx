@@ -48,13 +48,12 @@ export const metadata = {
     description:
       'A free image optimizer that runs entirely on your device. Nothing is uploaded and it works offline. Also available as a 2.50 KB library with HEIC input.',
   },
-  alternates: {
-    languages: {
-      en: '/en/',
-      es: '/es/',
-      'pt-BR': '/pt-br/',
-    },
-  },
+  /* No `alternates.languages` here on purpose. hreflang declares one URL per
+     language, and this is a static export with a single page that adapts on
+     the client — /en/, /es/ and /pt-br/ were being advertised to crawlers and
+     all three returned 404. Seven languages would have meant seven of them.
+     Per-locale routes would be the fix; announcing routes we do not serve is
+     worse than announcing none. */
 };
 
 export default function RootLayout({ children }) {

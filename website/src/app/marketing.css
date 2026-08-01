@@ -85,6 +85,36 @@
 .mk-row__body,
 .mk-stat__detail { text-wrap: pretty; }
 
+/* Chinese opts out of the ramp above. Negative tracking closes the gaps that
+   separate full-width glyphs, so they collide; and `ch` is the advance of "0"
+   in Geist, which makes a 17ch measure about eight characters wide. Geist has
+   no CJK coverage either, so the stack has to name a fallback rather than let
+   the browser pick one with metrics the leading was never tuned against. */
+.mk:lang(zh-Hans) {
+  font-family:
+    var(--font-geist-sans), ui-sans-serif, system-ui,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+}
+.mk:lang(zh-Hans) .mk-hero__title,
+.mk:lang(zh-Hans) .mk-section__title,
+.mk:lang(zh-Hans) .mk-close__title,
+.mk:lang(zh-Hans) .mk-stat__value,
+.mk:lang(zh-Hans) .mk-row__title,
+.mk:lang(zh-Hans) .mk-mark__word { letter-spacing: 0; }
+.mk:lang(zh-Hans) .mk-hero__title { max-width: 15em; }
+.mk:lang(zh-Hans) .mk-close__title { max-width: 16em; }
+/* CJK breaks between any two characters, so balance has nothing to fix and
+   the tracked uppercase treatment of labels does not apply either */
+.mk:lang(zh-Hans) .mk-label { letter-spacing: 0.06em; }
+
+/* German compounds are a hard floor, not a soft one: a noun that exceeds the
+   measure would push the document into horizontal scroll rather than just
+   breaking awkwardly. Hyphenation needs the lang attribute, which is set. */
+.mk:lang(de) .mk-hero__title,
+.mk:lang(de) .mk-section__title,
+.mk:lang(de) .mk-close__title,
+.mk:lang(de) .mk-row__title { hyphens: auto; }
+
 /* ------------------------------------------------------------------ header */
 
 .mk-head {
@@ -107,14 +137,95 @@
 .mk-mark__glyph { width: 16px; height: 16px; }
 .mk-mark__word { font-size: 0.875rem; font-weight: 500; letter-spacing: -0.005em; }
 
-.mk-select {
-  appearance: none; background: none; border: 0; cursor: pointer;
-  font-size: 0.625rem; font-weight: 500; text-transform: uppercase;
-  letter-spacing: 0.14em; color: var(--ink-3);
-  padding-right: 0.25rem;
+/* -------------------------------------------------------------- language menu
+
+   Ported from the app, in this surface's materials. The app's own rule set
+   leans on tokens that do not exist here (--r-well, --hair, --s-4, --dur-*);
+   an undefined custom property is invalid at computed-value time, so copying
+   it verbatim would have silently produced square corners and no padding. */
+
+.mk-lang { position: relative; display: inline-flex; align-items: center; }
+
+.mk-lang__trigger {
+  display: inline-flex; align-items: center;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--ink-3);
+  transition: color 120ms var(--ease-standard);
 }
-.mk-select:hover { color: var(--ink); }
-.mk-select option { background: var(--surface); color: var(--ink); letter-spacing: normal; }
+.mk-lang__trigger:hover,
+.mk-lang__trigger[aria-expanded='true'] { color: var(--ink); }
+
+.mk-lang__sheet {
+  position: absolute; top: calc(100% + 12px); right: 0; z-index: 60;
+  min-width: 216px; padding: 0.5rem 0;
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px var(--line), 0 24px 48px -24px rgb(0 0 0 / 0.9);
+  opacity: 0; visibility: hidden; transform: translateY(-4px);
+  transition:
+    opacity 240ms var(--ease-standard),
+    transform 240ms var(--ease-standard),
+    visibility 0s linear 240ms;
+}
+.mk-lang__sheet.is-open {
+  opacity: 1; visibility: visible; transform: none; transition-delay: 0s;
+}
+
+/* Below this width the 216px sheet is wider than the gap between the trigger
+   and the left edge of the screen, so hanging it off the control pushes it
+   off-canvas. Going static hands the sheet to .mk-head — which is sticky, and
+   therefore the containing block — so it lines up with the page gutter and
+   spans the width it actually has. */
+@media (max-width: 480px) {
+  .mk-lang { position: static; }
+  .mk-lang__sheet {
+    top: calc(100% + 8px);
+    right: var(--gutter);
+    min-width: 0;
+    width: min(20rem, calc(100vw - var(--gutter) * 2));
+  }
+}
+
+.mk-lang__row {
+  position: relative;
+  display: grid; gap: 1px;
+  width: 100%; padding: 0.5rem 1rem;
+  background: none; border: 0; cursor: pointer;
+  text-align: left;
+  opacity: 0; transform: translateY(-3px);
+  transition:
+    opacity 240ms var(--ease-standard),
+    transform 240ms var(--ease-standard),
+    background-color 120ms var(--ease-standard);
+}
+/* the rows arrive in sequence, so the sheet reads as a list being dealt out */
+.mk-lang__sheet.is-open .mk-lang__row {
+  opacity: 1; transform: none; transition-delay: calc(var(--i) * 16ms);
+}
+.mk-lang__row:hover { background: var(--surface-2); }
+
+.mk-lang__native {
+  font-size: 0.8125rem; color: var(--ink-2);
+  transition: color 120ms var(--ease-standard);
+}
+.mk-lang__row:hover .mk-lang__native { color: var(--ink); }
+.mk-lang__english { color: var(--ink-4); }
+
+/* active language: a white rule in the left margin. no checkmark. */
+.mk-lang__row[aria-selected='true']::before {
+  content: ''; position: absolute; left: 0; top: 0.55rem; bottom: 0.55rem;
+  width: 2px; background: var(--ink);
+}
+.mk-lang__row[aria-selected='true'] .mk-lang__native { color: var(--ink); }
+
+/* Language doesn't snap. The page drifts out over 130ms, the dictionary swaps
+   while nothing is legible, then it settles back in. The header is left out of
+   it deliberately: the control you just used should stay put while the page
+   turns under it, rather than blinking along with its own result. */
+.mk main,
+.mk .mk-foot { transition: opacity 130ms var(--ease-standard); }
+.mk.is-swapping main,
+.mk.is-swapping .mk-foot { opacity: 0; }
 
 /* ------------------------------------------------------------------ buttons */
 

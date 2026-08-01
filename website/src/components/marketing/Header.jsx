@@ -1,6 +1,6 @@
 'use client';
 
-import { locales, getLocaleLabel } from '../../i18n';
+import LangMenu from './LangMenu';
 import Mark from './Mark';
 import { APP_URL, GITHUB_URL } from './links';
 
@@ -19,16 +19,7 @@ export default function Header({ t, locale, onLocaleChange, basePath = '' }) {
         </nav>
 
         <div className="mk-head__right">
-          <select
-            className="mk-select"
-            value={locale}
-            onChange={(e) => onLocaleChange(e.target.value)}
-            aria-label="Language"
-          >
-            {locales.map((l) => (
-              <option key={l} value={l}>{getLocaleLabel(l)}</option>
-            ))}
-          </select>
+          <LangMenu locale={locale} onChange={onLocaleChange} label={t.lang.label} />
           <a className="mk-pill mk-pill--sm" href={APP_URL}>{t.nav.openApp}</a>
         </div>
       </div>

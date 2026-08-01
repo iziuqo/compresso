@@ -1,20 +1,16 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getTranslations, locales, defaultLocale } from '../../i18n';
+import { getTranslations, defaultLocale, detectLocale, storeLocale } from '../../i18n';
 import CompressorApp from '../../components/tool/CompressorApp';
 
 export default function ToolPage() {
   const [locale, setLocale] = useState(defaultLocale);
 
   useEffect(() => {
-    const saved = localStorage.getItem('compresso-locale');
-    if (saved && locales.includes(saved)) setLocale(saved);
-    else {
-      const b = navigator.language?.toLowerCase() || '';
-      if (b.startsWith('pt')) setLocale('pt-br');
-      else if (b.startsWith('es')) setLocale('es');
-    }
+    const next = detectLocale();
+    setLocale(next);
+    document.documentElement.lang = next;
     document.documentElement.classList.add('tool-route');
     return () => document.documentElement.classList.remove('tool-route');
   }, []);
@@ -23,7 +19,8 @@ export default function ToolPage() {
 
   function changeLocale(newLocale) {
     setLocale(newLocale);
-    localStorage.setItem('compresso-locale', newLocale);
+    storeLocale(newLocale);
+    document.documentElement.lang = newLocale;
   }
 
   return (

@@ -302,5 +302,8 @@
     "title": "Seu próximo upload não precisa falhar.",
     "cta": "Abrir o app",
     "note": "Grátis e de código aberto, licença MIT."
+  },
+  "lang": {
+    "label": "Idioma"
   }
 }
