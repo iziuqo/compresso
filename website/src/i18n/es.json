@@ -1,21 +1,23 @@
 {
   "meta": {
-    "title": "Compresso — Optimización Instantánea de Imágenes en el Navegador",
-    "description": "Optimizador de imágenes ultraligero, sin dependencias. Comprime, redimensiona y convierte imágenes del lado del cliente — sin servidor. Pruébalo gratis.",
-    "ogTitle": "Compresso — Imágenes optimizadas al instante, directo en el navegador",
-    "ogDescription": "Librería de ~2 KB que comprime, redimensiona y convierte imágenes antes de subirlas. Cero carga en el servidor. Funciona en todas partes."
+    "title": "Compresso: optimización instantánea de imágenes en el navegador",
+    "description": "Optimizador de imágenes ultraligero, sin dependencias. Comprime, redimensiona y convierte imágenes del lado del cliente, sin servidor. Gratis y de código abierto.",
+    "ogTitle": "Compresso: imágenes optimizadas al instante, directo en el navegador",
+    "ogDescription": "Un optimizador de imágenes que funciona entero en tu navegador. No se sube nada y funciona sin conexión. También disponible como librería de 2,50 KB."
   },
   "nav": {
     "playground": "Probar",
     "docs": "Docs",
     "github": "GitHub",
-    "getStarted": "Empezar"
+    "getStarted": "Empezar",
+    "library": "Librería",
+    "openApp": "Abrir la app"
   },
   "hero": {
-    "badge": "Código abierto · ~2 KB · cero dependencias",
-    "title": "Deja de pelear con la subida de archivos.",
-    "subtitle": "Comprime, redimensiona y convierte imágenes al instante — directo en el navegador. Sin servidor.",
-    "cta": "Pruébalo ahora",
+    "badge": "Código abierto · Gratis · Funciona sin conexión",
+    "title": "Aligera tus imágenes sin subirlas a ningún sitio.",
+    "subtitle": "Compresso comprime, redimensiona y convierte fotos en tu propio dispositivo. No se sube nada a ningún servidor y sigue funcionando sin conexión.",
+    "cta": "Abrir la app",
     "ctaSecondary": "Ver en GitHub",
     "statsSize": "Reducción promedio",
     "statsSpeed": "Tiempo de procesamiento",
@@ -23,7 +25,9 @@
     "statsSizeValue": "90%",
     "statsSpeedValue": "<100ms",
     "statsDepsValue": "Cero",
-    "scrollCue": "Mira la compresión en vivo"
+    "scrollCue": "Mira la compresión en vivo",
+    "note": "Sin cuenta. Sin subidas. Sin límite de tamaño.",
+    "shotAlt": "La app Compresso comparando una foto original con su versión comprimida, con un lote de cinco imágenes debajo."
   },
   "story": {
     "flowLabel": "La historia",
@@ -34,7 +38,7 @@
     "ch5": "Integrar",
     "ch6": "Impacto",
     "ch7": "Empezar",
-    "playgroundBridge": "Funciona en segundos — ahora mira por qué importa",
+    "playgroundBridge": "Funciona en segundos. Ahora mira por qué importa",
     "codeStep1": "Instalar",
     "codeStep2": "Conectar",
     "codeStep3": "Listo",
@@ -49,7 +53,7 @@
     "chapter": "02",
     "dropzone": "Arrastra una imagen aquí o haz clic para seleccionar",
     "dropzoneShort": "Toca para subir",
-    "dropzoneHint": "Soporta JPEG, PNG, WebP, AVIF, HEIC — hasta 50 MB",
+    "dropzoneHint": "Soporta JPEG, PNG, WebP, AVIF y HEIC, hasta 50 MB",
     "examples": "O prueba un ejemplo:",
     "original": "Original",
     "optimized": "Optimizado",
@@ -83,7 +87,7 @@
     "chapter": "03",
     "label": "Problema",
     "title": "Las subidas no deberían fallar.",
-    "subtitle": "Los sistemas transfieren compresión, conversión de formato y redimensionamiento a quienes menos están preparados —\ny las empresas que los sirven pagan el precio.",
+    "subtitle": "Los sistemas transfieren compresión, conversión de formato y redimensionamiento a quienes menos están preparados, y las empresas que los sirven pagan el precio.",
     "factsLead": "Las cuentas no cierran para el usuario común.",
     "stat1": "de usuarios abandonan subidas por errores de tamaño",
     "stat1Value": "15%",
@@ -105,7 +109,7 @@
     "deadEnd": "El 15% de usuarios abandona aquí",
     "outcomeUser": "Sin redimensionar · sin jerga de formatos",
     "outcomeBusiness": "~2 KB · cero costo en servidor",
-    "insight": "La brecha real no es técnica — es cognitiva. Los usuarios no saben preprocesar imágenes, y los sistemas no deberían pedírselo.",
+    "insight": "La brecha real no es técnica, es cognitiva. Los usuarios no saben preprocesar imágenes, y los sistemas no deberían pedírselo.",
     "solutionCta": "Probar la demo en vivo"
   },
   "features": {
@@ -127,11 +131,10 @@
     "accessibleDesc": "Diseñado para los usuarios que más lo necesitan. Elimina la distancia cognitiva en la subida de archivos."
   },
   "code": {
-    "label": "Experiencia de desarrollo",
+    "label": "Integrar",
     "title": "Integración inmediata",
     "subtitle": "Tres líneas de código. Eso es todo.",
     "chapter": "05",
-    "label": "Integrar",
     "install": "Instalar",
     "use": "Usar"
   },
@@ -191,9 +194,10 @@
     "examples": "Ejemplos",
     "contributing": "Contribuir",
     "project": "Proyecto",
-    "license": "Licencia (MIT)",
+    "license": "Licencia",
     "security": "Seguridad",
-    "codeOfConduct": "Código de Conducta"
+    "codeOfConduct": "Código de Conducta",
+    "rights": "Licencia MIT"
   },
   "docs": {
     "title": "Documentación",
@@ -229,7 +233,7 @@
     "compCostServer": "Escala con el tráfico",
     "compCostClient": "Cero (dispositivo del usuario)",
     "compLatency": "Latencia de procesamiento",
-    "compLatencyServer": "200–2000ms por imagen",
+    "compLatencyServer": "200 a 2000ms por imagen",
     "compLatencyClient": "<100ms",
     "compOffline": "Funciona sin conexión",
     "compOfflineServer": "No",
@@ -248,5 +252,55 @@
     "dismiss": "Ahora no",
     "installing": "Instalando Compresso...",
     "installed": "Compresso instalado! Encuéntralo en tu pantalla de inicio."
+  },
+  "proof": {
+    "label": "Por qué existe",
+    "title": "Un límite de tamaño es un fallo de diseño que llega como culpa tuya.",
+    "lede": "Una foto de móvil pesa varios megabytes. El formulario que la rechaza permite cinco y no te dice qué cambiar. Compresso devuelve ese problema al navegador, donde tarda menos de un segundo.",
+    "oneValue": "0 bytes",
+    "oneLabel": "Subidos, jamás",
+    "oneDetail": "Abre la pestaña de red y compruébalo mientras se procesan cien fotos.",
+    "twoValue": "3,3 MB a 93,5 KB",
+    "twoLabel": "Una medición real",
+    "twoDetail": "Los resultados varían según el contenido, así que preferimos un dato real a una media sin medir.",
+    "threeValue": "2,50 KB",
+    "threeLabel": "Núcleo, comprimido",
+    "threeDetail": "Cero dependencias. Solo APIs del navegador."
+  },
+  "app": {
+    "label": "La app",
+    "title": "Todo ocurre en tu dispositivo.",
+    "cta": "Abrir la app",
+    "lede": "Gratis, instalable y pensada para cuando tienes cuarenta fotos y un formulario que no acepta ninguna.",
+    "privateTitle": "Privada por construcción",
+    "privateBody": "No hay servidor al que enviar tus fotos. No es una política que debas creer, es una arquitectura que puedes verificar.",
+    "offlineTitle": "Funciona sin conexión",
+    "offlineBody": "Instálala una vez y funciona en un avión. La interfaz, las tipografías y el decodificador HEIC quedan en tu dispositivo.",
+    "batchTitle": "Cien a la vez",
+    "batchBody": "Las imágenes se procesan en paralelo en los núcleos de tu CPU, así que la interfaz sigue fluida con lotes grandes.",
+    "formatsTitle": "Fotos de iPhone incluidas",
+    "formatsBody": "Lee HEIC, JPEG, PNG, WebP y AVIF. Escribe AVIF, WebP, JPEG y PNG, eligiendo el mejor formato que tu navegador sepa generar.",
+    "langTitle": "Siete idiomas",
+    "langBody": "Inglés, español, francés, alemán, italiano, portugués y chino, con tamaños y porcentajes escritos como los escribe cada idioma.",
+    "shotAlt": "Compresso en modo claro, con la misma composición invertida a blanco papel y tinta negra."
+  },
+  "library": {
+    "label": "Para desarrolladores",
+    "title": "El mismo motor, como dependencia.",
+    "lede": "Si prefieres que tus usuarios nunca vean un error de subida, el núcleo de compresión se distribuye como una librería que encaja en cualquier framework.",
+    "copy": "Clic para copiar",
+    "copied": "Copiado",
+    "sizeTitle": "2,50 KB comprimido",
+    "sizeBody": "Tan pequeño que adoptarlo no requiere una reunión. Cero dependencias y nada que auditar.",
+    "workerTitle": "Fuera del hilo principal",
+    "workerBody": "Desde 0.4.0 la misma API corre en un Web Worker con OffscreenCanvas, así que un lote grande nunca bloquea tu interfaz.",
+    "guaranteeTitle": "Nunca devuelve un archivo mayor",
+    "guaranteeBody": "La salida con pérdida se limita al menor entre tu límite y el original, porque un compresor que puede agrandar un archivo está roto.",
+    "docs": "Leer la documentación"
+  },
+  "close": {
+    "title": "Tu próxima subida no tiene por qué fallar.",
+    "cta": "Abrir la app",
+    "note": "Gratis y de código abierto, licencia MIT."
   }
 }

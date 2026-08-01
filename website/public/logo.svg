@@ -1,4 +1,4 @@
-<svg width="120" height="120" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="8" fill="#494fdf"/>
-  <circle cx="16" cy="16" r="9.5" stroke="white" stroke-width="3.5" fill="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <path d="M104 128 H408 L332 236 H180 Z" fill="currentColor"/>
+  <path d="M104 384 H408 L332 276 H180 Z" fill="currentColor"/>
 </svg>

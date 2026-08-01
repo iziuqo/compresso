@@ -1,24 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getTranslations, locales, defaultLocale, getLocaleLabel } from '../i18n';
-import Header from '../components/Header';
-import Hero from '../components/Hero';
-import Playground from '../components/Playground';
-import Problem from '../components/Problem';
-import Features from '../components/Features';
-import CodeSection from '../components/CodeSection';
-import Impact from '../components/Impact';
-import CTA from '../components/CTA';
-import Footer from '../components/Footer';
-import InstallBanner from '../components/InstallBanner';
+import { getTranslations, locales, defaultLocale } from '../i18n';
+import Header from '../components/marketing/Header';
+import Hero from '../components/marketing/Hero';
+import Proof from '../components/marketing/Proof';
+import AppSection from '../components/marketing/AppSection';
+import Library from '../components/marketing/Library';
+import Close from '../components/marketing/Close';
+import Footer from '../components/marketing/Footer';
 
 function detectLocale() {
   if (typeof window === 'undefined') return defaultLocale;
-
   const saved = localStorage.getItem('compresso-locale');
   if (saved && locales.includes(saved)) return saved;
-
   const browserLang = navigator.language?.toLowerCase() || '';
   if (browserLang.startsWith('pt')) return 'pt-br';
   if (browserLang.startsWith('es')) return 'es';
@@ -27,9 +22,7 @@ function detectLocale() {
 
 function detectBasePath() {
   if (typeof window === 'undefined') return '';
-  const path = window.location.pathname;
-  if (path.startsWith('/compresso')) return '/compresso';
-  return '';
+  return window.location.pathname.startsWith('/compresso') ? '/compresso' : '';
 }
 
 export default function Home() {
@@ -37,33 +30,31 @@ export default function Home() {
   const [basePath, setBasePath] = useState('');
 
   useEffect(() => {
-    setLocale(detectLocale());
+    const next = detectLocale();
+    setLocale(next);
     setBasePath(detectBasePath());
-    document.documentElement.lang = detectLocale() === 'pt-br' ? 'pt-BR' : detectLocale();
+    document.documentElement.lang = next === 'pt-br' ? 'pt-BR' : next;
   }, []);
 
-  function changeLocale(newLocale) {
-    setLocale(newLocale);
-    localStorage.setItem('compresso-locale', newLocale);
-    document.documentElement.lang = newLocale === 'pt-br' ? 'pt-BR' : newLocale;
+  function changeLocale(next) {
+    setLocale(next);
+    localStorage.setItem('compresso-locale', next);
+    document.documentElement.lang = next === 'pt-br' ? 'pt-BR' : next;
   }
 
   const t = getTranslations(locale);
 
   return (
-    <>
+    <div className="mk">
       <Header t={t} locale={locale} onLocaleChange={changeLocale} basePath={basePath} />
       <main>
         <Hero t={t} />
-        <Playground t={t} />
-        <Problem t={t} />
-        <Features t={t} />
-        <CodeSection t={t} />
-        <Impact t={t} />
-        <CTA t={t} basePath={basePath} />
+        <Proof t={t} />
+        <AppSection t={t} />
+        <Library t={t} basePath={basePath} />
+        <Close t={t} />
       </main>
       <Footer t={t} basePath={basePath} />
-      <InstallBanner t={t} />
-    </>
+    </div>
   );
 }

@@ -7,8 +7,8 @@ function formatLabel(format) {
 }
 
 /**
- * Compact readout of what the "Auto" format actually resolved to — format,
- * dimensions, and quality — so the automatic choice isn't a black box. A "resized
+ * Compact readout of what the "Auto" format actually resolved to: format,
+ * dimensions, and quality, so the automatic choice isn't a black box. A "resized
  * from" note appears when Auto had to downscale (e.g. the JPEG fallback on Safari).
  * Only shown while Format is set to Auto and a result exists.
  */
@@ -35,8 +35,8 @@ export function AutoSummary({ result, quality, format }) {
 
 /**
  * Alerts when the optimized file is actually larger than the original. This can
- * only happen for lossless PNG output — every other format is capped at the
- * source size — so it offers a one-tap switch back to Auto, which always shrinks.
+ * only happen for lossless PNG output. Every other format is capped at the
+ * source size, so it offers a one-tap switch back to Auto, which always shrinks.
  */
 export function OptimizedWarning({ result, format, onAuto }) {
   if (!result || result.savings >= 0) return null;

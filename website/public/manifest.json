@@ -1,14 +1,17 @@
 {
-  "name": "Compresso — Image Optimizer",
+  "name": "Compresso, image optimizer",
   "short_name": "Compresso",
   "description": "Compress, resize, and convert images instantly. Works offline.",
   "start_url": "/tool/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#494fdf",
+  "theme_color": "#000000",
   "orientation": "any",
-  "categories": ["utilities", "photo"],
+  "categories": [
+    "utilities",
+    "photo"
+  ],
   "icons": [
     {
       "src": "/icon-192.png",

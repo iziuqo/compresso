@@ -376,7 +376,7 @@
     @apply text-[0.6875rem] font-semibold tabular-nums text-brand bg-brand-light/80 px-2 py-0.5 rounded-md;
   }
 
-  /* Auto-settings readout — reveals what the "Auto" format resolved to */
+  /* Auto-settings readout, reveals what the "Auto" format resolved to */
   .pro-auto {
     @apply mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 px-1 text-[0.6875rem] text-ink-faint;
   }
@@ -751,7 +751,7 @@
   }
 }
 
-/* Mobile embed — unified widget */
+/* Mobile embed, unified widget */
 .playground-section {
   @apply py-6 sm:py-band;
 }
@@ -1019,7 +1019,7 @@ body.demo-fullscreen-body {
   @apply flex-1 min-h-0 flex items-center justify-center p-6 w-full h-full;
 }
 
-/* Standalone /tool page — native app shell (no macOS chrome) */
+/* Standalone /tool page, native app shell (no macOS chrome) */
 html.tool-route,
 html.tool-route body {
   overflow: hidden;
@@ -1031,7 +1031,7 @@ html.tool-route body {
   @apply flex flex-col h-dvh w-full bg-[#0a0a0b] text-white overflow-hidden;
 }
 
-/* Standalone tool — no marketing plum; monochrome controls */
+/* Standalone tool, no marketing plum; monochrome controls */
 .tool-app .pro-btn-primary {
   @apply bg-white text-[#0a0a0b] hover:bg-white/90 active:scale-[0.98] shadow-none;
 }
@@ -1237,7 +1237,7 @@ html.tool-route body {
   @apply flex flex-col min-h-0 h-full overflow-hidden;
 }
 
-/* Shared mobile layout — preview + bottom sheet */
+/* Shared mobile layout, preview + bottom sheet */
 .pro-mobile-layout {
   @apply flex flex-col flex-1 min-h-0 h-full w-full overflow-hidden;
 }
@@ -1487,7 +1487,7 @@ html.tool-route body {
   @apply text-white placeholder:text-white/30;
 }
 
-/* Legacy — remove centered card framing */
+/* Legacy, remove centered card framing */
 .tool-desktop {
   background: #0a0a0b;
 }
@@ -1639,7 +1639,7 @@ html.tool-route body {
   }
 }
 
-/* ── Problem section — before / after contrast ── */
+/* ── Problem section, before / after contrast ── */
 .problem-section {
   @apply band-dark;
 }
@@ -1867,7 +1867,7 @@ html.tool-route body {
   @apply text-ink-muted;
 }
 
-/* Site header — hide on scroll down (desktop) */
+/* Site header, hide on scroll down (desktop) */
 .site-header {
   @apply fixed top-0 left-0 right-0 z-50 bg-canvas-dark/80 backdrop-blur-md border-b border-line-dark transition-transform duration-300 ease-out;
 }

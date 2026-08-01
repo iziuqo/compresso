@@ -158,8 +158,8 @@ const result = await optimizer.compress(file);`}</code></pre>
                 <tr><td><code>format</code></td><td><code>string</code></td><td><code>&apos;auto&apos;</code></td><td><code>&apos;jpeg&apos;</code> | <code>&apos;png&apos;</code> | <code>&apos;webp&apos;</code> | <code>&apos;avif&apos;</code> | <code>&apos;auto&apos;</code></td></tr>
                 <tr><td><code>maxSizeMB</code></td><td><code>number</code></td><td><code>Infinity</code></td><td>Maximum file size in MB</td></tr>
                 <tr><td><code>backgroundColor</code></td><td><code>string</code></td><td><code>&apos;#ffffff&apos;</code></td><td>Background color for transparent → JPEG</td></tr>
-                <tr><td><code>onProgress</code></td><td><code>function</code></td><td>—</td><td>Progress callback</td></tr>
-                <tr><td><code>signal</code></td><td><code>AbortSignal</code></td><td>—</td><td>Cancel compression</td></tr>
+                <tr><td><code>onProgress</code></td><td><code>function</code></td><td>none</td><td>Progress callback</td></tr>
+                <tr><td><code>signal</code></td><td><code>AbortSignal</code></td><td>none</td><td>Cancel compression</td></tr>
               </tbody>
             </table>
 

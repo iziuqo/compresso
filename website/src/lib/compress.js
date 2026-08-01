@@ -1,6 +1,6 @@
 import { compress, decodeHeic, formatBytes, isFormatSupported, isHeicSource } from 'compresso.js';
 
-// The website is a thin UI layer over the published library — all decode/resize/
+// The website is a thin UI layer over the published library. All decode/resize/
 // encode logic (including HEIC input) lives in `compresso.js`, not here.
 
 export { formatBytes };

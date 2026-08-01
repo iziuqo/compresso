@@ -1,4 +1,5 @@
 import './globals.css';
+import './marketing.css';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Plus_Jakarta_Sans } from 'next/font/google';
@@ -14,9 +15,9 @@ const display = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: 'Compresso — Compress Images in the Browser',
+  title: 'Compresso: Free Image Compressor That Runs In Your Browser',
   description:
-    'Compress, resize, and convert images in the browser — a 2 KB, zero-dependency JavaScript image compressor with HEIC input. 100% client-side, no server needed.',
+    'Compress, resize, and convert images without uploading them anywhere. Free app that works offline, plus a 2.50 KB zero dependency JavaScript library with HEIC input. Fully client side, no server needed.',
   keywords: [
     'image compression',
     'compress image in browser',
@@ -28,21 +29,24 @@ export const metadata = {
     'webp',
     'avif',
     'compress images before upload',
+    'offline image compressor',
+    'image compressor no upload',
+    'free image optimizer app',
   ],
   metadataBase: new URL('https://compresso.izaias.xyz'),
   openGraph: {
-    title: 'Compresso — Compress Images in the Browser',
+    title: 'Compresso: Free Image Compressor That Runs In Your Browser',
     description:
-      '2 KB, zero-dependency image compressor. Compress, resize, and convert images (incl. HEIC) before upload — 100% client-side.',
+      'A free image optimizer that runs entirely on your device. Nothing is uploaded and it works offline. Also available as a 2.50 KB library with HEIC input.',
     siteName: 'Compresso',
     type: 'website',
     url: 'https://compresso.izaias.xyz',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Compresso — Compress Images in the Browser',
+    title: 'Compresso: Free Image Compressor That Runs In Your Browser',
     description:
-      '2 KB, zero-dependency image compressor. Compress, resize, and convert images (incl. HEIC) before upload — 100% client-side.',
+      'A free image optimizer that runs entirely on your device. Nothing is uploaded and it works offline. Also available as a 2.50 KB library with HEIC input.',
   },
   alternates: {
     languages: {

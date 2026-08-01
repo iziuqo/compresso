@@ -1,21 +1,23 @@
 {
   "meta": {
-    "title": "Compresso — Instant Image Optimization in the Browser",
-    "description": "Tiny, zero-dependency image optimizer. Compress, resize, and convert images on the client side — no server needed. Try it free.",
-    "ogTitle": "Compresso — Images optimized instantly, right in the browser",
-    "ogDescription": "~2 KB library that compresses, resizes, and converts images before upload. Zero server load. Works everywhere."
+    "title": "Compresso: Instant Image Optimization in the Browser",
+    "description": "Tiny, zero dependency image optimizer. Compress, resize, and convert images on the client side with no server needed. Free and open source.",
+    "ogTitle": "Compresso: images optimized instantly, right in the browser",
+    "ogDescription": "A free image optimizer that runs entirely in your browser. Nothing is uploaded, and it works offline. Also available as a 2.50 KB library."
   },
   "nav": {
     "playground": "Try it",
     "docs": "Docs",
     "github": "GitHub",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "library": "Library",
+    "openApp": "Open the app"
   },
   "hero": {
-    "badge": "Open source · ~2 KB · zero dependencies",
-    "title": "Stop fighting file uploads.",
-    "subtitle": "Compress, resize, and convert images instantly — right in the browser. No server needed.",
-    "cta": "Try it now",
+    "badge": "Open source · Free · Works offline",
+    "title": "Make images lighter, without uploading them anywhere.",
+    "subtitle": "Compresso compresses, resizes, and converts photos on your own device. Nothing is uploaded to a server, and it keeps working with no connection at all.",
+    "cta": "Open the app",
     "ctaSecondary": "View on GitHub",
     "statsSize": "Average reduction",
     "statsSpeed": "Processing time",
@@ -23,7 +25,9 @@
     "statsSizeValue": "90%",
     "statsSpeedValue": "<100ms",
     "statsDepsValue": "Zero",
-    "scrollCue": "See it compress live"
+    "scrollCue": "See it compress live",
+    "note": "No account. No upload. No size cap.",
+    "shotAlt": "The Compresso app comparing an original photo against its compressed version, with a batch of five images below."
   },
   "story": {
     "flowLabel": "The story",
@@ -34,7 +38,7 @@
     "ch5": "Ship",
     "ch6": "Payoff",
     "ch7": "Start",
-    "playgroundBridge": "Works in seconds — now see why it matters",
+    "playgroundBridge": "Works in seconds. Now see why it matters",
     "codeStep1": "Install",
     "codeStep2": "Wire up",
     "codeStep3": "Done",
@@ -49,7 +53,7 @@
     "chapter": "02",
     "dropzone": "Drop an image here or click to select",
     "dropzoneShort": "Tap to upload",
-    "dropzoneHint": "Supports JPEG, PNG, WebP, AVIF, HEIC — up to 50 MB",
+    "dropzoneHint": "Supports JPEG, PNG, WebP, AVIF and HEIC, up to 50 MB",
     "examples": "Or try an example:",
     "original": "Original",
     "optimized": "Optimized",
@@ -83,7 +87,7 @@
     "chapter": "03",
     "label": "Problem",
     "title": "Uploads shouldn't fail.",
-    "subtitle": "Systems push compression, format conversion, and resizing onto the people least equipped to handle them —\nand the businesses that serve them pay the price.",
+    "subtitle": "Systems push compression, format conversion, and resizing onto the people least equipped to handle them, and the businesses that serve them pay the price.",
     "factsLead": "The math doesn't work for ordinary users.",
     "stat1": "of users abandon uploads due to file size errors",
     "stat1Value": "15%",
@@ -105,7 +109,7 @@
     "deadEnd": "15% of users abandon here",
     "outcomeUser": "No resizing · no format jargon",
     "outcomeBusiness": "~2 KB · zero server cost",
-    "insight": "The real gap isn't technical — it's cognitive. Users don't know how to preprocess images, and systems shouldn't ask them to.",
+    "insight": "The real gap isn't technical, it's cognitive. Users don't know how to preprocess images, and systems shouldn't ask them to.",
     "solutionCta": "Try the live demo"
   },
   "features": {
@@ -127,11 +131,10 @@
     "accessibleDesc": "Designed for the users who need it most. Eliminates cognitive distance in file uploads."
   },
   "code": {
-    "label": "Developer experience",
+    "label": "Ship it",
     "title": "Drop-in integration",
     "subtitle": "Three lines of code. That's it.",
     "chapter": "05",
-    "label": "Ship it",
     "install": "Install",
     "use": "Use"
   },
@@ -191,9 +194,10 @@
     "examples": "Examples",
     "contributing": "Contributing",
     "project": "Project",
-    "license": "License (MIT)",
+    "license": "License",
     "security": "Security",
-    "codeOfConduct": "Code of Conduct"
+    "codeOfConduct": "Code of Conduct",
+    "rights": "MIT licensed"
   },
   "docs": {
     "title": "Documentation",
@@ -222,14 +226,14 @@
     "targetSizeDesc": "Set maxSizeMB to ensure the output never exceeds a given file size. Compresso uses binary search to find the highest quality that fits:",
     "autoFormatDesc": "When using format: 'auto', Compresso automatically detects the best format supported by the current browser.",
     "whyBrowserTitle": "Why optimize in the browser?",
-    "whyBrowserDesc": "Client-side optimization means the server receives an already-optimized file. No server-side processing, no GPU instances, no image processing libraries to maintain. The heavier the traffic, the more you save — because each user's device does the work.",
+    "whyBrowserDesc": "Client side optimization means the server receives an already optimized file. No server side processing, no GPU instances, no image processing libraries to maintain. The heavier the traffic, the more you save, because each user’s device does the work.",
     "comparisonServer": "Server-side processing",
     "comparisonClient": "Client-side (Compresso)",
     "compCost": "Infrastructure cost",
     "compCostServer": "Scales with traffic",
     "compCostClient": "Zero (user's device)",
     "compLatency": "Processing latency",
-    "compLatencyServer": "200–2000ms per image",
+    "compLatencyServer": "200 to 2000ms per image",
     "compLatencyClient": "<100ms",
     "compOffline": "Works offline",
     "compOfflineServer": "No",
@@ -248,5 +252,55 @@
     "dismiss": "Not now",
     "installing": "Installing Compresso...",
     "installed": "Compresso installed! Find it on your home screen."
+  },
+  "proof": {
+    "label": "Why it exists",
+    "title": "A size limit is a design failure that arrives as your fault.",
+    "lede": "A phone photo is routinely several megabytes. The form that rejects it allows five, and it will not tell you what to change. Compresso absorbs that problem back into the browser, where it takes under a second.",
+    "oneValue": "0 bytes",
+    "oneLabel": "Uploaded, ever",
+    "oneDetail": "Open your network tab and watch it stay silent while a hundred photos process.",
+    "twoValue": "3.3 MB to 93.5 KB",
+    "twoLabel": "One measured run",
+    "twoDetail": "Results vary by content, so this is a single real result rather than an average we have not benchmarked.",
+    "threeValue": "2.50 KB",
+    "threeLabel": "Library core, gzipped",
+    "threeDetail": "Zero required dependencies. Browser primitives only."
+  },
+  "app": {
+    "label": "The app",
+    "title": "Everything happens on your device.",
+    "cta": "Open the app",
+    "lede": "Free, installable, and built for the moment you have forty photos and a form that will not take any of them.",
+    "privateTitle": "Private by construction",
+    "privateBody": "There is no server to send your photos to. This is not a policy you have to trust, it is an architecture you can verify.",
+    "offlineTitle": "Works with no connection",
+    "offlineBody": "Install it once and it runs on a plane. The interface, the fonts, and the HEIC decoder are all stored on your device.",
+    "batchTitle": "A hundred at a time",
+    "batchBody": "Images are processed in parallel across your CPU cores, so the interface stays smooth while a large batch runs.",
+    "formatsTitle": "iPhone photos included",
+    "formatsBody": "Reads HEIC, JPEG, PNG, WebP, and AVIF. Writes AVIF, WebP, JPEG, and PNG, choosing the best format your browser can produce.",
+    "langTitle": "Seven languages",
+    "langBody": "English, Spanish, French, German, Italian, Portuguese, and Chinese, with sizes and percentages formatted the way each locale writes them.",
+    "shotAlt": "Compresso in light mode, showing the same layout inverted to paper white and ink black."
+  },
+  "library": {
+    "label": "For developers",
+    "title": "The same engine, as a dependency.",
+    "lede": "If you would rather your users never meet an upload error, the compression core ships as a library you can drop into any framework.",
+    "copy": "Click to copy",
+    "copied": "Copied",
+    "sizeTitle": "2.50 KB, gzipped",
+    "sizeBody": "Small enough that adopting it does not need a meeting. Zero required dependencies, and nothing to audit.",
+    "workerTitle": "Runs off the main thread",
+    "workerBody": "Since 0.4.0 the same API runs inside a Web Worker using OffscreenCanvas, so a large batch never blocks your interface.",
+    "guaranteeTitle": "Never returns a bigger file",
+    "guaranteeBody": "Lossy output is capped at the smaller of your size limit and the original, because a compressor that can grow a file is broken.",
+    "docs": "Read the docs"
+  },
+  "close": {
+    "title": "Your next upload does not have to fail.",
+    "cta": "Open the app",
+    "note": "Free and open source, MIT licensed."
   }
 }

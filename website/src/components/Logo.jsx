@@ -1,15 +1,16 @@
-export default function Logo({ size = 28, className = '' }) {
+/** Two plates closing on each other. The same mark as the app and the favicon. */
+export default function Logo({ size = 16, className = '' }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 32 32"
-      fill="none"
+      viewBox="0 0 24 24"
+      fill="currentColor"
       className={className}
       aria-hidden="true"
     >
-      <rect width="32" height="32" rx="8" className="fill-cobalt" />
-      <circle cx="16" cy="16" r="9.5" stroke="white" strokeWidth="3.5" fill="none" />
+      <path d="M3 3.6H21L16.5 10H7.5Z" />
+      <path d="M3 20.4H21L16.5 14H7.5Z" />
     </svg>
   );
 }
