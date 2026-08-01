@@ -27,14 +27,18 @@ export default function AppSection({ t }) {
         </div>
 
         <div className="mk-shot" style={{ marginTop: '4rem' }}>
-          <img
-            src="/app/app-light-shot.png"
-            alt={t.app.shotAlt}
-            width={2880}
-            height={1688}
-            loading="lazy"
-            decoding="async"
-          />
+          <picture>
+            <source type="image/avif" srcSet="/app/app-light-shot.avif" />
+            <source type="image/webp" srcSet="/app/app-light-shot.webp" />
+            <img
+              src="/app/app-light-shot.png"
+              alt={t.app.shotAlt}
+              width={2880}
+              height={1688}
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
         </div>
 
         <div className="mk-hero__actions" style={{ justifyContent: 'flex-start', marginTop: '2.5rem' }}>
