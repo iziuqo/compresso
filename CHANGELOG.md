@@ -4,6 +4,26 @@ All notable changes to `compresso.js` are documented here. The format is based o
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-07-31
+
+### Added
+- **Web Worker support.** The platform seam now has a second backend
+  (`createImageBitmap` + `OffscreenCanvas` + `convertToBlob`) selected automatically
+  when the library runs without a DOM. Hosts can now compress many images in
+  parallel, off the main thread, with no API change and no pipeline change — the
+  0.3.2 refactor prepared exactly this. EXIF orientation is preserved on the worker
+  path via `imageOrientation: 'from-image'`.
+- `ensureCapabilities()` is awaited by the pipeline before format selection, so
+  `format: 'auto'` resolves correctly in a worker (where `toDataURL` does not
+  exist and the probe must be asynchronous). `__setCapabilities` still short-
+  circuits it, so a host that already probed on the main thread pays nothing.
+
+### Changed
+- Core grew from 2.27 KB to 2.50 KB gzipped (+231 B) for the worker backend. Kept
+  in the main entry rather than split behind a subpath export: parallel compression
+  is core to what the library is for, and a second entry point would make it a
+  second-class path for every consumer.
+
 ## [0.3.2] — 2026-07-11
 
 ### Changed

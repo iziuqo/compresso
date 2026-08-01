@@ -1,5 +1,5 @@
 import { formatToMime, generateFileName, getBestFormat } from './utils.js';
-import { decode, encode } from './platform.js';
+import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
 
 const DEFAULTS = {
@@ -29,6 +29,10 @@ export async function compress(source, options = {}) {
   const opts = { ...DEFAULTS, ...options };
   throwIfAborted(opts.signal);
 
+  // Resolve encode capabilities before choosing a format. On the main thread this
+  // is a memoized sync probe; in a worker it is an async one (OffscreenCanvas has
+  // no `toDataURL`), which is why the pipeline awaits it here.
+  await ensureCapabilities();
   const format = opts.format === 'auto' ? getBestFormat() : opts.format;
   const mimeType = formatToMime(format);
   const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;

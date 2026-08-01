@@ -2,13 +2,21 @@ import { isHeicSource, decodeHeic } from './heic.js';
 
 /**
  * Platform seam — the ONLY module that touches host I/O. The pipeline
- * (compress/resize/utils) depends on these four primitives, never on `document`,
- * `Image`, or `canvas.toBlob` directly. A future worker backend swaps this file to
- * use `createImageBitmap` + `OffscreenCanvas` + `convertToBlob` with zero changes
- * to the pipeline. `encode` already accepts an `OffscreenCanvas`, and capabilities
- * can be injected (see `__setCapabilities`) so a worker can be told what the main
- * thread detected instead of re-probing.
+ * (compress/resize/utils) depends on these primitives, never on `document`,
+ * `Image`, or `canvas.toBlob` directly.
+ *
+ * Two backends, chosen by environment:
+ *   • main thread — `new Image()` + `<canvas>` + `toBlob`
+ *   • worker      — `createImageBitmap` + `OffscreenCanvas` + `convertToBlob`
+ *
+ * The worker backend is what lets a host run many compressions in parallel, off
+ * the main thread. Nothing else in the library knows which backend is active.
  */
+
+/** True inside a Web Worker (no DOM), false on the main thread. */
+const isWorker = typeof document === 'undefined';
+
+/* ------------------------------------------------------------------ decode */
 
 function loadElement(source) {
   return new Promise((resolve, reject) => {
@@ -30,13 +38,40 @@ function loadElement(source) {
 }
 
 /**
+ * Decode to an `ImageBitmap`. `imageOrientation: 'from-image'` is what keeps EXIF
+ * rotation applied — `new Image()` does that for free, raw `createImageBitmap` on
+ * older engines does not. Re-tried without the options bag on engines that reject
+ * unknown members, where the default is already equivalent.
+ */
+async function loadBitmap(blob) {
+  try {
+    return await createImageBitmap(blob, { imageOrientation: 'from-image' });
+  } catch (err) {
+    if (err instanceof TypeError) return createImageBitmap(blob);
+    throw err;
+  }
+}
+
+/**
  * Decode a source to a drawable and its intrinsic pixel size. Native decode first
  * (free on Safari/iOS, the common path everywhere); only HEIC/HEIF sources fall
  * back to the lazy WASM decoder. Dimensions are returned explicitly so the rest of
- * the pipeline never reads `.naturalWidth` — an `ImageBitmap` (worker) exposes only
+ * the pipeline never reads `.naturalWidth` — an `ImageBitmap` exposes only
  * `.width`/`.height`.
  */
 export async function decode(source) {
+  if (isWorker) {
+    const blob = source instanceof Blob ? source : await (await fetch(source)).blob();
+    let image;
+    try {
+      image = await loadBitmap(blob);
+    } catch (err) {
+      if (!isHeicSource(blob)) throw err;
+      image = await loadBitmap(await decodeHeic(blob));
+    }
+    return { image, width: image.width, height: image.height };
+  }
+
   let image;
   try {
     image = await loadElement(source);
@@ -47,11 +82,13 @@ export async function decode(source) {
   return { image, width: image.naturalWidth, height: image.naturalHeight };
 }
 
+/* ------------------------------------------------------------------ canvas */
+
 /** A target canvas + its high-quality 2D context. */
 export function createCanvas(width, height) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  const canvas = isWorker
+    ? new OffscreenCanvas(width, height)
+    : Object.assign(document.createElement('canvas'), { width, height });
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingQuality = 'high';
   return { canvas, ctx };
@@ -69,9 +106,11 @@ export function encode(canvas, mimeType, quality) {
   });
 }
 
+/* ------------------------------------------------------------ capabilities */
+
 let caps;
 
-function canEncode(mimeType) {
+function canEncodeSync(mimeType) {
   try {
     const c = document.createElement('canvas');
     c.width = c.height = 1;
@@ -81,9 +120,43 @@ function canEncode(mimeType) {
   }
 }
 
+/**
+ * Worker probe. `OffscreenCanvas` has no `toDataURL`, so the only way to ask "can
+ * you encode this?" is to encode a 1×1 and look at what comes back — engines
+ * silently fall back to PNG for formats they don't support.
+ */
+async function canEncodeAsync(mimeType) {
+  try {
+    const c = new OffscreenCanvas(1, 1);
+    c.getContext('2d').fillRect(0, 0, 1, 1);
+    const blob = await c.convertToBlob({ type: mimeType });
+    return blob.type === mimeType;
+  } catch {
+    return false;
+  }
+}
+
 /** Which modern output formats this environment can *encode* (memoized per session). */
 export function capabilities() {
-  return (caps ??= { avif: canEncode('image/avif'), webp: canEncode('image/webp') });
+  if (caps) return caps;
+  // In a worker with nothing probed yet, assume nothing modern rather than guess
+  // wrong — `ensureCapabilities()` (awaited by the pipeline) fills this in, and a
+  // host can skip probing entirely with `__setCapabilities`.
+  if (isWorker) return { avif: false, webp: false };
+  return (caps = { avif: canEncodeSync('image/avif'), webp: canEncodeSync('image/webp') });
+}
+
+/**
+ * Resolve capabilities, probing asynchronously where that is the only option
+ * (worker). Awaited once by the pipeline before format selection.
+ */
+export async function ensureCapabilities() {
+  if (caps) return caps;
+  if (!isWorker) return capabilities();
+  return (caps = {
+    avif: await canEncodeAsync('image/avif'),
+    webp: await canEncodeAsync('image/webp'),
+  });
 }
 
 /** Inject a known capability set (worker mode / tests) instead of probing. */
