@@ -4,16 +4,51 @@
     {
       "name": "website",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "-w", "website"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "website"
+      ],
       "port": 3001,
       "autoPort": true
     },
     {
       "name": "website-prod",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["--yes", "serve@latest", "website/out", "-l", "3005"],
+      "runtimeArgs": [
+        "--yes",
+        "serve@latest",
+        "website/out",
+        "-l",
+        "3005"
+      ],
       "port": 3005,
       "autoPort": true
+    },
+    {
+      "name": "compresso-app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "/Users/izaias/Projects/OpenSource/compresso-app"
+      ],
+      "port": 5173
+    },
+    {
+      "name": "compresso-app-prod",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "--yes",
+        "serve@latest",
+        "/Users/izaias/Projects/OpenSource/compresso-app/dist",
+        "-l",
+        "4174",
+        "-s"
+      ],
+      "port": 4174
     }
   ]
 }
