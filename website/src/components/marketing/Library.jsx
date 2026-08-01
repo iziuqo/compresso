@@ -60,7 +60,7 @@ export default function Library({ t, basePath = '' }) {
           </div>
         </div>
 
-        <div className="mk-hero__actions" style={{ justifyContent: 'flex-start', marginTop: '2.5rem' }}>
+        <div className="mk-actions mk-actions--inline">
           <a className="mk-ghost" href={`${basePath}/docs/`}>{t.library.docs}</a>
           <a className="mk-ghost" href={NPM_URL} target="_blank" rel="noopener noreferrer">npm</a>
           <a className="mk-ghost" href={GITHUB_URL} target="_blank" rel="noopener noreferrer">GitHub</a>

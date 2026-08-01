@@ -22,16 +22,30 @@
   --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-entrance: cubic-bezier(0.16, 1, 0.30, 1);
 
+  /* Three numbers drive the whole mobile/desktop difference. The gutter is
+     tight on a phone because every pixel of measure buys a better line break;
+     the bleed is zero there because a screenshot that hangs past its section
+     needs room a 375px viewport does not have. */
+  --gutter: 1.25rem;
+  --section-y: 5rem;
+  --shot-bleed: 0rem;
+
   background: var(--void);
   color: var(--ink);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.011em;
 }
 
+@media (min-width: 640px) { .mk { --gutter: 1.5rem; } }
+@media (min-width: 768px) { .mk { --section-y: 7rem; --shot-bleed: 8rem; } }
+
 .mk ::selection { background: var(--ink); color: var(--void); }
 .mk :focus-visible { outline: 1.5px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
 
-.mk-wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding-inline: 1.5rem; }
+/* the header is sticky, so anchored sections have to stop clear of it */
+.mk [id] { scroll-margin-top: 4.5rem; }
+
+.mk-wrap { width: 100%; max-width: 1120px; margin: 0 auto; padding-inline: var(--gutter); }
 .mk-mono { font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 
 /* 10px uppercase tracked wide. The same label voice as the app. */
@@ -39,6 +53,37 @@
   font-size: 0.625rem; font-weight: 500; text-transform: uppercase;
   letter-spacing: 0.16em; line-height: 1.2; color: var(--ink-3);
 }
+
+/* Tracking adds space after the final letter too, so a centred tracked label
+   sits half a space left of true centre. Pulling the end margin back by the
+   tracking value centres the glyphs instead of the advance width. */
+.mk-hero .mk-label,
+.mk-close .mk-label { margin-inline-end: -0.16em; }
+
+/* ------------------------------------------------------- display typography
+
+   One ramp for every display heading. Both tracking and leading tighten as the
+   type grows, because a 34px headline and a 72px headline want different
+   optics from the same font, and a single em-based value can only serve one. */
+
+.mk-hero__title,
+.mk-section__title,
+.mk-close__title,
+.mk-stat__value {
+  font-weight: 300;
+  letter-spacing: calc(-0.026em - (var(--fs) - 2rem) * 0.016);
+  font-size: var(--fs);
+  text-wrap: balance;
+}
+.mk-hero__title,
+.mk-section__title,
+.mk-close__title { line-height: calc(0.93em + 6px); }
+
+/* ledes and body copy: never strand a single word on the last line */
+.mk-hero__lede,
+.mk-section__lede,
+.mk-row__body,
+.mk-stat__detail { text-wrap: pretty; }
 
 /* ------------------------------------------------------------------ header */
 
@@ -73,63 +118,119 @@
 
 /* ------------------------------------------------------------------ buttons */
 
-.mk-pill {
-  display: inline-flex; align-items: center; justify-content: center;
-  height: 38px; padding: 0 1.5rem; border-radius: 999px;
-  background: var(--ink); color: var(--void);
-  font-size: 0.8125rem; font-weight: 500; letter-spacing: -0.008em;
-  transition: transform 120ms var(--ease-standard), opacity 120ms var(--ease-standard);
-}
-.mk-pill:active { transform: scale(0.972); opacity: 0.86; }
-.mk-pill--lg { height: 46px; padding: 0 2rem; font-size: 0.9375rem; }
-.mk-pill--sm { height: 32px; padding: 0 1rem; font-size: 0.75rem; }
-
+.mk-pill,
 .mk-ghost {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-  height: 46px; padding: 0 1.75rem; border-radius: 999px;
-  color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line);
-  font-size: 0.9375rem;
-  transition: color 120ms var(--ease-standard), box-shadow 120ms var(--ease-standard);
+  border-radius: 999px; white-space: nowrap;
+  /* line-height 1 makes the flex centring act on the text's own box, so the
+     label sits on the geometric centre instead of inside a leaded line box.
+     Measured in Geist at 15px this puts the cap-height band 0.06px off centre,
+     so there is no nudge here on purpose: correcting to the full ink box
+     instead would shift the label 1.2px and make it move between locales,
+     since a label only sinks if the translation happens to have a descender. */
+  line-height: 1; letter-spacing: -0.008em;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 120ms var(--ease-standard),
+    background-color 120ms var(--ease-standard),
+    color 120ms var(--ease-standard),
+    box-shadow 120ms var(--ease-standard);
 }
-.mk-ghost:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
+.mk-pill:active,
+.mk-ghost:active { transform: scale(0.976); }
+
+.mk-pill {
+  height: 40px; padding: 0 1.375rem;
+  background: var(--ink); color: var(--void);
+  font-size: 0.8125rem; font-weight: 500;
+}
+@media (hover: hover) { .mk-pill:hover { background: rgb(255 255 255 / 0.86); } }
+
+.mk-pill--lg { height: 48px; padding: 0 1.875rem; font-size: 0.9375rem; }
+
+/* the header CTA is the only one visible while scrolling, so it keeps a 44px
+   hit area even though it draws at 36px */
+.mk-pill--sm { position: relative; height: 36px; padding: 0 1.125rem; font-size: 0.78125rem; }
+.mk-pill--sm::before { content: ''; position: absolute; inset: -4px -2px; }
+
+.mk-ghost {
+  height: 48px; padding: 0 1.75rem;
+  color: var(--ink-2); box-shadow: inset 0 0 0 1px var(--line);
+  /* 400 against 500 on the solid pill: white-on-black already reads heavier
+     than black-on-white, so matching the weights would mismatch the colour */
+  font-size: 0.9375rem; font-weight: 400;
+}
+@media (hover: hover) {
+  .mk-ghost:hover { color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
+}
+
+/* Action rows. On a phone the buttons stack at one shared width, because two
+   pills of different lengths centred under a headline read as an accident. */
+.mk-actions {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.625rem; margin-top: 2rem;
+}
+.mk-actions > * { width: 100%; max-width: 20rem; }
+.mk-actions--start { align-items: flex-start; }
+
+@media (min-width: 480px) {
+  .mk-actions {
+    flex-direction: row; flex-wrap: wrap; justify-content: center;
+    gap: 0.75rem; margin-top: 2.25rem;
+  }
+  .mk-actions > * { width: auto; max-width: none; }
+  .mk-actions--start { justify-content: flex-start; }
+}
+
+/* the developer links are secondary, so they wrap as a row at every width */
+.mk-actions--inline {
+  flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start;
+  gap: 0.625rem;
+}
+.mk-actions--inline > * { width: auto; max-width: none; }
 
 /* --------------------------------------------------------------------- hero */
 
-.mk-hero { position: relative; padding: 6rem 0 0; text-align: center; overflow: hidden; }
-@media (min-width: 768px) { .mk-hero { padding-top: 8rem; } }
+.mk-hero {
+  position: relative; padding: 4.5rem 0 0; text-align: center;
+  /* `clip` instead of `hidden`: hidden also clips vertically, which is what
+     was cutting the bottom off the hero screenshot. clip on one axis leaves
+     the other visible, so the shot can hang past the section as designed. */
+  overflow-x: clip; overflow-y: visible;
+  /* with no bleed on a phone the shot would otherwise sit on the divider */
+  padding-bottom: 3rem;
+}
+@media (min-width: 768px) { .mk-hero { padding-top: 8rem; padding-bottom: 0; } }
 
 /* a single soft light behind the headline. no gradient on any surface. */
 .mk-hero::before {
-  content: ''; position: absolute; left: 50%; top: -10%;
-  width: min(900px, 120%); aspect-ratio: 2 / 1; transform: translateX(-50%);
+  content: ''; position: absolute; left: 50%; top: 0;
+  /* stays inside the viewport on its own, so the clip above is only a net */
+  width: min(900px, 100%); aspect-ratio: 2 / 1; transform: translateX(-50%);
   background: radial-gradient(closest-side, rgb(255 255 255 / 0.07), transparent 72%);
   pointer-events: none;
 }
 .mk-hero__inner { position: relative; }
 
 .mk-hero__title {
-  margin: 1.25rem auto 0;
-  max-width: 18ch;
-  font-size: clamp(2.5rem, 7vw, 4.5rem);
-  font-weight: 300; line-height: 1.03; letter-spacing: -0.042em;
-  text-wrap: balance;
+  --fs: clamp(2.125rem, 7.6vw, 4.5rem);
+  /* the badge hugs the headline; the lede sits further out. equal gaps would
+     read as a flat stack of three things rather than a label on a title */
+  margin: 0.875rem auto 0;
+  max-width: 17ch;
 }
 .mk-hero__lede {
-  margin: 1.5rem auto 0; max-width: 46ch;
+  margin: 1.5rem auto 0; max-width: 42ch;
   font-size: clamp(1rem, 2.2vw, 1.125rem); line-height: 1.55;
   letter-spacing: -0.014em; color: var(--ink-2);
 }
-.mk-hero__actions {
-  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
-  gap: 0.75rem; margin-top: 2.25rem;
-}
-.mk-hero__note { margin-top: 1.25rem; color: var(--ink-4); }
+.mk-hero__note { margin-top: 1.375rem; color: var(--ink-4); }
 
 /* the product, framed. it is the only colour on the page. */
 .mk-shot {
   /* the hero shot is an anchor, and an inline box ignores vertical margin */
   display: block;
-  position: relative; margin: 5.5rem auto 0; max-width: 1000px;
+  position: relative; margin: 5rem auto 0; max-width: 1000px;
   border-radius: 10px; overflow: hidden;
   /* the frame has to be visible: a black screenshot on a black page needs an
      edge, or the product's own chrome reads as part of the page */
@@ -138,30 +239,30 @@
     0 0 0 7px rgb(255 255 255 / 0.03),
     0 60px 140px -50px rgb(255 255 255 / 0.22);
   animation: mk-rise 700ms var(--ease-entrance) both;
-  /* hold the frame's shape before the image lands, so a <picture> swapping to a
-     differently-proportioned asset can't reflow the page under the reader */
-  aspect-ratio: 2880 / 1688;
 }
-/* the hero swaps to a portrait screenshot on phones; only that frame changes
-   shape, since the section shot below has no mobile asset to swap to */
-@media (max-width: 639.98px) {
-  .mk-shot--dual { aspect-ratio: 780 / 1688; }
-}
-/* height must be resolved for object-fit to do anything; with the ratios above
-   matching each asset exactly, cover crops nothing */
+.mk-shot picture { display: block; }
+/* the ratio lives on the frame, so the box is reserved before the file lands
+   and the portrait/landscape swap costs no layout shift */
 .mk-shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.mk-shot--flush { margin-bottom: -8rem; }
+.mk-shot--hero { aspect-ratio: 780 / 1688; max-width: 26rem; border-radius: 20px; }
+.mk-shot--app { aspect-ratio: 2880 / 1688; margin-top: 3.5rem; }
+@media (min-width: 640px) {
+  .mk-shot--hero { aspect-ratio: 2880 / 1688; max-width: 1000px; border-radius: 10px; }
+}
+.mk-shot--flush { margin-bottom: calc(var(--shot-bleed) * -1); }
 @keyframes mk-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 
 /* ------------------------------------------------------------------ sections */
 
-.mk-section { padding: 7rem 0; border-top: 1px solid var(--line); }
-.mk-section--flush { padding-top: 12rem; }
+.mk-section { padding: var(--section-y) 0; border-top: 1px solid var(--line); }
+/* the bleeding screenshot is the divider here; a hairline would cross it */
+.mk-section--flush { padding-top: calc(var(--section-y) + var(--shot-bleed)); }
+@media (min-width: 768px) { .mk-section--flush { border-top: 0; } }
+
 .mk-section__head { max-width: 42rem; }
 .mk-section__title {
+  --fs: clamp(1.625rem, 3.6vw, 2.5rem);
   margin-top: 0.9rem;
-  font-size: clamp(1.75rem, 3.6vw, 2.5rem);
-  font-weight: 300; line-height: 1.12; letter-spacing: -0.032em;
 }
 .mk-section__lede { margin-top: 1rem; font-size: 1.0625rem; line-height: 1.6; color: var(--ink-2); }
 
@@ -173,7 +274,7 @@
   .mk-stat { padding: 0 2rem; border-top: 0; border-left: 1px solid var(--line); }
   .mk-stat:first-child { padding-left: 0; border-left: 0; }
 }
-.mk-stat__value { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 300; letter-spacing: -0.04em; line-height: 1; }
+.mk-stat__value { --fs: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.05; text-wrap: balance; }
 .mk-stat__label { margin-top: 0.75rem; }
 .mk-stat__detail { margin-top: 0.4rem; font-size: 0.8125rem; color: var(--ink-3); line-height: 1.5; }
 
@@ -196,31 +297,51 @@
   margin-top: 2.5rem; border-radius: 8px; overflow: hidden;
   background: var(--surface); box-shadow: inset 0 0 0 1px var(--line);
 }
+/* Below 480px the command and its hint cannot share a row without both
+   wrapping, so the hint rises above the command and reads as a label —
+   the same label-over-content order the rest of the page uses. */
 .mk-code__bar {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  padding: 0.75rem 1.25rem; border-bottom: 1px solid var(--line);
+  display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 0.5rem;
+  padding: 0.875rem 1.125rem; border-bottom: 1px solid var(--line);
+}
+@media (min-width: 480px) {
+  .mk-code__bar {
+    flex-direction: row; align-items: center; justify-content: space-between;
+    gap: 1rem; padding: 0.75rem 1.25rem;
+  }
 }
 .mk-code__body {
-  margin: 0; padding: 1.5rem 1.25rem; overflow-x: auto;
+  margin: 0; padding: 1.25rem 1.125rem; overflow-x: auto;
   font-family: var(--font-geist-mono), monospace;
-  font-size: 0.8125rem; line-height: 1.85; color: var(--ink-2);
+  font-size: 0.75rem; line-height: 1.85; color: var(--ink-2);
   white-space: pre;
+  overscroll-behavior-x: contain;
 }
+@media (min-width: 480px) { .mk-code__body { padding: 1.5rem 1.25rem; font-size: 0.8125rem; } }
 .mk-code__body b { color: var(--ink); font-weight: 400; }
 .mk-code__comment { color: var(--ink-4); }
 
 .mk-copy {
   display: inline-flex; align-items: center; gap: 0.5rem;
-  font-family: var(--font-geist-mono), monospace; font-size: 0.8125rem;
-  color: var(--ink); cursor: pointer;
+  font-family: var(--font-geist-mono), monospace; font-size: 0.75rem;
+  color: var(--ink); cursor: pointer; text-align: left;
+  -webkit-tap-highlight-color: transparent;
 }
-.mk-copy__hint { color: var(--ink-4); font-size: 0.625rem; letter-spacing: 0.14em; text-transform: uppercase; }
+@media (min-width: 480px) { .mk-copy { font-size: 0.8125rem; } }
+.mk-copy__hint {
+  color: var(--ink-4); font-size: 0.625rem; letter-spacing: 0.14em; text-transform: uppercase;
+  /* the trailing letter-space would otherwise float the bar's right edge */
+  margin-inline-end: -0.14em; white-space: nowrap;
+}
 
 /* closing */
-.mk-close { padding: 8rem 0; border-top: 1px solid var(--line); text-align: center; }
+.mk-close {
+  padding: calc(var(--section-y) * 1.2) 0;
+  border-top: 1px solid var(--line); text-align: center;
+}
 .mk-close__title {
-  font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 300;
-  line-height: 1.06; letter-spacing: -0.04em; max-width: 20ch; margin: 0 auto;
+  --fs: clamp(2rem, 5.4vw, 3.25rem);
+  max-width: 18ch; margin: 0 auto;
 }
 
 /* footer */
