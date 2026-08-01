@@ -26,7 +26,7 @@ export default function AppSection({ t }) {
           ))}
         </div>
 
-        <div className="mk-shot" style={{ marginTop: '4rem' }}>
+        <div className="mk-shot mk-shot--app">
           <img
             src="/app/app-light-shot.png"
             alt={t.app.shotAlt}
@@ -37,7 +37,7 @@ export default function AppSection({ t }) {
           />
         </div>
 
-        <div className="mk-hero__actions" style={{ justifyContent: 'flex-start', marginTop: '2.5rem' }}>
+        <div className="mk-actions mk-actions--start">
           <a className="mk-pill mk-pill--lg" href={APP_URL}>{t.app.cta}</a>
         </div>
       </div>
