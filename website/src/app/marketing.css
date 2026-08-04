@@ -123,7 +123,7 @@
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--line);
 }
-.mk-head__row { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; height: 56px; }
+.mk-head__row { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; height: 56px; }
 .mk-head__nav { display: none; align-items: center; gap: 1.75rem; }
 @media (min-width: 768px) { .mk-head__nav { display: flex; } }
 .mk-head__link {
@@ -132,29 +132,6 @@
 }
 .mk-head__link:hover { color: var(--ink); }
 .mk-head__right { display: flex; align-items: center; gap: 1rem; }
-
-/* Below 768px .mk-head__nav (above) disappears, leaving just the mark and
-   .mk-head__right as the row's only two flex children — space-between then
-   pins the "Open the app" pill to the right edge instead of the page centre,
-   unlike its large twin in the hero below. Pulled out of the flex flow and
-   centred on the row itself so both read the same way on a phone. */
-@media (max-width: 767.98px) {
-  .mk-head__right .mk-pill--sm {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-  }
-}
-
-/* Dead centre plus the wordmark's own width doesn't fit next to a centred
-   pill under ~400px (checked at 320px, a real minimum — iPhone SE) — the two
-   start to overlap. Dropping to icon-only there is the standard mobile-web
-   answer, not a compromise: it's already how most sites handle a wordmark at
-   this width, centred pill or not. */
-@media (max-width: 389.98px) {
-  .mk-head .mk-mark__word { display: none; }
-}
 
 .mk-mark { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink); }
 .mk-mark__glyph { width: 16px; height: 16px; }
@@ -305,7 +282,6 @@
   gap: 0.625rem; margin-top: 2rem;
 }
 .mk-actions > * { width: 100%; max-width: 20rem; }
-.mk-actions--start { align-items: flex-start; }
 
 @media (min-width: 480px) {
   .mk-actions {
@@ -313,7 +289,6 @@
     gap: 0.75rem; margin-top: 2.25rem;
   }
   .mk-actions > * { width: auto; max-width: none; }
-  .mk-actions--start { justify-content: flex-start; }
 }
 
 /* the developer links are secondary, so they wrap as a row at every width */
