@@ -4,6 +4,28 @@ All notable changes to `compresso.js` are documented here. The format is based o
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Resource-exhaustion guard (`maxInputPixels`).** A crafted file can declare pixel
+  dimensions that make the browser attempt an enormous allocation from a handful of
+  bytes. `compress()` now rejects input above 100 MP by default (configurable,
+  `Infinity` to disable) — checked twice: cheaply, from the file header alone
+  before the expensive decode, for JPEG/PNG/WebP; and again after decode, for
+  every format, as the only guard for HEIC/AVIF/URL sources and as
+  defense-in-depth otherwise.
+- **HEIC decode-path hardening.** The one Blob-source case `isHeicSource()` treats
+  permissively (no MIME type, no filename) now requires a cheap magic-byte
+  confirmation of the file's HEIC/HEIF `ftyp` box before it's handed to the WASM
+  decoder, so an arbitrary untyped, unnamed blob can no longer reach it unconfirmed.
+- **Clear error in non-browser environments.** Calling `compress()` where neither
+  `Image` nor `OffscreenCanvas` exists (Node.js, or a framework's SSR pass) now
+  throws immediately with an actionable message, instead of failing deep inside
+  the pipeline.
+- `decodeHeic()` surfaces a specific, actionable error when WASM compilation is
+  blocked by a page's Content-Security-Policy (needs `'wasm-unsafe-eval'` in
+  `script-src`), instead of an opaque WASM failure.
+
 ## [0.4.0] — 2026-07-31
 
 ### Added

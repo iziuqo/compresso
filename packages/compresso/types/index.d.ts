@@ -22,6 +22,13 @@ export interface CompressOptions {
    * than the source, regardless of this value. Default: source size.
    */
   maxSizeMB?: number;
+  /**
+   * Maximum decodable input resolution, in total pixels (width × height). Guards
+   * against a crafted file declaring an enormous resolution from a tiny number of
+   * bytes. Default: 100,000,000 (100 MP — well above any real camera photo). Pass
+   * `Infinity` to disable.
+   */
+  maxInputPixels?: number;
   /** Background color for JPEG conversion. Default: '#ffffff' */
   backgroundColor?: string;
   /** @deprecated No-op — aspect ratio is always preserved when resizing. */

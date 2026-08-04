@@ -1,4 +1,4 @@
-import { isHeicSource, decodeHeic } from './heic.js';
+import { isHeicSource, decodeHeic, sniffHeicMagic } from './heic.js';
 
 /**
  * Platform seam — the ONLY module that touches host I/O. The pipeline
@@ -53,6 +53,21 @@ async function loadBitmap(blob) {
 }
 
 /**
+ * `isHeicSource()` is deliberately permissive for one case — a Blob with neither a
+ * MIME type nor a filename — so a typeless iPhone file still falls back to HEIC
+ * decoding correctly. That same permissiveness would otherwise route ANY untyped,
+ * unnamed blob into the WASM HEIC decoder on native-decode failure, not just
+ * actually-HEIC-shaped ones. This adds a cheap magic-byte confirmation for exactly
+ * that ambiguous case; a source with a real type or name that already matched
+ * `isHeicSource()`'s stricter checks is trusted as before.
+ */
+async function shouldDecodeHeic(source) {
+  if (!isHeicSource(source)) return false;
+  const ambiguous = source instanceof Blob && !source.type && !source.name;
+  return ambiguous ? sniffHeicMagic(source) : true;
+}
+
+/**
  * Decode a source to a drawable and its intrinsic pixel size. Native decode first
  * (free on Safari/iOS, the common path everywhere); only HEIC/HEIF sources fall
  * back to the lazy WASM decoder. Dimensions are returned explicitly so the rest of
@@ -66,7 +81,7 @@ export async function decode(source) {
     try {
       image = await loadBitmap(blob);
     } catch (err) {
-      if (!isHeicSource(blob)) throw err;
+      if (!(await shouldDecodeHeic(blob))) throw err;
       image = await loadBitmap(await decodeHeic(blob));
     }
     return { image, width: image.width, height: image.height };
@@ -76,7 +91,7 @@ export async function decode(source) {
   try {
     image = await loadElement(source);
   } catch (err) {
-    if (!isHeicSource(source)) throw err;
+    if (!(await shouldDecodeHeic(source))) throw err;
     image = await loadElement(await decodeHeic(source));
   }
   return { image, width: image.naturalWidth, height: image.naturalHeight };

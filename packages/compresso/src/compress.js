@@ -1,6 +1,20 @@
 import { formatToMime, generateFileName, getBestFormat } from './utils.js';
 import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
+import { probeDimensions } from './probe.js';
+
+/**
+ * Ceiling on decodable input resolution (width × height). A crafted file can
+ * declare pixel dimensions that make the browser attempt an enormous allocation
+ * from a tiny number of bytes — a "pixel flood," the image analogue of a
+ * decompression bomb. Checked both before and after decode (see `compress()`):
+ * before, cheaply, for JPEG/PNG/WebP; after, for every format, as the only guard
+ * for HEIC/AVIF/URL sources and as defense-in-depth otherwise. 100 MP is roughly
+ * 4× a 45 MP full-frame camera photo — generous enough that no real photo trips
+ * it, bounded enough to cap worst-case decode memory. Pass `maxInputPixels:
+ * Infinity` to disable.
+ */
+const DEFAULT_MAX_INPUT_PIXELS = 100_000_000;
 
 const DEFAULTS = {
   quality: 0.8,
@@ -8,6 +22,7 @@ const DEFAULTS = {
   maxHeight: Infinity,
   format: 'auto',
   maxSizeMB: Infinity,
+  maxInputPixels: DEFAULT_MAX_INPUT_PIXELS,
   backgroundColor: '#ffffff',
   signal: null,
   onProgress: null,
@@ -26,6 +41,18 @@ const DEFAULT_MAX_DIMENSION = 2048;
 const MAX_QUALITY_STEPS = 10;
 
 export async function compress(source, options = {}) {
+  // Fail clearly, once, up front — rather than deep inside the pipeline on a
+  // confusing "X is not a function" — if called somewhere that is neither a
+  // browser main thread nor a Web Worker (e.g. Node.js, or a framework's SSR
+  // pass). Guard call sites with `typeof window !== 'undefined'` instead.
+  if (typeof Image === 'undefined' && typeof OffscreenCanvas === 'undefined') {
+    throw new Error(
+      'compresso.js requires a browser or Web Worker environment; it cannot run ' +
+      'in Node.js or during server-side rendering. Guard calls with `typeof ' +
+      "window !== 'undefined'` or a dynamic import."
+    );
+  }
+
   const opts = { ...DEFAULTS, ...options };
   throwIfAborted(opts.signal);
 
@@ -38,8 +65,26 @@ export async function compress(source, options = {}) {
   const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;
 
   report(opts, 0.1, 'loading');
+  if (source instanceof Blob) {
+    // Pre-decode: rejects a grossly oversized JPEG/PNG/WebP before the expensive
+    // decode call allocates anything. Scoped to Blob/File sources — probing a
+    // remote URL cheaply would need a ranged fetch not every server honors, so
+    // URL sources rely on the post-decode check below instead. A probe failure
+    // (unrecognized/truncated header) must never block an otherwise-valid file,
+    // so it falls through to the post-decode check rather than rejecting here.
+    const probed = await probeDimensions(source).catch(() => null);
+    if (probed && probed.width * probed.height > opts.maxInputPixels) {
+      throw tooLargeError();
+    }
+  }
   const { image, width: originalWidth, height: originalHeight } = await decode(source);
   throwIfAborted(opts.signal);
+
+  // Post-decode: defense-in-depth, and the only guard for HEIC/AVIF/URL sources,
+  // where the pre-decode probe above doesn't apply.
+  if (originalWidth * originalHeight > opts.maxInputPixels) {
+    throw tooLargeError();
+  }
 
   report(opts, 0.3, 'resizing');
   // Cap only when auto-format had to fall back to JPEG (the browser can't encode
@@ -67,6 +112,7 @@ export async function compress(source, options = {}) {
   if (blob.size > ceilingBytes) {
     blob = await shrinkToFit(canvas, mimeType, opts.quality, ceilingBytes, opts, blob);
   }
+
   throwIfAborted(opts.signal);
 
   report(opts, 1, 'done');
@@ -117,6 +163,10 @@ async function shrinkToFit(canvas, mimeType, initialQuality, maxBytes, opts, fir
 
 function throwIfAborted(signal) {
   if (signal?.aborted) throw new DOMException('Compression aborted', 'AbortError');
+}
+
+function tooLargeError() {
+  return Object.assign(new Error('Image exceeds the maximum decodable size'), { kind: 'too-large' });
 }
 
 function report(opts, progress, stage) {
