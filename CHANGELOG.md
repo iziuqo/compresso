@@ -81,7 +81,12 @@ sample) this pre-release exists to validate before `1.0.0` promotes.
 - **`examples/vanilla/batch.html`** (M5, plan §8 step 7): a minimal, dependency-free
   `<script type="module">` example using `createPool()`/`compressMany()` against the published
   package via unpkg — the independent validation venue the migration soak calls for, separate
-  from `compresso-app`'s own CI. Manually exercised against a real batch in Chromium.
+  from `compresso-app`'s own CI. Manually exercised against a real batch in Chromium and, as of
+  M6, real desktop Safari (a temporary, reverted-before-commit local build swap plus
+  `osascript`-driven Safari, since the iOS Simulator wasn't available this session): a real
+  `createPool()` spun up an actual Worker-backed pool (`pool.stats().size` reflected a real
+  `defaultPoolSize()`, not the fallback path's `0`) and compressed two real JPEG fixtures through
+  it with `compressMany()`, all fulfilled, zero crash/timeout recoveries.
 
 ### Fixed
 - **Cancelling an in-flight pool job no longer strands its worker slot.** The
@@ -193,6 +198,19 @@ sample) this pre-release exists to validate before `1.0.0` promotes.
   unrelated to this library. WebKit isn't affected and still runs it for
   real; the fix itself was additionally verified by hand against a real Vite
   production build. See `test/browser/README.md`.
+
+## [1.0.0] — 2026-08-04
+
+Promoted from `1.0.0-rc.1` to npm's `latest` dist-tag (plan §2.2/§9 M6). No code changes from
+`1.0.0-rc.1` — this release *is* the validated `rc.1` artifact; only the dist-tag moves. All of
+§8's soak steps are complete: `compresso-app` fully migrated onto the real published package
+(re-verified against the registry install, not just the local tarball used during migration) and
+`examples/vanilla/batch.html` exercised across both Chromium and Safari.
+
+**Validation scope, stated honestly (plan §8 step 8):** battle-tested in production inside
+`compresso-app`; validated independently against the `examples/vanilla` batch sample across
+Chromium and Safari; broader third-party validation will come from real-world usage
+post-release.
 
 ## [0.4.0] — 2026-07-31
 
