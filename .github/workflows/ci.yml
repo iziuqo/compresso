@@ -43,7 +43,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        # Node 18 deliberately excluded here (unlike the build matrix above):
+        # vitest 4.1.10 pulls in rolldown, which declares
+        # engines.node: "^20.19.0 || >=22.12.0" and fails at startup on 18
+        # with "SyntaxError: The requested module 'node:util' does not
+        # provide an export named 'styleText'". That's the test *tooling's*
+        # floor, not a constraint compresso's own published code has —
+        # build (18) above still proves the library itself builds fine
+        # there.
+        node-version: [20, 22]
 
     steps:
       - uses: actions/checkout@v4
