@@ -126,6 +126,14 @@ All notable changes to `compresso.js` are documented here. The format is based o
   compressed `Blob` — network trace confirms `dist/worker.js` was actually
   fetched, not silently skipped by a caught error.
 
+### Docs
+- **README "Batch & Workers" section.** Documents `createPool()`/`isPoolSupported()`/
+  `defaultPoolSize()`, the full pool API (`compress`, `compressMany`, `cancel`, `destroy`,
+  `stats()`), the `size`/`workerUrl`/`maxQueueLength`/`timeoutMs` options, the CSP
+  requirements for worker construction (`worker-src`) and HEIC decoding (`'wasm-unsafe-eval'`),
+  and a short migration pointer for anyone replacing a hand-rolled pool (`compresso-app`'s own
+  migration, M5, follows this same shape — see the plan's §8).
+
 ## [0.4.0] — 2026-07-31
 
 ### Added
