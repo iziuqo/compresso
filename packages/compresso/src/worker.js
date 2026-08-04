@@ -1,4 +1,4 @@
-import { compress, __setCapabilities } from './index.js';
+import { compress, __setCapabilities, __setHeicToUrl } from './index.js';
 
 /**
  * One compression worker. It holds no state beyond in-flight aborts — the
@@ -29,8 +29,9 @@ self.onmessage = async (event) => {
     return;
   }
 
-  const { id, file, params, caps } = msg;
+  const { id, file, params, caps, heicToUrl } = msg;
   __setCapabilities(caps);
+  __setHeicToUrl(heicToUrl);
 
   const controller = new AbortController();
   aborts.set(id, controller);

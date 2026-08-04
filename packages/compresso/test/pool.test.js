@@ -209,7 +209,18 @@ describe('createPool() — real worker pool', () => {
       file,
       params: { quality: 0.5, format: 'jpeg' },
       caps: { avif: true, webp: false },
+      heicToUrl: expect.any(String),
     });
+  });
+
+  it('lets a host override where the worker imports the lazy HEIC codec from', async () => {
+    const pool = createPool({ size: 1, heicToUrl: 'https://example.com/heic-to.js' });
+    const file = new Blob(['x']);
+
+    pool.compress(file, {});
+    await vi.waitFor(() => expect(MockWorker.instances[0].posted).toHaveLength(1));
+
+    expect(MockWorker.instances[0].posted[0].heicToUrl).toBe('https://example.com/heic-to.js');
   });
 
   it('resolves with a reconstructed CompressResult (file + url) on a done message', async () => {

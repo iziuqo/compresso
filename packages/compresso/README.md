@@ -2,7 +2,7 @@
 
 Tiny, zero-dependency image optimizer that runs entirely in the browser. Compress, resize, and convert images on the client side — no server needed.
 
-**~2.5 KB gzipped core** · **Zero required dependencies** · **HEIC/HEIF input** · **Works everywhere**
+**~3.6 KB gzipped core** · **Zero required dependencies** · **HEIC/HEIF input** · **Works everywhere**
 
 [Website](https://compresso.izaias.xyz) · [Documentation](https://compresso.izaias.xyz/docs) · [GitHub](https://github.com/iziuqo/compresso)
 
@@ -123,6 +123,7 @@ the pool itself works correctly either way. Every `compress()` option, including
 |--------|------|---------|-------------|
 | `size` | `number` | `defaultPoolSize()` | Number of workers to spawn. |
 | `workerUrl` | `string \| URL` | built-in `worker.js` | Override the worker script's location — for bundlers that can't resolve it automatically, or a CSP-nonce'd hosting path. |
+| `heicToUrl` | `string \| URL` | built-in HEIC codec chunk | Override where a worker loads the lazy HEIC codec from — the same class of escape hatch as `workerUrl`, for the same class of bundler/hosting edge case. Most hosts never need this; it exists because a worker can't always re-resolve it on its own once bundled into your app. |
 | `maxQueueLength` | `number` | unbounded | Once this many jobs are waiting, further `compress()`/`compressMany()` calls reject immediately with `kind: 'queue-full'` instead of growing the queue further. |
 | `timeoutMs` | `number` | `30000` | Milliseconds a single job may run before its worker is considered stuck, terminated, and replaced. Guards against a silently-suspended worker (e.g. iOS backgrounding a tab) as well as a pathologically slow decode. `Infinity` to disable. |
 

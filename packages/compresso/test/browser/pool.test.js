@@ -3,6 +3,7 @@ import { createPool, isPoolSupported } from '../../src/pool.js';
 import { compressMultiple } from '../../src/index.js';
 import sampleJpgUrl from '../fixtures/sample.jpg?url';
 import samplePngUrl from '../fixtures/sample.png?url';
+import sampleHeicUrl from '../fixtures/sample.heic?url';
 
 async function fetchBlob(url, type, name) {
   const res = await fetch(url);
@@ -48,6 +49,32 @@ describe('createPool() — real engine, committed fixtures', () => {
       expect(result.compressedSize).toBeLessThanOrEqual(result.originalSize);
       expect(result.file).toBeInstanceOf(File);
       expect(result.url).toMatch(/^blob:/);
+    } finally {
+      pool.destroy();
+    }
+  });
+
+  // Skipped on Chromium/Firefox: Vitest's browser-mode dev server breaks
+  // dynamic `import()` calls made from *inside* a worker on these two
+  // engines specifically (globalThis.__vitest_browser_runner__ isn't set up
+  // in a worker's scope, so Vite's dev-time import-wrapping instrumentation
+  // throws) — a confirmed, open Vitest bug, not a compresso.js defect:
+  // https://github.com/vitest-dev/vitest/issues/6552. WebKit isn't affected
+  // and still runs this for real below. The actual fix this test exists to
+  // cover (compresso-app's real Vite *production* build, where the bug that
+  // prompted it — a bare `import('heic-to')` left unresolved inside a pre-
+  // built, node_modules-sourced worker file — was originally found) was
+  // verified manually against that build, not just here; see the M5
+  // implementation notes in _docs/LIB_V1_WORKERS_PLAN.md.
+  it.skipIf(/Chrome|Firefox/.test(navigator.userAgent))('decodes HEIC input through a real worker (regression test: the worker-side lazy heic-to codec load, not just the main-thread path already covered in compress.test.js — see pool.js\'s __setHeicToUrl/DEFAULT_HEIC_TO_URL)', async () => {
+    const pool = createPool({ size: 1 });
+    try {
+      const file = await fetchBlob(sampleHeicUrl, '', 'sample.heic'); // no MIME — matches a typical iPhone upload
+      const result = await pool.compress(file, { format: 'auto' });
+      expect(result.originalWidth).toBe(64);
+      expect(result.originalHeight).toBe(64);
+      expect(result.compressedSize).toBeGreaterThan(0);
+      expect(result.format).not.toBe('heic'); // HEIC is input-only
     } finally {
       pool.destroy();
     }

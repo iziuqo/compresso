@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compresso — Batch (Worker Pool) Example</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    p.lede { color: #6b7280; margin-bottom: 1rem; }
+    input { margin-bottom: 1rem; }
+    #progress { color: #6b7280; margin: 0.5rem 0; min-height: 1.2em; }
+    #results { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1rem; margin-top: 1rem; }
+    .result { background: #f3f4f6; border-radius: 8px; padding: 0.5rem; font-size: 0.8rem; }
+    .result img { width: 100%; border-radius: 4px; display: block; margin-bottom: 0.4rem; }
+    .result.failed { background: #fee2e2; }
+  </style>
+</head>
+<body>
+  <h1>Compresso — Batch (Worker Pool)</h1>
+  <p class="lede">Compresses every selected file in parallel, off the main thread, via <code>compresso.js/pool</code>.</p>
+  <input type="file" accept="image/*" id="upload" multiple />
+  <p id="progress"></p>
+  <div id="results"></div>
+
+  <script type="module">
+    import { createPool } from 'https://unpkg.com/compresso.js@1.0.0-rc.1/dist/compresso.pool.mjs';
+
+    // Call createPool() unconditionally and let it choose — it never throws
+    // for lack of Worker/OffscreenCanvas support (or a blocked CSP): it
+    // silently falls back to a correct, serial, main-thread implementation
+    // with the exact same shape, so this code never needs to branch on the
+    // environment itself.
+    const pool = createPool();
+    window.addEventListener('beforeunload', () => pool.destroy());
+
+    const progress = document.getElementById('progress');
+    const results = document.getElementById('results');
+
+    document.getElementById('upload').addEventListener('change', async (e) => {
+      const files = [...e.target.files];
+      if (!files.length) return;
+
+      results.innerHTML = '';
+      progress.textContent = `Compressing 0/${files.length}…`;
+
+      const settled = await pool.compressMany(files, { quality: 0.8, format: 'auto' }, (event) => {
+        progress.textContent =
+          `Compressing ${event.fileIndex + 1}/${event.totalFiles}… ${Math.round(event.overallProgress * 100)}%`;
+      });
+
+      progress.textContent = `Done: ${settled.length} file(s).`;
+
+      for (const [i, outcome] of settled.entries()) {
+        const card = document.createElement('div');
+        if (outcome.status === 'fulfilled') {
+          const r = outcome.value;
+          card.className = 'result';
+          card.innerHTML = `
+            <img src="${r.url}" alt="${files[i].name}, compressed">
+            <div>${files[i].name}</div>
+            <div>${r.width}×${r.height} · ${r.format}</div>
+            <div>${Math.round(r.savings)}% smaller</div>
+          `;
+        } else {
+          card.className = 'result failed';
+          card.innerHTML = `<div>${files[i].name}</div><div>Failed: ${outcome.reason?.message ?? 'unknown error'}</div>`;
+        }
+        results.appendChild(card);
+      }
+    });
+  </script>
+</body>
+</html>

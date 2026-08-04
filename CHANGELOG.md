@@ -6,6 +6,12 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+## [1.0.0-rc.1] — 2026-08-04
+
+Published to npm's `next` dist-tag, not `latest` — see the plan's §2.2/§8 for the
+soak (a real `compresso-app` migration plus an independent `examples/vanilla` batch
+sample) this pre-release exists to validate before `1.0.0` promotes.
+
 ### Added
 - **Resource-exhaustion guard (`maxInputPixels`).** A crafted file can declare pixel
   dimensions that make the browser attempt an enormous allocation from a handful of
@@ -25,38 +31,6 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - `decodeHeic()` surfaces a specific, actionable error when WASM compilation is
   blocked by a page's Content-Security-Policy (needs `'wasm-unsafe-eval'` in
   `script-src`), instead of an opaque WASM failure.
-
-### Fixed
-- **The never-bigger guarantee could be violated on WebKit.** `format: 'auto'`
-  falls back to JPEG there (WebKit can't encode AVIF/WebP from canvas —
-  invariant #3), and `shrinkToFit()`'s quality search had no fallback for "even
-  the lowest-quality re-encode still doesn't fit under the ceiling" — it
-  silently returned that oversized result. This wasn't a search-precision bug:
-  a source already encoded in a materially more efficient format (AVIF, or a
-  well-compressed JPEG already near JPEG's own container-overhead floor) can
-  have no achievable JPEG re-encode, at any quality, that beats it. `compress()`
-  now falls back to the source's own bytes — honestly relabeled to the
-  source's actual format rather than mislabeled as the originally-requested
-  one — whenever nothing achievable in the target format fits under the
-  source's size. PNG stays exempt, unaffected (unchanged, deliberate — PNG
-  ignores quality, so a size search was never expected to help it). Found by
-  the new browser test suite (below) on both a synthetic fixture and a real
-  photo; both now pass with no test-side workaround.
-
-### Testing
-- Added a real test suite for the first time: Vitest for pure-logic unit tests
-  (byte parsing, dimension math, format tables — plain Node, no browser needed)
-  and Playwright-backed browser integration tests across Chromium, Firefox, and
-  WebKit for anything touching real decode/encode. `size-limit` gates the main
-  entry's gzipped size in CI. See `packages/compresso/test/browser/README.md`.
-- Added four tiny (64×64), synthetic, non-personal fixtures
-  (`test/fixtures/sample.{png,jpg,heic,avif}`) so the browser suite has real
-  coverage in CI independent of the personal-photo corpus at `_assets/`
-  (gitignored, local-only, used as additional coverage on top of these). This
-  suite is what found the never-bigger fix above — on a real device/engine
-  matrix, not something Node-only testing could have caught.
-
-### Added
 - **Worker pool (`pool.js` + `worker.js`).** New internal modules implementing
   a fixed-size worker pool for parallel, off-main-thread batch compression —
   `createPool()`, `isPoolSupported()`, `defaultPoolSize()`, and a
@@ -70,35 +44,6 @@ All notable changes to `compresso.js` are documented here. The format is based o
   is detected and replaced automatically instead of hanging a batch forever —
   visible via `pool.stats()` (`{ size, busy, queued, recoveries }`). Generalized
   from `compresso-app`'s proven `engine/pool.ts`/`engine/worker.ts`.
-
-### Fixed
-- **Cancelling an in-flight pool job no longer strands its worker slot.** The
-  reference implementation this was generalized from posts an abort message to
-  the worker but otherwise leaves the slot marked busy until a response
-  arrives — and a worker that observes its own abort deliberately sends
-  nothing back, so that slot would stay marked busy forever after any
-  in-flight cancellation. That was a rare, silently-absorbed timing window for
-  the one narrow internal use the reference implementation had; it's a real
-  defect for a public `cancel()`/`AbortSignal` API a host is expected to call
-  by design (a live-updating batch preview is the obvious case). `pool.js` now
-  settles the task and frees the slot locally the moment cancellation is
-  requested, relying on the existing stale-message guard to safely discard any
-  late response the aborted job's worker sends afterward.
-
-### Testing
-- Added `test/pool.test.js` (35 unit tests, a dependency-injected mock
-  `Worker`, plain Node) covering scheduling, queueing, cancellation — including
-  the in-flight-cancel-frees-the-slot-immediately fix above —
-  `maxQueueLength`, crash/timeout recovery, and `compressMany`'s
-  partial-failure contract. Added `test/browser/pool.test.js`
-  (Chromium/Firefox/WebKit) covering real concurrent dispatch, a real
-  cancellation mid-flight, a real per-job timeout, and the fallback path
-  forced on by removing `OffscreenCanvas`. This is what found that a tiny
-  fixture's whole compression can complete in single-digit milliseconds —
-  faster than a naively-polled assertion can reliably observe — informing how
-  those specific tests poll for in-flight state.
-
-### Added
 - **`compresso.js/pool` is now a real, publicly importable subpath.** `rollup.config.mjs`
   gains two ESM-only build inputs: `src/pool.js` → `dist/compresso.pool.mjs`
   (**4.67 kB gzipped**, ceiling set to 5.25 kB) and `src/worker.js` →
@@ -129,10 +74,125 @@ All notable changes to `compresso.js` are documented here. The format is based o
 ### Docs
 - **README "Batch & Workers" section.** Documents `createPool()`/`isPoolSupported()`/
   `defaultPoolSize()`, the full pool API (`compress`, `compressMany`, `cancel`, `destroy`,
-  `stats()`), the `size`/`workerUrl`/`maxQueueLength`/`timeoutMs` options, the CSP
+  `stats()`), the `size`/`workerUrl`/`heicToUrl`/`maxQueueLength`/`timeoutMs` options, the CSP
   requirements for worker construction (`worker-src`) and HEIC decoding (`'wasm-unsafe-eval'`),
   and a short migration pointer for anyone replacing a hand-rolled pool (`compresso-app`'s own
   migration, M5, follows this same shape — see the plan's §8).
+- **`examples/vanilla/batch.html`** (M5, plan §8 step 7): a minimal, dependency-free
+  `<script type="module">` example using `createPool()`/`compressMany()` against the published
+  package via unpkg — the independent validation venue the migration soak calls for, separate
+  from `compresso-app`'s own CI. Manually exercised against a real batch in Chromium.
+
+### Fixed
+- **Cancelling an in-flight pool job no longer strands its worker slot.** The
+  reference implementation this was generalized from posts an abort message to
+  the worker but otherwise leaves the slot marked busy until a response
+  arrives — and a worker that observes its own abort deliberately sends
+  nothing back, so that slot would stay marked busy forever after any
+  in-flight cancellation. That was a rare, silently-absorbed timing window for
+  the one narrow internal use the reference implementation had; it's a real
+  defect for a public `cancel()`/`AbortSignal` API a host is expected to call
+  by design (a live-updating batch preview is the obvious case). `pool.js` now
+  settles the task and frees the slot locally the moment cancellation is
+  requested, relying on the existing stale-message guard to safely discard any
+  late response the aborted job's worker sends afterward.
+- **The never-bigger guarantee could be violated on WebKit.** `format: 'auto'`
+  falls back to JPEG there (WebKit can't encode AVIF/WebP from canvas —
+  invariant #3), and `shrinkToFit()`'s quality search had no fallback for "even
+  the lowest-quality re-encode still doesn't fit under the ceiling" — it
+  silently returned that oversized result. This wasn't a search-precision bug:
+  a source already encoded in a materially more efficient format (AVIF, or a
+  well-compressed JPEG already near JPEG's own container-overhead floor) can
+  have no achievable JPEG re-encode, at any quality, that beats it. `compress()`
+  now falls back to the source's own bytes — honestly relabeled to the
+  source's actual format rather than mislabeled as the originally-requested
+  one — whenever nothing achievable in the target format fits under the
+  source's size. PNG stays exempt, unaffected (unchanged, deliberate — PNG
+  ignores quality, so a size search was never expected to help it). Found by
+  the new browser test suite (below) on both a synthetic fixture and a real
+  photo; both now pass with no test-side workaround.
+- **HEIC input through `compresso.js/pool` was silently broken in bundled
+  consumers (Vite confirmed), and unusable inside a worker at all regardless
+  of bundler.** Found during M5's real migration (`compresso-app` onto the
+  published package) — the exact scenario a plain dev-server test can't
+  surface, since it only shows up after a real production build. Two
+  independent problems, both fixed:
+  1. `worker.js`'s lazy `import('heic-to')` shipped as a bare specifier the
+     way it left `src/`; a consumer's bundler processes the worker file
+     `pool.js` discovers via `new Worker(new URL(...))` differently from a
+     normally-`import`-ed module and doesn't reliably re-resolve (or even
+     discover a Rollup-resolved relative reference to) an import living
+     inside it once it's inside `node_modules` — the browser's own loader
+     then fails outright ("Failed to resolve module specifier 'heic-to'").
+     Fixed by having `pool.js` resolve the codec chunk's URL itself (a file
+     bundlers *do* process normally, the same mechanism that already makes
+     `worker.js`'s own URL resolve everywhere) and hand the concrete,
+     absolute URL to each worker at dispatch time.
+  2. Once that URL genuinely resolved, `heic-to`'s *default* export turned
+     out to reference `document` internally (Emscripten glue resolving its
+     own script URL) and throws `ReferenceError: document is not defined`
+     inside any worker — `document` doesn't exist there. `heic-to` ships a
+     dedicated worker-safe variant for exactly this (`heic-to/next`, per its
+     own README); `decodeHeic()` now picks it automatically whenever it
+     detects no `document`, main-thread callers unaffected.
+
+  Both are covered by a new browser test (`decodes HEIC input through a real
+  worker` in `test/browser/pool.test.js`) and were verified by hand against
+  `compresso-app`'s actual Vite production build, not just this suite — see
+  the M5 notes in `_docs/LIB_V1_WORKERS_PLAN.md` for the full trace. **Known,
+  accepted residual**: the consuming app's bundler can end up shipping the
+  HEIC codec more than once (once for the main-thread's own `import('heic-to')`,
+  again for the worker's `heic-to/next`, and — in `compresso-app`'s build,
+  specifically — a third, redundant copy) rather than sharing one; a real
+  bundle-size cost for HEIC-capable apps, not a correctness issue, and not
+  solved by this release. Untouched by any of this: HEIC through the
+  *main-thread* `compress()` path, which never went through `worker.js` and
+  was never affected.
+
+### Changed
+- Core grew from 2.50 KB to **3.61 KB gzipped (+1110 B, ~44%)** for everything
+  above — measured, not estimated. This is a real, deliberate cost: four new
+  defensive/correctness checks (header parsing for three input formats, a
+  magic-byte confirmation, an environment guard, and the never-bigger fallback)
+  against concerns named explicitly as priorities for this release, plus a
+  few bytes from the HEIC worker-resolution fix above (the main-thread path
+  it touches is a guard clause, not new logic). `README.md`'s headline figure
+  is updated to `~3.6 KB` to match. Pool entry: **4.72 KB gzipped** (was 4.67
+  KB before the HEIC fix). Worker script: **3.54 KB gzipped** (was 3.50/3.51
+  KB) — still well under its own, unaffected-by-any-of-this 4 KB ceiling.
+
+### Testing
+- Added a real test suite for the first time: Vitest for pure-logic unit tests
+  (byte parsing, dimension math, format tables — plain Node, no browser needed)
+  and Playwright-backed browser integration tests across Chromium, Firefox, and
+  WebKit for anything touching real decode/encode. `size-limit` gates the main
+  entry's gzipped size in CI. See `packages/compresso/test/browser/README.md`.
+- Added four tiny (64×64), synthetic, non-personal fixtures
+  (`test/fixtures/sample.{png,jpg,heic,avif}`) so the browser suite has real
+  coverage in CI independent of the personal-photo corpus at `_assets/`
+  (gitignored, local-only, used as additional coverage on top of these). This
+  suite is what found the never-bigger fix above — on a real device/engine
+  matrix, not something Node-only testing could have caught.
+- Added `test/pool.test.js` (35 unit tests, a dependency-injected mock
+  `Worker`, plain Node) covering scheduling, queueing, cancellation — including
+  the in-flight-cancel-frees-the-slot-immediately fix above —
+  `maxQueueLength`, crash/timeout recovery, and `compressMany`'s
+  partial-failure contract. Added `test/browser/pool.test.js`
+  (Chromium/Firefox/WebKit) covering real concurrent dispatch, a real
+  cancellation mid-flight, a real per-job timeout, and the fallback path
+  forced on by removing `OffscreenCanvas`. This is what found that a tiny
+  fixture's whole compression can complete in single-digit milliseconds —
+  faster than a naively-polled assertion can reliably observe — informing how
+  those specific tests poll for in-flight state.
+- Added a real-worker HEIC regression test (`decodes HEIC input through a
+  real worker` in `test/browser/pool.test.js`, M5) covering the fix above.
+  Skips cleanly on Chromium/Firefox — a confirmed, open upstream Vitest bug
+  breaks dynamic `import()` calls made from inside a worker on those two
+  engines specifically in browser-mode tests
+  ([vitest-dev/vitest#6552](https://github.com/vitest-dev/vitest/issues/6552)),
+  unrelated to this library. WebKit isn't affected and still runs it for
+  real; the fix itself was additionally verified by hand against a real Vite
+  production build. See `test/browser/README.md`.
 
 ## [0.4.0] — 2026-07-31
 

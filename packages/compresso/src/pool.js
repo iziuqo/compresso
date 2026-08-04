@@ -20,6 +20,14 @@ import { generateFileName } from './utils.js';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_WORKER_URL = new URL('./worker.js', import.meta.url);
+// Resolved here, not inside worker.js, and handed to each worker over
+// postMessage — see heic.js's __setHeicToUrl for why: a bare `import('heic-to')`
+// left inside a pre-built worker file isn't reliably re-resolved by a
+// consumer's bundler once that file lives in node_modules (confirmed against
+// a real Vite production build), the same class of problem this exact
+// resolve-it-here-and-hand-over-a-concrete-URL trick already solves for
+// worker.js itself, one line below.
+const DEFAULT_HEIC_TO_URL = new URL('./heic-to.js', import.meta.url);
 const PARAM_KEYS = ['quality', 'format', 'maxWidth', 'maxHeight', 'maxSizeMB', 'maxInputPixels', 'backgroundColor'];
 
 export function isPoolSupported() {
@@ -41,12 +49,13 @@ export function defaultPoolSize() {
   return mem && mem <= 4 ? Math.min(cores, 4) : cores;
 }
 
-export function createPool({ size, workerUrl, maxQueueLength = Infinity, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+export function createPool({ size, workerUrl, heicToUrl, maxQueueLength = Infinity, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   if (!isPoolSupported()) return createFallbackPool();
   try {
     return createWorkerPool(
       size ?? defaultPoolSize(),
       workerUrl ?? DEFAULT_WORKER_URL,
+      heicToUrl ?? DEFAULT_HEIC_TO_URL,
       maxQueueLength,
       timeoutMs
     );
@@ -114,7 +123,8 @@ function poolError(message, kind) {
   return Object.assign(new Error(message), { kind });
 }
 
-function createWorkerPool(size, workerUrl, maxQueueLength, timeoutMs) {
+function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs) {
+  const heicToUrlString = String(heicToUrl);
   let seq = 0;
   let recoveries = 0;
   let caps = null;
@@ -201,7 +211,7 @@ function createWorkerPool(size, workerUrl, maxQueueLength, timeoutMs) {
         slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), timeoutMs);
       }
       slot.worker.postMessage({
-        type: 'run', id: task.id, file: task.file, params: task.params, caps,
+        type: 'run', id: task.id, file: task.file, params: task.params, caps, heicToUrl: heicToUrlString,
       });
     }
   }

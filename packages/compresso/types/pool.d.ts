@@ -19,6 +19,13 @@ export interface PoolOptions {
    */
   workerUrl?: string | URL;
   /**
+   * Override where a worker loads the lazy HEIC codec chunk from — the same
+   * class of escape hatch as `workerUrl`, for the same class of bundler/
+   * hosting edge case. Most hosts never need this. Default: the built HEIC
+   * codec chunk shipped alongside `pool.js`/`worker.js`.
+   */
+  heicToUrl?: string | URL;
+  /**
    * Maximum number of jobs allowed to wait in the queue at once. Once
    * exceeded, further `compress()`/`compressMany()` calls reject immediately
    * with `kind: 'queue-full'` instead of growing the queue further. Default:

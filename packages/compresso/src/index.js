@@ -2,7 +2,7 @@ import { compress } from './compress.js';
 
 export { compress };
 export { isFormatSupported, getBestFormat, detectFormat } from './utils.js';
-export { isHeicSource, decodeHeic } from './heic.js';
+export { isHeicSource, decodeHeic, __setHeicToUrl } from './heic.js';
 // Capability injection — lets a worker reuse the main thread's format detection.
 export { __setCapabilities, __resetCapabilities } from './platform.js';
 
