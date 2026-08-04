@@ -18,6 +18,7 @@ const sections = [
   { id: 'options', titleKey: 'options' },
   { id: 'result', titleKey: 'result' },
   { id: 'target-size', titleKey: 'targetSize' },
+  { id: 'batch-workers', titleKey: 'batchWorkers' },
   { id: 'progress', titleKey: 'progress' },
   { id: 'abort', titleKey: 'abort' },
   { id: 'formats', titleKey: 'formats' },
@@ -155,6 +156,7 @@ const result = await optimizer.compress(file);`}</code></pre>
                 <tr><td><code>maxHeight</code></td><td><code>number</code></td><td><code>Infinity</code></td><td>Maximum output height in pixels</td></tr>
                 <tr><td><code>format</code></td><td><code>string</code></td><td><code>&apos;auto&apos;</code></td><td><code>&apos;jpeg&apos;</code> | <code>&apos;png&apos;</code> | <code>&apos;webp&apos;</code> | <code>&apos;avif&apos;</code> | <code>&apos;auto&apos;</code></td></tr>
                 <tr><td><code>maxSizeMB</code></td><td><code>number</code></td><td><code>Infinity</code></td><td>Maximum file size in MB</td></tr>
+                <tr><td><code>maxInputPixels</code></td><td><code>number</code></td><td><code>100_000_000</code></td><td>Max decodable input resolution (width × height); guards against a crafted file declaring an enormous resolution. <code>Infinity</code> to disable</td></tr>
                 <tr><td><code>backgroundColor</code></td><td><code>string</code></td><td><code>&apos;#ffffff&apos;</code></td><td>Background color for transparent → JPEG</td></tr>
                 <tr><td><code>onProgress</code></td><td><code>function</code></td><td>none</td><td>Progress callback</td></tr>
                 <tr><td><code>signal</code></td><td><code>AbortSignal</code></td><td>none</td><td>Cancel compression</td></tr>
@@ -185,6 +187,23 @@ const result = await optimizer.compress(file);`}</code></pre>
   maxSizeMB: 2,    // Output will be ≤ 2 MB
   format: 'jpeg',
 });`}</code></pre>
+
+            <h2 id="batch-workers">{t.docs.batchWorkers}</h2>
+            <p>{t.docs.batchWorkersDesc}</p>
+            <pre><code>{`import { createPool } from 'compresso.js/pool';
+
+const pool = createPool();
+
+const results = await pool.compressMany(fileList, { format: 'auto' }, (e) => {
+  console.log(\`\${e.fileIndex + 1}/\${e.totalFiles} — \${Math.round(e.overallProgress * 100)}%\`);
+});
+
+for (const r of results) {
+  if (r.status === 'fulfilled') uploads.push(r.value.file);
+}
+
+pool.destroy();`}</code></pre>
+            <p>{t.docs.batchWorkersNotes}</p>
 
             <h2 id="progress">{t.docs.progress}</h2>
             <pre><code>{`const result = await compress(file, {

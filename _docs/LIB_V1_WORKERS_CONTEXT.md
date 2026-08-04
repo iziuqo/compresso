@@ -1,9 +1,25 @@
 # compresso.js v1 — Worker Backend Context
 
-**Status:** research + framing only. No plan, no code. Written 2026-08-03 to be the input
-for the next planning session (a separate session, a different model), per this project's
-established multi-model-handoff workflow (see `PRODUCT_CONTEXT.md` / `PWA_PLAN.md`, same
-pattern).
+**Status:** shipped, 2026-08-04. Everything this doc scoped as research has since been
+planned (`LIB_V1_WORKERS_PLAN.md`) and implemented — M0 through M6 done, `compresso.js`
+`1.0.0` promoted to `latest` and now at `1.0.1` on the real npm registry (verified via
+`npm view compresso.js version`; see `CHANGELOG.md`'s `[1.0.0]`/`[1.0.0-rc.1]`/`[1.0.1]`
+entries). Only M7 (a public WICG-style explainer) remains, deliberately on hold pending
+real usage signal — not blocked on anything below. The worker pool this doc describes
+as "one repo over, hand-built inside `compresso-app`" (§0) is now retired; the generalized,
+published `compresso.js/pool` is the reference implementation going forward.
+
+Original research kept as-written below for the historical record of what was known
+*before* planning and implementation — see `LIB_V1_WORKERS_PLAN.md` for how the open
+questions here were closed, and that doc's own §13–§17 implementation notes for what
+actually happened milestone by milestone.
+
+---
+
+**Status (original, pre-implementation):** research + framing only. No plan, no code.
+Written 2026-08-03 to be the input for the next planning session (a separate session, a
+different model), per this project's established multi-model-handoff workflow (see
+`PRODUCT_CONTEXT.md` / `PWA_PLAN.md`, same pattern).
 
 **The ask, restated:** ship compresso.js v1 — "fully implemented workers, as advertised
 earlier." The code must stay clear, clean, lean, DRY, SOLID, cohesive, readable, and
