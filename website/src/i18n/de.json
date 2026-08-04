@@ -39,7 +39,7 @@
     "twoValue": "3,3 MB auf 93,5 KB",
     "twoLabel": "Ein gemessener Lauf",
     "twoDetail": "Ergebnisse hängen vom Inhalt ab. Das hier ist deshalb ein einzelnes echtes Ergebnis und kein Mittelwert, den wir nie gemessen haben.",
-    "threeValue": "2,50 KB",
+    "threeValue": "3,6 KB",
     "threeLabel": "Kern der Bibliothek, gzip",
     "threeDetail": "Keine erforderlichen Abhängigkeiten. Nur Bordmittel des Browsers."
   },
@@ -66,10 +66,10 @@
     "lede": "Wenn deine Nutzer nie einem Upload-Fehler begegnen sollen: Der Kern der Kompression kommt als Bibliothek, die in jedes Framework passt.",
     "copy": "Zum Kopieren klicken",
     "copied": "Kopiert",
-    "sizeTitle": "2,50 KB, gzip",
+    "sizeTitle": "3,6 KB, gzip",
     "sizeBody": "Klein genug, dass die Einführung kein Meeting braucht. Keine erforderlichen Abhängigkeiten, und nichts zu prüfen.",
-    "workerTitle": "Läuft neben dem Hauptthread",
-    "workerBody": "Seit 0.4.0 läuft dieselbe API in einem Web Worker über OffscreenCanvas, sodass ein großer Stapel deine Oberfläche nie blockiert.",
+    "workerTitle": "Parallele Stapelverarbeitung, neben dem Hauptthread",
+    "workerBody": "compresso.js/pool betreibt einen robusten Web-Worker-Pool — inklusive Absturz- und Timeout-Erkennung —, sodass ein großer Stapel parallel läuft, ohne deine Oberfläche zu blockieren.",
     "guaranteeTitle": "Gibt nie eine größere Datei zurück",
     "guaranteeBody": "Verlustbehaftete Ausgabe wird auf das Kleinere von Größenlimit und Original gedeckelt, denn ein Kompressor, der Dateien wachsen lässt, ist kaputt.",
     "docs": "Doku lesen"

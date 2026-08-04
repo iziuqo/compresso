@@ -41,7 +41,7 @@ export default function AppSection({ t }) {
           </picture>
         </div>
 
-        <div className="mk-actions mk-actions--start">
+        <div className="mk-actions">
           <a className="mk-pill mk-pill--lg" href={APP_URL}>{t.app.cta}</a>
         </div>
       </div>

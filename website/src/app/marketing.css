@@ -282,7 +282,6 @@
   gap: 0.625rem; margin-top: 2rem;
 }
 .mk-actions > * { width: 100%; max-width: 20rem; }
-.mk-actions--start { align-items: flex-start; }
 
 @media (min-width: 480px) {
   .mk-actions {
@@ -290,7 +289,6 @@
     gap: 0.75rem; margin-top: 2.25rem;
   }
   .mk-actions > * { width: auto; max-width: none; }
-  .mk-actions--start { justify-content: flex-start; }
 }
 
 /* the developer links are secondary, so they wrap as a row at every width */
