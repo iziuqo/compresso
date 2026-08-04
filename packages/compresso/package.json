@@ -71,12 +71,12 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@size-limit/file": "^13.0.3",
     "@vitest/browser": "^4.1.10",
     "@vitest/browser-playwright": "^4.1.10",
     "playwright": "^1.62.1",
-    "rollup": "^4.28.0",
+    "rollup": "^4.62.4",
     "size-limit": "^13.0.3",
     "vitest": "^4.1.10"
   },
