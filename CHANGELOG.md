@@ -98,6 +98,34 @@ All notable changes to `compresso.js` are documented here. The format is based o
   faster than a naively-polled assertion can reliably observe — informing how
   those specific tests poll for in-flight state.
 
+### Added
+- **`compresso.js/pool` is now a real, publicly importable subpath.** `rollup.config.mjs`
+  gains two ESM-only build inputs: `src/pool.js` → `dist/compresso.pool.mjs`
+  (**4.67 kB gzipped**, ceiling set to 5.25 kB) and `src/worker.js` →
+  `dist/worker.js` (**3.50 kB gzipped**, ceiling set to 4 kB) — both new
+  `size-limit` entries alongside the unaffected main entry (still 3.56 kB / 4
+  kB). The worker is deliberately named `dist/worker.js`, not
+  `dist/compresso.worker.mjs`: `pool.js`'s worker discovery is the literal
+  string `new URL('./worker.js', import.meta.url)`, unchanged from `src/` so
+  Vite's dev-mode resolution (what the unit/browser test suites exercise)
+  keeps working — the built output has to match that literal name for the
+  same relative resolution to hold at runtime, or the pool would silently try
+  to fetch a worker file that doesn't exist. `package.json` gets a
+  `"./pool"` entry in `exports` (`import` → `dist/compresso.pool.mjs`,
+  `types` → `types/pool.d.ts`; no `require` condition — real module workers
+  and `import.meta.url`-relative worker discovery are ESM-only concepts, and
+  a CJS consumer needing this is already using a bundler that can consume the
+  ESM build directly). Verified two ways, not just built: an `npm pack`
+  tarball installed into a scratch project resolves `compresso.js/pool`
+  through Node's real ESM resolver (the same exports-map algorithm a
+  bundler uses) and exposes the correct fallback-pool shape; and a genuine
+  `<script type="module">` page, served with no bundler at all (mimicking
+  raw unpkg/jsdelivr CDN usage), imports `dist/compresso.pool.mjs` directly
+  by URL, runs a real 4-file parallel batch through real spawned Web Workers
+  in Chromium, and confirms every result is `fulfilled` with a real
+  compressed `Blob` — network trace confirms `dist/worker.js` was actually
+  fetched, not silently skipped by a caught error.
+
 ## [0.4.0] — 2026-07-31
 
 ### Added

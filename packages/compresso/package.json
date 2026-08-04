@@ -12,6 +12,10 @@
       "import": "./dist/compresso.mjs",
       "require": "./dist/compresso.cjs",
       "types": "./types/index.d.ts"
+    },
+    "./pool": {
+      "import": "./dist/compresso.pool.mjs",
+      "types": "./types/pool.d.ts"
     }
   },
   "files": [
@@ -83,6 +87,18 @@
     {
       "name": "main entry (import { compress } from 'compresso.js')",
       "path": "dist/compresso.mjs",
+      "limit": "4 KB",
+      "gzip": true
+    },
+    {
+      "name": "pool entry (import { createPool } from 'compresso.js/pool')",
+      "path": "dist/compresso.pool.mjs",
+      "limit": "5.25 KB",
+      "gzip": true
+    },
+    {
+      "name": "worker script (dist/worker.js, loaded by the pool, not imported directly)",
+      "path": "dist/worker.js",
       "limit": "4 KB",
       "gzip": true
     }
