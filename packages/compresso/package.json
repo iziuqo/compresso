@@ -23,6 +23,10 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
+    "test:browser": "vitest run --project browser",
+    "size": "size-limit",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -62,11 +66,25 @@
     "url": "https://github.com/iziuqo/compresso/issues"
   },
   "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@size-limit/file": "^13.0.3",
+    "@vitest/browser": "^4.1.10",
+    "@vitest/browser-playwright": "^4.1.10",
+    "playwright": "^1.62.1",
     "rollup": "^4.28.0",
-    "@rollup/plugin-terser": "^0.4.4"
+    "size-limit": "^13.0.3",
+    "vitest": "^4.1.10"
   },
   "optionalDependencies": {
     "heic-to": "^1.5.2"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "size-limit": [
+    {
+      "name": "main entry (import { compress } from 'compresso.js')",
+      "path": "dist/compresso.mjs",
+      "limit": "4 KB",
+      "gzip": true
+    }
+  ]
 }

@@ -15,3 +15,8 @@ coverage/
 # Local-only test assets & QA artifacts (not for the repo)
 _assets/
 _qa/
+
+# Vitest browser-mode failure artifacts (screenshots, attachments) — generated
+# on test failure, never meant to be committed
+packages/compresso/test/browser/__screenshots__/
+packages/compresso/.vitest-attachments/

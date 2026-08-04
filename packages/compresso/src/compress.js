@@ -1,4 +1,4 @@
-import { formatToMime, generateFileName, getBestFormat } from './utils.js';
+import { detectFormat, formatToMime, generateFileName, getBestFormat } from './utils.js';
 import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
 import { probeDimensions } from './probe.js';
@@ -60,8 +60,10 @@ export async function compress(source, options = {}) {
   // is a memoized sync probe; in a worker it is an async one (OffscreenCanvas has
   // no `toDataURL`), which is why the pipeline awaits it here.
   await ensureCapabilities();
-  const format = opts.format === 'auto' ? getBestFormat() : opts.format;
-  const mimeType = formatToMime(format);
+  // Not const: the never-bigger fallback below can retarget these to the
+  // source's own format when nothing achievable in the requested one fits.
+  let format = opts.format === 'auto' ? getBestFormat() : opts.format;
+  let mimeType = formatToMime(format);
   const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;
 
   report(opts, 0.1, 'loading');
@@ -113,6 +115,18 @@ export async function compress(source, options = {}) {
     blob = await shrinkToFit(canvas, mimeType, opts.quality, ceilingBytes, opts, blob);
   }
 
+  // shrinkToFit only searches quality within the target format — it can't help
+  // when that format's own encoding overhead can't beat a source that was
+  // already stored in a materially more efficient one (e.g. WebKit forced to
+  // JPEG because it can't encode AVIF/WebP, re-encoding an AVIF source). When
+  // nothing achievable in the target format fits, the source itself is the
+  // only way to keep the never-bigger guarantee unconditional — return it,
+  // honestly relabeled as its own format rather than mislabeled as the target.
+  if (mimeType !== 'image/png' && source instanceof Blob && blob.size > originalSize) {
+    blob = source;
+    format = detectFormat(source) ?? format;
+    mimeType = source.type || mimeType;
+  }
   throwIfAborted(opts.signal);
 
   report(opts, 1, 'done');

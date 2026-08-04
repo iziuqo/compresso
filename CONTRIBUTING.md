@@ -16,6 +16,7 @@ compresso/
 ├── packages/compresso/    # The npm library
 │   ├── src/               # Library source code
 │   ├── types/             # TypeScript declarations
+│   ├── test/              # Unit tests (Node) + test/browser/ (Playwright)
 │   └── dist/              # Built output (generated)
 ├── website/               # Next.js marketing site + docs
 ├── examples/              # Framework integration examples
@@ -28,7 +29,20 @@ compresso/
 
 ```bash
 npm run build:lib        # Build the library
+npm run test:lib         # Unit tests (plain Node — pure logic, no browser needed)
+npm run test:lib:browser # Integration tests in real Chromium/Firefox/WebKit via Playwright
+npm run size:lib         # Check the built bundle against its size-limit budget
 ```
+
+`test:lib:browser` needs Playwright's browsers installed once per machine:
+`npx playwright install chromium firefox webkit` (run inside `packages/compresso`).
+
+Unit tests cover pure logic (byte parsing, dimension math, format tables) and run in
+plain Node. Browser tests cover anything that touches real image decode/encode —
+Node has no implementation of `Image`/`createImageBitmap`/`OffscreenCanvas` at all, so
+those can only be tested in an actual engine. See `packages/compresso/test/browser/README.md`
+for how the two suites relate, and how the personal-photo corpus at `_assets/`
+(gitignored, local-only) adds optional extra coverage on top of the committed fixtures.
 
 ### Website
 
@@ -42,7 +56,9 @@ npm run build:web        # Production build
 - Keep PRs focused — one feature or fix per PR
 - Add TypeScript types for any new API surface
 - Update documentation if you change the API
-- Test across browsers when touching compression logic
+- Run `npm run test:lib` and `npm run test:lib:browser` when touching compression
+  logic — CI runs both (Chromium, Firefox, and WebKit) plus a bundle-size check on
+  every push, but catching a regression locally first is faster for everyone
 - Write clear commit messages
 
 ## Reporting Issues

@@ -26,6 +26,36 @@ All notable changes to `compresso.js` are documented here. The format is based o
   blocked by a page's Content-Security-Policy (needs `'wasm-unsafe-eval'` in
   `script-src`), instead of an opaque WASM failure.
 
+### Fixed
+- **The never-bigger guarantee could be violated on WebKit.** `format: 'auto'`
+  falls back to JPEG there (WebKit can't encode AVIF/WebP from canvas —
+  invariant #3), and `shrinkToFit()`'s quality search had no fallback for "even
+  the lowest-quality re-encode still doesn't fit under the ceiling" — it
+  silently returned that oversized result. This wasn't a search-precision bug:
+  a source already encoded in a materially more efficient format (AVIF, or a
+  well-compressed JPEG already near JPEG's own container-overhead floor) can
+  have no achievable JPEG re-encode, at any quality, that beats it. `compress()`
+  now falls back to the source's own bytes — honestly relabeled to the
+  source's actual format rather than mislabeled as the originally-requested
+  one — whenever nothing achievable in the target format fits under the
+  source's size. PNG stays exempt, unaffected (unchanged, deliberate — PNG
+  ignores quality, so a size search was never expected to help it). Found by
+  the new browser test suite (below) on both a synthetic fixture and a real
+  photo; both now pass with no test-side workaround.
+
+### Testing
+- Added a real test suite for the first time: Vitest for pure-logic unit tests
+  (byte parsing, dimension math, format tables — plain Node, no browser needed)
+  and Playwright-backed browser integration tests across Chromium, Firefox, and
+  WebKit for anything touching real decode/encode. `size-limit` gates the main
+  entry's gzipped size in CI. See `packages/compresso/test/browser/README.md`.
+- Added four tiny (64×64), synthetic, non-personal fixtures
+  (`test/fixtures/sample.{png,jpg,heic,avif}`) so the browser suite has real
+  coverage in CI independent of the personal-photo corpus at `_assets/`
+  (gitignored, local-only, used as additional coverage on top of these). This
+  suite is what found the never-bigger fix above — on a real device/engine
+  matrix, not something Node-only testing could have caught.
+
 ## [0.4.0] — 2026-07-31
 
 ### Added
