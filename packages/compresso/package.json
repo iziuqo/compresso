@@ -81,7 +81,7 @@
     "@vitest/browser": "^4.1.10",
     "@vitest/browser-playwright": "^4.1.10",
     "playwright": "^1.62.1",
-    "rollup": "^4.28.0",
+    "rollup": "^4.62.4",
     "size-limit": "^13.0.3",
     "vitest": "^4.1.10"
   },
