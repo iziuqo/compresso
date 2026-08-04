@@ -1,6 +1,48 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@config "../../tailwind.config.js";
+@import "tailwindcss";
+
+/*
+ * v4's @apply only resolves real utilities, not plain @layer components
+ * classes (unlike v3). These are @apply'd by other classes below, so they
+ * need to be registered as utilities via @utility rather than defined
+ * inside @layer components.
+ */
+@utility band-dark {
+  @apply bg-canvas-dark text-white;
+}
+
+@utility band-light {
+  @apply bg-canvas-light text-ink;
+}
+
+@utility band-soft {
+  @apply bg-canvas-soft text-ink;
+}
+
+@utility section-block {
+  @apply py-band sm:py-section;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 text-base font-semibold px-8 h-12 rounded-pill;
+  @apply transition-[background-color,border-color,transform,color] duration-200 ease-out;
+  letter-spacing: 0.01em;
+}
+
+@utility btn-primary-dark {
+  @apply btn bg-canvas-ink text-white;
+  @apply hover:bg-black active:scale-[0.98];
+}
+
+@utility btn-secondary {
+  @apply btn bg-canvas-soft text-ink border border-line;
+  @apply hover:bg-white active:scale-[0.98];
+}
+
+@utility btn-outline {
+  @apply btn border border-line text-ink bg-transparent;
+  @apply hover:bg-canvas-soft active:scale-[0.98];
+}
 
 @layer base {
   html {
@@ -25,22 +67,6 @@
 
   .demo-wrap {
     @apply max-w-demo mx-auto px-5 sm:px-8;
-  }
-
-  .section-block {
-    @apply py-band sm:py-section;
-  }
-
-  .band-dark {
-    @apply bg-canvas-dark text-white;
-  }
-
-  .band-light {
-    @apply bg-canvas-light text-ink;
-  }
-
-  .band-soft {
-    @apply bg-canvas-soft text-ink;
   }
 
   .section-header {
@@ -135,25 +161,9 @@
     @apply inline-flex items-center gap-2 text-[0.8125rem] font-medium tracking-[0.02em] text-white/60 leading-snug;
   }
 
-  .btn {
-    @apply inline-flex items-center justify-center gap-2 text-base font-semibold px-8 h-12 rounded-pill;
-    @apply transition-[background-color,border-color,transform,color] duration-200 ease-out;
-    letter-spacing: 0.01em;
-  }
-
   .btn-primary {
     @apply btn bg-white text-canvas-dark;
     @apply hover:bg-white/90 active:scale-[0.98];
-  }
-
-  .btn-primary-dark {
-    @apply btn bg-canvas-ink text-white;
-    @apply hover:bg-black active:scale-[0.98];
-  }
-
-  .btn-secondary {
-    @apply btn bg-canvas-soft text-ink border border-line;
-    @apply hover:bg-white active:scale-[0.98];
   }
 
   .btn-ghost-dark {
@@ -167,11 +177,6 @@
 
   .btn-white {
     @apply btn-secondary;
-  }
-
-  .btn-outline {
-    @apply btn border border-line text-ink bg-transparent;
-    @apply hover:bg-canvas-soft active:scale-[0.98];
   }
 
   .btn-ghost {
