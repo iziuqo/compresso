@@ -263,7 +263,7 @@
     "twoValue": "3,3 MB para 93,5 KB",
     "twoLabel": "Uma medição real",
     "twoDetail": "O resultado varia com o conteúdo, então preferimos um dado real a uma média que não medimos.",
-    "threeValue": "2,50 KB",
+    "threeValue": "3,6 KB",
     "threeLabel": "Núcleo, compactado",
     "threeDetail": "Zero dependências. Só APIs do navegador."
   },
@@ -290,10 +290,10 @@
     "lede": "Se você prefere que seus usuários nunca vejam um erro de upload, o núcleo de compressão vem como uma biblioteca que entra em qualquer framework.",
     "copy": "Clique para copiar",
     "copied": "Copiado",
-    "sizeTitle": "2,50 KB compactado",
+    "sizeTitle": "3,6 KB compactado",
     "sizeBody": "Pequeno a ponto de adotar não precisar de reunião. Zero dependências e nada para auditar.",
-    "workerTitle": "Fora da thread principal",
-    "workerBody": "Desde a 0.4.0 a mesma API roda em Web Worker com OffscreenCanvas, então um lote grande nunca trava sua interface.",
+    "workerTitle": "Compressão em lote paralela, fora da thread principal",
+    "workerBody": "O compresso.js/pool roda um pool de Web Workers resiliente — com recuperação de falhas e timeout incluída — para que um lote grande seja comprimido em paralelo sem travar sua interface.",
     "guaranteeTitle": "Nunca devolve arquivo maior",
     "guaranteeBody": "A saída com perda é limitada ao menor entre o seu limite e o original, porque um compressor que aumenta arquivo está quebrado.",
     "docs": "Ler a documentação"

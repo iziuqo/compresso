@@ -39,7 +39,7 @@
     "twoValue": "3,3 MB a 93,5 KB",
     "twoLabel": "Una misura reale",
     "twoDetail": "I risultati cambiano con il contenuto, quindi questo è un singolo risultato vero e non una media che non abbiamo mai misurato.",
-    "threeValue": "2,50 KB",
+    "threeValue": "3,6 KB",
     "threeLabel": "Cuore della libreria, gzip",
     "threeDetail": "Nessuna dipendenza richiesta. Solo primitive del browser."
   },
@@ -66,10 +66,10 @@
     "lede": "Se preferisci che i tuoi utenti non incontrino mai un errore di caricamento, il cuore della compressione esiste come libreria da infilare in qualsiasi framework.",
     "copy": "Clicca per copiare",
     "copied": "Copiato",
-    "sizeTitle": "2,50 KB, gzip",
+    "sizeTitle": "3,6 KB, gzip",
     "sizeBody": "Abbastanza piccola che adottarla non richiede una riunione. Nessuna dipendenza richiesta, e niente da controllare.",
-    "workerTitle": "Gira fuori dal thread principale",
-    "workerBody": "Dalla 0.4.0 la stessa API gira dentro un Web Worker con OffscreenCanvas, così un gruppo grande non blocca mai la tua interfaccia.",
+    "workerTitle": "Compressione in batch parallela, fuori dal thread principale",
+    "workerBody": "compresso.js/pool esegue un pool di Web Worker resiliente — con recupero da crash e timeout incluso — così un batch grande viene compresso in parallelo senza mai bloccare la tua interfaccia.",
     "guaranteeTitle": "Non restituisce mai un file più grande",
     "guaranteeBody": "L’uscita con perdita è limitata al minore fra il tuo limite di peso e l’originale, perché un compressore capace di far crescere un file è rotto.",
     "docs": "Leggi la documentazione"

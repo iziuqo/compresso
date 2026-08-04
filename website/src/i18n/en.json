@@ -263,7 +263,7 @@
     "twoValue": "3.3 MB to 93.5 KB",
     "twoLabel": "One measured run",
     "twoDetail": "Results vary by content, so this is a single real result rather than an average we have not benchmarked.",
-    "threeValue": "2.50 KB",
+    "threeValue": "3.6 KB",
     "threeLabel": "Library core, gzipped",
     "threeDetail": "Zero required dependencies. Browser primitives only."
   },
@@ -290,10 +290,10 @@
     "lede": "If you would rather your users never meet an upload error, the compression core ships as a library you can drop into any framework.",
     "copy": "Click to copy",
     "copied": "Copied",
-    "sizeTitle": "2.50 KB, gzipped",
+    "sizeTitle": "3.6 KB, gzipped",
     "sizeBody": "Small enough that adopting it does not need a meeting. Zero required dependencies, and nothing to audit.",
-    "workerTitle": "Runs off the main thread",
-    "workerBody": "Since 0.4.0 the same API runs inside a Web Worker using OffscreenCanvas, so a large batch never blocks your interface.",
+    "workerTitle": "Parallel batch compression, off the main thread",
+    "workerBody": "compresso.js/pool runs a resilient Web Worker pool — crash and timeout recovery included — so a big batch compresses in parallel without blocking your interface.",
     "guaranteeTitle": "Never returns a bigger file",
     "guaranteeBody": "Lossy output is capped at the smaller of your size limit and the original, because a compressor that can grow a file is broken.",
     "docs": "Read the docs"

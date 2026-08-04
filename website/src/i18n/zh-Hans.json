@@ -39,7 +39,7 @@
     "twoValue": "3.3 MB 到 93.5 KB",
     "twoLabel": "一次实测",
     "twoDetail": "结果随图片内容而变，所以这是一次真实的单次结果，而不是我们没有实测过的平均值。",
-    "threeValue": "2.50 KB",
+    "threeValue": "3.6 KB",
     "threeLabel": "库核心，gzip 后",
     "threeDetail": "零必需依赖。只用浏览器原生能力。"
   },
@@ -66,10 +66,10 @@
     "lede": "如果你更希望自己的用户永远遇不到上传失败，这套压缩内核也以库的形式提供，可以放进任何框架。",
     "copy": "点击复制",
     "copied": "已复制",
-    "sizeTitle": "2.50 KB，gzip 后",
+    "sizeTitle": "3.6 KB，gzip 后",
     "sizeBody": "小到引入它不必先开个会。零必需依赖，也没有什么需要审计。",
-    "workerTitle": "不占用主线程",
-    "workerBody": "自 0.4.0 起，同一套 API 通过 OffscreenCanvas 在 Web Worker 里运行，再大的批量也不会卡住你的界面。",
+    "workerTitle": "并行批量压缩，不占用主线程",
+    "workerBody": "compresso.js/pool 运行一个具备容错能力的 Web Worker 池——包含崩溃和超时恢复机制——让大批量图片并行压缩，同时不阻塞你的界面。",
     "guaranteeTitle": "绝不返回更大的文件",
     "guaranteeBody": "有损输出的上限取你设定的体积上限与原图之中较小的那个，因为一个会把文件变大的压缩器本身就是坏的。",
     "docs": "阅读文档"

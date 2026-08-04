@@ -39,7 +39,7 @@
     "twoValue": "3,3 Mo vers 93,5 Ko",
     "twoLabel": "Une mesure réelle",
     "twoDetail": "Les résultats varient selon le contenu : voici donc un résultat réel isolé, plutôt qu’une moyenne que nous n’avons pas mesurée.",
-    "threeValue": "2,50 Ko",
+    "threeValue": "3,6 Ko",
     "threeLabel": "Cœur de la bibliothèque, gzippé",
     "threeDetail": "Aucune dépendance requise. Uniquement les primitives du navigateur."
   },
@@ -66,10 +66,10 @@
     "lede": "Si vous préférez que vos utilisateurs ne rencontrent jamais d’erreur d’envoi, le cœur de compression existe en bibliothèque, à glisser dans n’importe quel framework.",
     "copy": "Cliquez pour copier",
     "copied": "Copié",
-    "sizeTitle": "2,50 Ko, gzippé",
+    "sizeTitle": "3,6 Ko, gzippé",
     "sizeBody": "Assez petite pour que l’adopter ne demande pas de réunion. Aucune dépendance requise, et rien à auditer.",
-    "workerTitle": "Tourne hors du fil principal",
-    "workerBody": "Depuis la 0.4.0, la même API tourne dans un Web Worker via OffscreenCanvas : un gros lot ne bloque jamais votre interface.",
+    "workerTitle": "Compression par lots en parallèle, hors du fil principal",
+    "workerBody": "compresso.js/pool fait tourner un pool de Web Workers résilient — récupération après crash et délai d’attente incluse — pour qu’un gros lot se comprime en parallèle sans jamais bloquer votre interface.",
     "guaranteeTitle": "Ne renvoie jamais un fichier plus gros",
     "guaranteeBody": "La sortie avec perte est plafonnée au plus petit entre votre limite de poids et l’original, parce qu’un compresseur capable d’alourdir un fichier est cassé.",
     "docs": "Lire la doc"
