@@ -1,7 +1,7 @@
 {
   "name": "compresso.js",
-  "version": "1.0.0",
-  "description": "Tiny image optimizer that runs entirely in the browser — a ~2 KB core with zero required dependencies. Compress, resize, and convert images (HEIC/HEIF input supported) on the client side — no server needed.",
+  "version": "1.0.1",
+  "description": "Tiny image optimizer that runs entirely in the browser — a 3.6 KB core with zero required dependencies. Compress, resize, and convert images (HEIC/HEIF input supported), with parallel Web Worker batching, on the client side — no server needed.",
   "type": "module",
   "main": "dist/compresso.cjs",
   "module": "dist/compresso.mjs",
@@ -57,7 +57,12 @@
     "image-optimizer",
     "image-resize",
     "typescript",
-    "exif"
+    "exif",
+    "web-worker",
+    "webworker",
+    "offscreencanvas",
+    "batch-processing",
+    "parallel"
   ],
   "author": "Izaias Cavalcanti",
   "license": "MIT",

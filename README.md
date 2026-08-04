@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Compress, resize, and convert images in the browser.</strong><br />
-  A 2 KB, zero-dependency image compressor with HEIC input and a never-bigger-output guarantee — no server needed.
+  A 3.6 KB, zero-dependency image compressor with HEIC input, parallel Web Worker batching, and a never-bigger-output guarantee — no server needed.
 </p>
 
 <p align="center">
@@ -22,6 +22,7 @@
   <a href="https://compresso.izaias.xyz/tool"><strong>▶ Try the live demo</strong></a> ·
   <a href="https://compresso.izaias.xyz/docs">Documentation</a> ·
   <a href="#comparison">Comparison</a> ·
+  <a href="#batch--parallel-compression">Batch & Workers</a> ·
   <a href="#faq">FAQ</a>
 </p>
 
@@ -29,9 +30,10 @@
 
 ## Why Compresso
 
-- **Smallest in its class — 2.3 KB, zero required dependencies.** Roughly **2× smaller than compressorjs** and **~9× smaller than browser-image-compression** ([see comparison](#comparison)). The core is pure Canvas API — no WASM, no codecs bundled.
+- **Smallest in its class — 3.6 KB gzipped, zero required dependencies.** Roughly **4–5× smaller than browser-image-compression and pica**, and still leaner than compressorjs ([see comparison](#comparison)). The core is pure Canvas API — no WASM, no codecs bundled.
 - **iPhone HEIC/HEIF input, everywhere.** Safari/iOS decode natively; other browsers lazy-load a WASM decoder *only* the first time a HEIC file appears, so the tiny core stays codec-free for every other format. No other browser compressor handles HEIC.
 - **Never returns a bigger file.** Lossy output is guaranteed to be no larger than the original — if a format can't beat an already-efficient source, Compresso adapts (quality/resolution) instead of inflating it. No rival makes this guarantee.
+- **Real parallel batch compression, off the main thread.** `compresso.js/pool` runs a resilient Web Worker pool — crash and timeout recovery included — for compressing many files at once without blocking the UI. Falls back to the exact same API on the main thread where Workers aren't available, so you never branch on environment yourself ([see Batch & Workers](#batch--parallel-compression)).
 - **Modern by default** — `format: 'auto'` picks AVIF → WebP → JPEG per browser, promise-based API, first-class TypeScript types, and it's actively maintained.
 - **100% client-side** — no server round-trips, no API keys, no upload of user images anywhere. Private by construction.
 
@@ -76,20 +78,20 @@ How Compresso compares to the popular browser-side image libraries:
 
 | | **compresso.js** | compressorjs | browser-image-compression | pica |
 |---|:---:|:---:|:---:|:---:|
-| Bundle, min+gzip <sup>1</sup> | **2.3 KB** | 4.5 KB | 20.0 KB | 14.8 KB |
+| Bundle, min+gzip <sup>1</sup> | **3.8 KB** | 4.6 KB | 19.6 KB | 15.7 KB |
 | Required dependencies | **0** | 2 | 1 | 2 |
 | HEIC / HEIF input | **✅** | ❌ | ❌ | ❌ |
 | AVIF output | **✅** | ❌ | ❌ | ❌ |
 | Auto best-format | **✅** | ❌ | ❌ | ❌ |
 | Never larger than input | **✅** | ❌ | ❌ | ❌ |
 | Target max file size | ✅ | ❌ | ✅ | ❌ |
-| Non-blocking (Web Worker) | 🔜 v1.0 | ❌ | ✅ | ✅ |
+| Non-blocking (Web Worker) | **✅** (`compresso.js/pool`) | ❌ | ✅ | ✅ |
 | API style | Promise | Callbacks | Promise | Promise |
 | TypeScript types | ✅ | ✅ | ✅ | ✅ |
-| Latest release <sup>2</sup> | 2026-07 | 2026-04 | 2023-03 | 2026-06 |
+| Latest release <sup>2</sup> | 2026-08 | 2026-04 | 2023-03 | 2026-06 |
 | License | MIT | MIT | MIT | MIT |
 
-<sup>1</sup> Minified CDN bundle (unpkg), gzipped. Reproduce: `curl -sL <unpkg dist URL> | gzip -9 | wc -c`. <sup>2</sup> npm latest-publish date. Figures verified 2026-07.
+<sup>1</sup> Bundlephobia min+gzip, each package's latest version. <sup>2</sup> npm latest-publish date. Figures verified 2026-08-04 — reproduce with `https://bundlephobia.com/api/size?package=<name>`.
 
 **When *not* to use Compresso:** for server-side/batch processing use [sharp](https://github.com/lovell/sharp); for pixel-level image editing use [Jimp](https://github.com/jimp-dev/jimp); if you only need the highest-quality downscale, [pica](https://github.com/nodeca/pica) specializes in that. Compresso is for *optimizing user-selected images in the browser before upload.*
 
@@ -105,6 +107,32 @@ const result = await compress(file, {
 ```
 
 Compresso binary-searches for the highest quality that fits within your size constraint.
+
+## Batch & Parallel Compression
+
+New in `1.0.0`: `compresso.js/pool` runs many compressions in parallel, off the main thread, via a resilient Web Worker pool — no UI jank on a 50-photo upload.
+
+```js
+import { createPool } from 'compresso.js/pool';
+
+const pool = createPool();
+
+const results = await pool.compressMany(fileList, { format: 'auto' }, (e) => {
+  console.log(`${e.fileIndex + 1}/${e.totalFiles} — ${Math.round(e.overallProgress * 100)}%`);
+});
+
+for (const r of results) {
+  if (r.status === 'fulfilled') uploads.push(r.value.file);
+}
+
+pool.destroy();
+```
+
+- **Same shape everywhere.** `createPool()` never throws for lack of Worker support (or a CSP that blocks worker construction) — it silently falls back to the exact same API on the main thread. You call it unconditionally; it decides how much parallelism the environment can actually offer.
+- **Self-healing.** A worker that crashes (OOM, driver fault) or goes silent past a per-job timeout — e.g. iOS backgrounding a tab — is detected and replaced automatically. `pool.stats().recoveries` tells you if it happened.
+- **Never a whole-batch failure.** `compressMany()` results are `Promise.allSettled`-shaped — one file failing doesn't sink the other 49.
+
+Full API (`createPool` options, `pool.stats()`, CSP requirements) is in the [package README](packages/compresso/README.md#batch--workers).
 
 ## API
 
@@ -281,9 +309,12 @@ No. Compresso is 100% client-side (Canvas API). No servers, no API keys, no imag
 ### Does it work with React, Vue, and Next.js?
 Yes — it's framework-agnostic. See [Framework Examples](#framework-examples).
 
+### How do I compress many images in parallel without blocking the UI?
+Import `createPool` from `compresso.js/pool` instead of using `compress()` directly — it runs a Web Worker pool with the same API, falling back to the main thread automatically where Workers aren't available. See [Batch & Parallel Compression](#batch--parallel-compression).
+
 ## How It Works
 
-Compresso's ~2 KB core uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips. (The one exception: HEIC/HEIF input on non-Safari browsers lazily pulls in a WASM decoder on demand.)
+Compresso's 3.6 KB core uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips. (The one exception: HEIC/HEIF input on non-Safari browsers lazily pulls in a WASM decoder on demand.)
 
 1. **Load** — read the image into an `<img>` element
 2. **Resize** — compute target dimensions (preserving aspect ratio), with step-down resizing for quality

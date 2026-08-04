@@ -2,9 +2,37 @@
 
 Tiny, zero-dependency image optimizer that runs entirely in the browser. Compress, resize, and convert images on the client side — no server needed.
 
-**~3.6 KB gzipped core** · **Zero required dependencies** · **HEIC/HEIF input** · **Works everywhere**
+[![npm version](https://img.shields.io/npm/v/compresso.js?color=00a87e&label=npm)](https://www.npmjs.com/package/compresso.js)
+[![min+gzip size](https://img.shields.io/bundlephobia/minzip/compresso.js?color=0284c7&label=min%2Bgzip)](https://bundlephobia.com/package/compresso.js)
+[![npm downloads](https://img.shields.io/npm/dm/compresso.js?color=64748b&label=downloads)](https://www.npmjs.com/package/compresso.js)
+[![TypeScript types](https://img.shields.io/npm/types/compresso.js)](https://www.npmjs.com/package/compresso.js)
+[![MIT license](https://img.shields.io/badge/license-MIT-3ba55d)](https://github.com/iziuqo/compresso/blob/main/LICENSE)
 
-[Website](https://compresso.izaias.xyz) · [Documentation](https://compresso.izaias.xyz/docs) · [GitHub](https://github.com/iziuqo/compresso)
+**3.6 KB gzipped core** · **Zero required dependencies** · **HEIC/HEIF input** · **Parallel Web Worker batching** · **Never returns a bigger file**
+
+[Website](https://compresso.izaias.xyz) · [Live demo](https://compresso.izaias.xyz/tool) · [Documentation](https://compresso.izaias.xyz/docs) · [GitHub](https://github.com/iziuqo/compresso)
+
+## Why Compresso
+
+- **Smallest in its class** — 3.6 KB gzipped, zero required dependencies. 4–5× smaller than [browser-image-compression](https://www.npmjs.com/package/browser-image-compression) and [pica](https://www.npmjs.com/package/pica), still leaner than [compressorjs](https://www.npmjs.com/package/compressorjs) ([full comparison](https://github.com/iziuqo/compresso#comparison)). Pure Canvas API — no WASM, no codecs bundled into the core.
+- **iPhone HEIC/HEIF input, everywhere** — Safari/iOS decode natively; other browsers lazy-load a WASM decoder only the first time a HEIC file appears. No other browser-side compressor handles HEIC input.
+- **Never returns a bigger file** — lossy output is guaranteed no larger than the source. If a target format can't beat an already-efficient source, Compresso adapts quality/resolution instead of inflating it.
+- **Real parallel batch compression** — `compresso.js/pool` runs a Web Worker pool with crash/timeout recovery, falling back to the identical API on the main thread where Workers aren't available. See [Batch & Workers](#batch--workers).
+- **100% client-side** — no server round-trips, no API keys, no user image ever uploaded anywhere.
+
+## Comparison
+
+| | **compresso.js** | compressorjs | browser-image-compression | pica |
+|---|:---:|:---:|:---:|:---:|
+| Bundle, min+gzip | **3.8 KB** | 4.6 KB | 19.6 KB | 15.7 KB |
+| Required dependencies | **0** | 2 | 1 | 2 |
+| HEIC / HEIF input | **✅** | ❌ | ❌ | ❌ |
+| AVIF output | **✅** | ❌ | ❌ | ❌ |
+| Never larger than input | **✅** | ❌ | ❌ | ❌ |
+| Non-blocking (Web Worker) | **✅** (`compresso.js/pool`) | ❌ | ✅ | ✅ |
+| TypeScript types | ✅ | ✅ | ✅ | ✅ |
+
+Figures verified 2026-08-04 via [Bundlephobia](https://bundlephobia.com). Full comparison, including when *not* to reach for Compresso, in the [project README](https://github.com/iziuqo/compresso#comparison).
 
 ## Install
 
@@ -150,6 +178,20 @@ Migrating usually means: delete your own `pool.ts`/`worker.ts`, import `createPo
 `isPoolSupported` from `compresso.js/pool`, and re-express any app-specific policy (e.g. "only the
 latest preview request matters") as a small wrapper around `createPool({ size: 1 })` at your own
 app layer, rather than baking it into the pool itself.
+
+## FAQ
+
+### How do I convert a HEIC image to JPEG or WebP in JavaScript?
+Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes it natively on Safari, via a lazy WASM decoder elsewhere, and outputs a standard web format. See [HEIC/HEIF input](#heicheif-input).
+
+### Why did my compressed image come out bigger than the original?
+With most tools, re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can inflate it. Compresso guarantees this never happens: lossy output is capped at the source size, reducing resolution instead of ballooning the file where needed.
+
+### How do I compress many images in parallel without blocking the UI?
+Use `createPool()` from `compresso.js/pool` instead of calling `compress()` directly — same options, same result shape, but backed by a Web Worker pool with crash/timeout recovery. See [Batch & Workers](#batch--workers).
+
+### Does this need a server or backend?
+No. Everything runs client-side via the Canvas API — no servers, no API keys, no image ever leaves the browser until you upload the result yourself.
 
 ## License
 

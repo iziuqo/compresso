@@ -6,6 +6,20 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-08-04
+
+Docs and metadata only — no code changes.
+
+### Changed
+- READMEs (root and package) and website metadata updated to reflect 1.0.0's real
+  measured bundle size (3.6 KB gzipped main entry, verified via `size-limit` and
+  cross-checked against Bundlephobia) — the pre-launch estimate of ~2 KB had been
+  carried over unchanged past 1.0.0's actual measured size.
+- Root README and the npm-facing package README now document `compresso.js/pool`
+  (shipped in 1.0.0, previously undocumented in both), including an updated
+  comparison table and a new Batch & Workers FAQ entry.
+- Added a social-share (OG) image for the website and GitHub repo; previously unset.
+
 ## [1.0.0-rc.1] — 2026-08-04
 
 Published to npm's `next` dist-tag, not `latest` — see the plan's §2.2/§8 for the
