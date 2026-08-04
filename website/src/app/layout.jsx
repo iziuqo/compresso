@@ -17,7 +17,7 @@ const display = Plus_Jakarta_Sans({
 export const metadata = {
   title: 'Compresso: Free Image Compressor That Runs In Your Browser',
   description:
-    'Compress, resize, and convert images without uploading them anywhere. Free app that works offline, plus a 2.50 KB zero dependency JavaScript library with HEIC input. Fully client side, no server needed.',
+    'Compress, resize, and convert images without uploading them anywhere. Free app that works offline, plus a 3.6 KB zero dependency JavaScript library with HEIC input and parallel Web Worker batching. Fully client side, no server needed.',
   keywords: [
     'image compression',
     'compress image in browser',
@@ -32,21 +32,32 @@ export const metadata = {
     'offline image compressor',
     'image compressor no upload',
     'free image optimizer app',
+    'web worker image compression',
+    'batch image compression javascript',
   ],
   metadataBase: new URL('https://compresso.izaias.xyz'),
   openGraph: {
     title: 'Compresso: Free Image Compressor That Runs In Your Browser',
     description:
-      'A free image optimizer that runs entirely on your device. Nothing is uploaded and it works offline. Also available as a 2.50 KB library with HEIC input.',
+      'A free image optimizer that runs entirely on your device. Nothing is uploaded and it works offline. Also available as a 3.6 KB library with HEIC input and parallel Web Worker batching.',
     siteName: 'Compresso',
     type: 'website',
     url: 'https://compresso.izaias.xyz',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Compresso — compress images in the browser. 3.6 KB gzipped, 0 dependencies, 100% client-side.',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Compresso: Free Image Compressor That Runs In Your Browser',
     description:
-      'A free image optimizer that runs entirely on your device. Nothing is uploaded and it works offline. Also available as a 2.50 KB library with HEIC input.',
+      'A free image optimizer that runs entirely on your device. Nothing is uploaded and it works offline. Also available as a 3.6 KB library with HEIC input and parallel Web Worker batching.',
+    images: ['/og-image.jpg'],
   },
   /* No `alternates.languages` here on purpose. hreflang declares one URL per
      language, and this is a static export with a single page that adapts on
@@ -78,7 +89,7 @@ export default function RootLayout({ children }) {
               applicationCategory: 'DeveloperApplication',
               operatingSystem: 'Any (web browser)',
               description:
-                'A 2 KB, zero-dependency JavaScript image compressor that compresses, resizes, and converts images (including HEIC) entirely in the browser.',
+                'A 3.6 KB, zero-dependency JavaScript image compressor that compresses, resizes, and converts images (including HEIC), with parallel Web Worker batching, entirely in the browser.',
               url: 'https://compresso.izaias.xyz',
               license: 'https://opensource.org/licenses/MIT',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
