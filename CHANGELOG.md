@@ -56,6 +56,48 @@ All notable changes to `compresso.js` are documented here. The format is based o
   suite is what found the never-bigger fix above — on a real device/engine
   matrix, not something Node-only testing could have caught.
 
+### Added
+- **Worker pool (`pool.js` + `worker.js`).** New internal modules implementing
+  a fixed-size worker pool for parallel, off-main-thread batch compression —
+  `createPool()`, `isPoolSupported()`, `defaultPoolSize()`, and a
+  `compressMany()` whose results are `Promise.allSettled`-shaped (a failure in
+  one file never fails the batch). `createPool()` never throws for lack of
+  Worker/OffscreenCanvas support, or when a page's CSP blocks worker
+  construction — it falls back to a correct, serial, main-thread
+  implementation with the exact same shape, so a host never branches on which
+  one it got. Includes crash/timeout resilience: a worker that crashes
+  natively, or is silently suspended by the OS (e.g. iOS backgrounding a tab),
+  is detected and replaced automatically instead of hanging a batch forever —
+  visible via `pool.stats()` (`{ size, busy, queued, recoveries }`). Generalized
+  from `compresso-app`'s proven `engine/pool.ts`/`engine/worker.ts`.
+
+### Fixed
+- **Cancelling an in-flight pool job no longer strands its worker slot.** The
+  reference implementation this was generalized from posts an abort message to
+  the worker but otherwise leaves the slot marked busy until a response
+  arrives — and a worker that observes its own abort deliberately sends
+  nothing back, so that slot would stay marked busy forever after any
+  in-flight cancellation. That was a rare, silently-absorbed timing window for
+  the one narrow internal use the reference implementation had; it's a real
+  defect for a public `cancel()`/`AbortSignal` API a host is expected to call
+  by design (a live-updating batch preview is the obvious case). `pool.js` now
+  settles the task and frees the slot locally the moment cancellation is
+  requested, relying on the existing stale-message guard to safely discard any
+  late response the aborted job's worker sends afterward.
+
+### Testing
+- Added `test/pool.test.js` (35 unit tests, a dependency-injected mock
+  `Worker`, plain Node) covering scheduling, queueing, cancellation — including
+  the in-flight-cancel-frees-the-slot-immediately fix above —
+  `maxQueueLength`, crash/timeout recovery, and `compressMany`'s
+  partial-failure contract. Added `test/browser/pool.test.js`
+  (Chromium/Firefox/WebKit) covering real concurrent dispatch, a real
+  cancellation mid-flight, a real per-job timeout, and the fallback path
+  forced on by removing `OffscreenCanvas`. This is what found that a tiny
+  fixture's whole compression can complete in single-digit milliseconds —
+  faster than a naively-polled assertion can reliably observe — informing how
+  those specific tests poll for in-flight state.
+
 ## [0.4.0] — 2026-07-31
 
 ### Added
