@@ -30,6 +30,7 @@
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
     "test:browser": "vitest run --project browser",
+    "generate:benchmark-corpus": "node scripts/generate-benchmark-corpus.mjs",
     "size": "size-limit",
     "prepublishOnly": "npm run build"
   },
