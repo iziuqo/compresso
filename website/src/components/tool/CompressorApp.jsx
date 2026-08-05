@@ -6,11 +6,8 @@ import { useCompressor } from '../../hooks/useCompressor';
 import ControlPanel from './ControlPanel';
 import Dropzone from './Dropzone';
 import PreviewWorkspace from './PreviewWorkspace';
-import ToolWindow from './ToolWindow';
 import ToolShell from './ToolShell';
 import ProMobileLayout from './ProMobileLayout';
-import EmbedMobileLayout from './EmbedMobileLayout';
-import EmbedMobileEmpty from './EmbedMobileEmpty';
 import { locales, getLocaleLabel } from '../../i18n';
 
 function FileChip({ file, originalUrl, result, onClear }) {
@@ -48,19 +45,7 @@ function LocaleSelect({ locale, onLocaleChange }) {
   );
 }
 
-function FullscreenIcon({ exit }) {
-  return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden="true">
-      {exit ? (
-        <path strokeLinecap="round" d="M8 3v3a2 2 0 01-2 2H3m18 0h-3a2 2 0 01-2-2V3m0 18v-3a2 2 0 012-2h3M3 16h3a2 2 0 012 2v3" />
-      ) : (
-        <path strokeLinecap="round" d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
-      )}
-    </svg>
-  );
-}
-
-function InspectorFooter({ t, c, onFullscreen, showFullscreen, isFullscreen }) {
+function InspectorFooter({ t, c }) {
   return (
     <div className="pro-inspector-footer">
       <button
@@ -79,47 +64,13 @@ function InspectorFooter({ t, c, onFullscreen, showFullscreen, isFullscreen }) {
           {t.playground.newImage || 'New'}
         </button>
       </div>
-      {showFullscreen && (
-        <button type="button" onClick={onFullscreen} className="pro-btn-ghost">
-          <FullscreenIcon exit={isFullscreen} />
-          {isFullscreen ? (t.playground.exitFullscreen || 'Exit fullscreen') : (t.playground.fullscreen || 'Fullscreen')}
-        </button>
-      )}
     </div>
   );
 }
 
-export default function CompressorApp({
-  t,
-  variant = 'embed',
-  locale,
-  onLocaleChange,
-  fullscreenTargetRef,
-  isFullscreen = false,
-}) {
+export default function CompressorApp({ t, locale, onLocaleChange }) {
   const c = useCompressor();
-  const isTool = variant === 'tool';
-  const showFullscreen = !!fullscreenTargetRef && !isTool;
   const [mobileExpanded, setMobileExpanded] = useState(false);
-
-  const toggleFullscreen = async () => {
-    const el = fullscreenTargetRef?.current;
-    if (!el) return;
-
-    try {
-      const active = document.fullscreenElement || document.webkitFullscreenElement;
-      if (active) {
-        if (document.exitFullscreen) await document.exitFullscreen();
-        else if (document.webkitExitFullscreen) await document.webkitExitFullscreen();
-      } else if (el.requestFullscreen) {
-        await el.requestFullscreen();
-      } else if (el.webkitRequestFullscreen) {
-        await el.webkitRequestFullscreen();
-      }
-    } catch {
-      /* user denied or unsupported */
-    }
-  };
 
   useEffect(() => {
     const onPaste = (e) => {
@@ -175,164 +126,55 @@ export default function CompressorApp({
     fill: true,
   };
 
-  const titleActions = isTool && locale && onLocaleChange
-    ? <LocaleSelect locale={locale} onLocaleChange={onLocaleChange} />
-    : showFullscreen ? (
-      <button
-        type="button"
-        onClick={toggleFullscreen}
-        className="pro-titlebar-btn"
-        aria-label={isFullscreen ? t.playground.exitFullscreen : t.playground.fullscreen}
-      >
-        <FullscreenIcon exit={isFullscreen} />
-      </button>
-    ) : null;
+  const headerActions = locale && onLocaleChange ? (
+    <LocaleSelect locale={locale} onLocaleChange={onLocaleChange} />
+  ) : null;
 
-  const fsFooterProps = {
-    t,
-    c,
-    onFullscreen: toggleFullscreen,
-    showFullscreen,
-    isFullscreen,
-  };
-
-  if (isTool) {
-    const headerActions = locale && onLocaleChange ? (
-      <LocaleSelect locale={locale} onLocaleChange={onLocaleChange} />
-    ) : null;
-
-    if (!c.file) {
-      return (
-        <ToolShell title={t.playground.dropzone} actions={headerActions}>
-          <div className="tool-empty">
-            <Dropzone {...dropzoneProps} />
-          </div>
-        </ToolShell>
-      );
-    }
-
-    const headerSubtitle = c.result
-      ? `${formatBytes(c.file.size)} → ${formatBytes(c.result.compressedSize)} · ${formatSavings(c.result.savings)}`
-      : formatBytes(c.file.size);
-
-    const mobileSheetProps = {
-      t,
-      c,
-      panelProps,
-      viewMode: c.viewMode,
-      setViewMode: c.setViewMode,
-      expanded: mobileExpanded,
-      onToggleExpand: () => setMobileExpanded((v) => !v),
-    };
-
+  if (!c.file) {
     return (
-      <ToolShell title={c.file.name} subtitle={headerSubtitle} actions={headerActions}>
-        <div className="tool-workspace">
-          <aside className="tool-sidebar hidden lg:flex">
-            <div className="tool-sidebar-scroll">
-              <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
-              <div className="mt-5">
-                <ControlPanel {...panelProps} />
-              </div>
-            </div>
-            <InspectorFooter t={t} c={c} />
-          </aside>
-
-          <div className="tool-preview-col hidden lg:flex">
-            <PreviewWorkspace {...previewProps} fill />
-          </div>
-
-          <div className="lg:hidden flex-1 min-h-0 h-full">
-            <ProMobileLayout previewProps={previewProps} {...mobileSheetProps} variant="tool" />
-          </div>
+      <ToolShell title={t.playground.dropzone} actions={headerActions}>
+        <div className="tool-empty">
+          <Dropzone {...dropzoneProps} />
         </div>
       </ToolShell>
     );
   }
 
-  if (!c.file) {
-    const emptyDropzone = (
-      <div className="pro-dropzone-shell flex-1 min-h-0">
-        <Dropzone {...dropzoneProps} compact={!isFullscreen} />
-      </div>
-    );
+  const headerSubtitle = c.result
+    ? `${formatBytes(c.file.size)} → ${formatBytes(c.result.compressedSize)} · ${formatSavings(c.result.savings)}`
+    : formatBytes(c.file.size);
 
-    if (isFullscreen) {
-      return (
-        <div className="demo-app-root flex-1 min-h-0 h-full w-full">
-          <ToolWindow title="Compresso" actions={titleActions} flush className="h-full min-h-0 flex-1">
-            {emptyDropzone}
-          </ToolWindow>
-        </div>
-      );
-    }
-
-    return (
-      <>
-        <div className="hidden lg:block">
-          <ToolWindow title="Compresso" actions={titleActions}>
-            <div className="flex items-center justify-center py-12 sm:py-16 px-6">
-              <Dropzone {...dropzoneProps} />
-            </div>
-          </ToolWindow>
-        </div>
-        <div className="lg:hidden">
-          <EmbedMobileEmpty t={t} dropzoneProps={dropzoneProps} />
-        </div>
-      </>
-    );
-  }
-
-  if (isFullscreen) {
-    return (
-      <div className="demo-app-root flex flex-col flex-1 min-h-0 w-full">
-        <ToolWindow title="Compresso" flush className="h-full min-h-0 flex-1">
-          <div className="hidden lg:grid pro-layout pro-layout-full animate-pro-layout-in flex-1 min-h-0">
-            <aside className="pro-inspector animate-pro-inspector-in min-h-0 h-full">
-              <div className="pro-inspector-scroll">
-                <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
-                <div className="mt-4">
-                  <ControlPanel {...panelProps} />
-                </div>
-              </div>
-              <InspectorFooter {...fsFooterProps} />
-            </aside>
-            <div className="pro-preview-col">
-              <PreviewWorkspace {...previewProps} />
-            </div>
-          </div>
-          <div className="lg:hidden flex-1 min-h-0 h-full p-3">
-            <EmbedMobileLayout t={t} c={c} previewProps={previewProps} fullscreen />
-          </div>
-        </ToolWindow>
-      </div>
-    );
-  }
+  const mobileSheetProps = {
+    t,
+    c,
+    panelProps,
+    viewMode: c.viewMode,
+    setViewMode: c.setViewMode,
+    expanded: mobileExpanded,
+    onToggleExpand: () => setMobileExpanded((v) => !v),
+  };
 
   return (
-    <>
-      <div className="hidden lg:block">
-        <ToolWindow title="Compresso" className="pro-embed-window demo-app-root">
-          <div className="grid pro-layout pro-layout-full animate-pro-layout-in">
-            <aside className="pro-inspector animate-pro-inspector-in min-h-0 h-full">
-              <div className="pro-inspector-scroll">
-                <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
-                <div className="mt-4">
-                  <ControlPanel {...panelProps} />
-                </div>
-              </div>
-              <InspectorFooter {...fsFooterProps} />
-            </aside>
-            <div className="pro-preview-col">
-              <PreviewWorkspace {...previewProps} />
+    <ToolShell title={c.file.name} subtitle={headerSubtitle} actions={headerActions}>
+      <div className="tool-workspace">
+        <aside className="tool-sidebar hidden lg:flex">
+          <div className="tool-sidebar-scroll">
+            <FileChip file={c.file} originalUrl={c.originalUrl} result={c.result} onClear={c.clearUpload} />
+            <div className="mt-5">
+              <ControlPanel {...panelProps} />
             </div>
           </div>
-        </ToolWindow>
-      </div>
+          <InspectorFooter t={t} c={c} />
+        </aside>
 
-      <div className="lg:hidden">
-        <EmbedMobileLayout t={t} c={c} previewProps={previewProps} />
+        <div className="tool-preview-col hidden lg:flex">
+          <PreviewWorkspace {...previewProps} fill />
+        </div>
+
+        <div className="lg:hidden flex-1 min-h-0 h-full">
+          <ProMobileLayout previewProps={previewProps} {...mobileSheetProps} />
+        </div>
       </div>
-    </>
+    </ToolShell>
   );
 }

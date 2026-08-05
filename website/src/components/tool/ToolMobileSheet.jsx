@@ -14,20 +14,14 @@ export default function ToolMobileSheet({
   setViewMode,
   expanded,
   onToggleExpand,
-  showFullscreen = false,
-  onFullscreen,
-  isFullscreen = false,
-  variant = 'tool',
 }) {
   const formats = getFormatOptions().map((opt) => ({
     value: opt.value,
     label: opt.value === 'auto' ? 'Auto' : opt.label,
   }));
 
-  const isEmbed = variant === 'embed';
-
   return (
-    <div className={`tool-mobile-sheet ${isEmbed ? 'tool-mobile-sheet-embed' : ''} ${expanded ? 'is-expanded' : ''}`}>
+    <div className={`tool-mobile-sheet ${expanded ? 'is-expanded' : ''}`}>
       <button
         type="button"
         className="tool-mobile-sheet-handle"
@@ -134,11 +128,6 @@ export default function ToolMobileSheet({
                 {t.playground.newImage || 'New'}
               </button>
             </div>
-            {showFullscreen && onFullscreen && (
-              <button type="button" onClick={onFullscreen} className="tool-mobile-secondary w-full">
-                {isFullscreen ? (t.playground.exitFullscreen || 'Exit fullscreen') : (t.playground.fullscreen || 'Fullscreen')}
-              </button>
-            )}
           </div>
         </div>
       )}

@@ -12,10 +12,6 @@ export default function ProMobileLayout({
   setViewMode,
   expanded,
   onToggleExpand,
-  showFullscreen,
-  onFullscreen,
-  isFullscreen,
-  variant = 'tool',
 }) {
   const mobilePreview = {
     ...previewProps,
@@ -37,10 +33,6 @@ export default function ProMobileLayout({
         setViewMode={setViewMode}
         expanded={expanded}
         onToggleExpand={onToggleExpand}
-        showFullscreen={showFullscreen}
-        onFullscreen={onFullscreen}
-        isFullscreen={isFullscreen}
-        variant={variant}
       />
     </div>
   );

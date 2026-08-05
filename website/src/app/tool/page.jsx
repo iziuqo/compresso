@@ -24,6 +24,6 @@ export default function ToolPage() {
   }
 
   return (
-    <CompressorApp t={t} variant="tool" locale={locale} onLocaleChange={changeLocale} />
+    <CompressorApp t={t} locale={locale} onLocaleChange={changeLocale} />
   );
 }
