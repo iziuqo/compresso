@@ -11,7 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        # Node 18 dropped here too (see the test matrix below for the first
+        # instance of this): @rollup/plugin-terser 1.0.0 and its
+        # serialize-javascript@7 dependency both declare engines.node
+        # ">=20.0.0" — not a bug to polyfill around, an explicit floor. It
+        # fails on 18 with "ReferenceError: crypto is not defined"
+        # (serialize-javascript's generateUID assumes Node 20's stable global
+        # WebCrypto). Same class of issue as rolldown below: the build
+        # *tooling's* floor, not a constraint on compresso's own shipped code.
+        node-version: [20, 22]
 
     steps:
       - uses: actions/checkout@v4
@@ -43,14 +51,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Node 18 deliberately excluded here (unlike the build matrix above):
-        # vitest 4.1.10 pulls in rolldown, which declares
-        # engines.node: "^20.19.0 || >=22.12.0" and fails at startup on 18
-        # with "SyntaxError: The requested module 'node:util' does not
+        # Node 18 excluded here for the same reason the build matrix above
+        # now excludes it too: vitest 4.1.10 pulls in rolldown, which
+        # declares engines.node: "^20.19.0 || >=22.12.0" and fails at startup
+        # on 18 with "SyntaxError: The requested module 'node:util' does not
         # provide an export named 'styleText'". That's the test *tooling's*
-        # floor, not a constraint compresso's own published code has —
-        # build (18) above still proves the library itself builds fine
-        # there.
+        # floor, not a constraint compresso's own published code has — no CI
+        # job runs on Node 18 anymore, but nothing compresso.js ships
+        # actually requires Node 20+ itself; only the dev tooling does.
         node-version: [20, 22]
 
     steps:
