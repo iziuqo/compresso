@@ -16,7 +16,7 @@
     "compresso.js": "*",
     "geist": "^1.7.2",
     "next": "^14.2.0",
-    "react": "^18.3.0",
+    "react": "^19.2.8",
     "react-dom": "^18.3.0"
   },
   "devDependencies": {
