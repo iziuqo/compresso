@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://compresso.izaias.xyz/tool"><strong>▶ Try the live demo</strong></a> ·
+  <a href="https://izaias.xyz/compresso"><strong>▶ Try the live demo</strong></a> ·
   <a href="https://compresso.izaias.xyz/docs">Documentation</a> ·
   <a href="#comparison">Comparison</a> ·
   <a href="#batch--parallel-compression">Batch & Workers</a> ·
@@ -335,7 +335,7 @@ For a government document system handling **100,000 submissions/month**:
 | Monthly bandwidth | 420 GB | 40 GB |
 | Upload failures | ~15% | ~0% |
 
-This project is grounded in research on cognitive distance and externalized processing in document-submission systems (*Izaias Cavalcanti*). See the [research](https://compresso.izaias.xyz).
+This project is grounded in research on cognitive distance and externalized processing in document-submission systems (*Izaias Cavalcanti*). See the [research](https://github.com/iziuqo/compresso/blob/main/_articles/%5BIzaias%5D%20Cognitive%20Distance%20in%20Document%20Submission%20Systems.pdf).
 
 ## Contributing
 
