@@ -258,6 +258,108 @@ async function handleFile(e) {
 </details>
 
 <details>
+<summary><strong>Svelte</strong></summary>
+
+```svelte
+<script>
+  import { compress, formatBytes } from 'compresso.js';
+
+  let result = null;
+
+  async function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    result = await compress(file, { quality: 0.8, maxWidth: 1920, format: 'auto' });
+  }
+</script>
+
+<input type="file" accept="image/*" on:change={handleFile} />
+{#if result}
+  <img src={result.url} alt="Optimized" />
+  <p>{formatBytes(result.originalSize)} → {formatBytes(result.compressedSize)} ({result.savings}% smaller)</p>
+{/if}
+```
+
+</details>
+
+<details>
+<summary><strong>Angular</strong></summary>
+
+```ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { compress, formatBytes } from 'compresso.js';
+
+@Component({
+  selector: 'app-image-upload',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <input type="file" accept="image/*" (change)="handleFile($event)" />
+    <div *ngIf="result">
+      <img [src]="result.url" alt="Optimized" />
+      <p>{{ formatBytes(result.originalSize) }} → {{ formatBytes(result.compressedSize) }} ({{ result.savings }}% smaller)</p>
+    </div>
+  `,
+})
+export class ImageUploadComponent {
+  result: any = null;
+  formatBytes = formatBytes;
+
+  async handleFile(e: Event) {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.result = await compress(file, { quality: 0.8, maxWidth: 1920, format: 'auto' });
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Next.js (App Router) — upload recipe</strong></summary>
+
+Compress client-side in a `'use client'` component, then upload the already-optimized file to a route handler:
+
+```jsx
+'use client';
+import { useState } from 'react';
+import { compress } from 'compresso.js';
+
+export default function UploadForm() {
+  const [status, setStatus] = useState('idle');
+
+  async function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const result = await compress(file, { quality: 0.8, maxWidth: 1920, format: 'webp' });
+
+    setStatus('uploading');
+    const body = new FormData();
+    body.append('file', result.file);
+    await fetch('/api/upload', { method: 'POST', body });
+    setStatus('done');
+  }
+
+  return <input type="file" accept="image/*" onChange={handleFile} />;
+}
+```
+
+```js
+// app/api/upload/route.js
+export async function POST(request) {
+  const formData = await request.formData();
+  const file = formData.get('file'); // already compressed — store as-is
+  return Response.json({ ok: true, name: file.name });
+}
+```
+
+Full working versions: [`examples/nextjs/UploadForm.jsx`](examples/nextjs/UploadForm.jsx) and [`examples/nextjs/route.js`](examples/nextjs/route.js).
+
+</details>
+
+<details>
 <summary><strong>Vanilla JS (CDN)</strong></summary>
 
 ```html
@@ -292,6 +394,23 @@ With `format: 'auto'`, Compresso picks the best format each browser supports. Sa
 
 **HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression).
 
+## Content-Security-Policy (CSP)
+
+Compresso itself needs nothing beyond `script-src 'self'`. The one exception is **HEIC/HEIF input on non-Safari browsers**, which lazily loads the `heic-to` WASM decoder — a strict CSP needs a couple of extra directives for that path specifically:
+
+- **`script-src`: add `'wasm-unsafe-eval'`** (fall back to `'unsafe-eval'` for older browsers that don't yet support the narrower directive). WebAssembly compilation is blocked without one of these, and the failure otherwise surfaces as an opaque WASM error rather than an obvious CSP violation.
+- **`worker-src 'self'`** (plus `child-src 'self'` as a fallback for browsers that predate `worker-src`) if you use `compresso.js/pool` for batch compression — it runs a same-origin module Worker (`new Worker(new URL('./worker.js', import.meta.url))`), no third-party origin involved.
+- **`img-src` needs `blob:`** if you render `result.url` directly in an `<img>` — it's an object URL, not an http(s) URL.
+- Using the CDN build (`<script src="https://unpkg.com/compresso.js/...">`) instead of installing from npm? Add `unpkg.com` to `script-src` too, or self-host the file to avoid a third-party origin in your policy.
+
+Everything else — the core compressor, `compress()`, `compressMultiple()` — is plain same-origin JS with no `eval`, no inline scripts, and no network requests, so it needs no CSP allowances beyond your app's own bundle.
+
+Example policy covering both the pool and HEIC input:
+
+```
+Content-Security-Policy: script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; img-src 'self' blob:;
+```
+
 ## FAQ
 
 ### How do I compress an image in the browser before uploading?
@@ -311,6 +430,9 @@ Yes — it's framework-agnostic. See [Framework Examples](#framework-examples).
 
 ### How do I compress many images in parallel without blocking the UI?
 Import `createPool` from `compresso.js/pool` instead of using `compress()` directly — it runs a Web Worker pool with the same API, falling back to the main thread automatically where Workers aren't available. See [Batch & Parallel Compression](#batch--parallel-compression).
+
+### My site has a strict CSP — why does HEIC input fail?
+It's almost always a missing `'wasm-unsafe-eval'` in `script-src` (the HEIC decoder is WASM-based), or a missing `worker-src 'self'` if you're using `compresso.js/pool`. See [Content-Security-Policy](#content-security-policy-csp) for a full policy example.
 
 ## How It Works
 
