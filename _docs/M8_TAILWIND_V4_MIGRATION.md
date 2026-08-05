@@ -1,10 +1,32 @@
 # M8 — Tailwind CSS v4 migration (marketing website)
 
-**Status:** scoped, not started. Written 2026-08-04, in the same session that found and
-reverted the break this exists to eventually resolve properly. Handed off per this
-project's explore-then-implement workflow: this doc is the context a fresh session
-needs to implement directly, at high reasoning effort, without re-deriving what's
-below from scratch.
+**Status:** done, 2026-08-04. Implemented in the very next session per the handoff
+below. Pushed directly to PR #13's branch (it wasn't stale — 0 commits behind main,
+no conflicts — so updating in place kept izaias's existing approval rather than
+opening a fresh PR). All 8 CI checks green, including `website` (the one that was
+actually failing). PR **not yet merged** — implementation + verification only, merge
+is a separate step. See `_docs/M9_DOCS_UPDATE.md` for the doc-hygiene follow-up this
+session's context feeds into.
+
+The `@config` bridge recommendation below (§2) held up exactly as expected — zero
+changes to `tailwind.config.js`. One thing this doc did *not* anticipate, found only
+by actually running the build: Tailwind v4's `@apply` stopped resolving custom
+`@layer components` classes referenced from other classes (only real utilities or
+`@utility`-registered ones). Fixed by promoting the 8 affected base classes
+(`band-dark`, `band-light`, `band-soft`, `section-block`, `btn`, `btn-primary-dark`,
+`btn-secondary`, `btn-outline`) to `@utility` blocks — every call site was unchanged.
+Worth expecting on any v3→v4 migration using that "shared base class" pattern.
+
+Original scoping below, kept as-written for the historical record of what was known
+*before* implementation — the outcome notes above are what actually happened.
+
+---
+
+**Status (original, pre-implementation):** scoped, not started. Written 2026-08-04, in
+the same session that found and reverted the break this exists to eventually resolve
+properly. Handed off per this project's explore-then-implement workflow: this doc is
+the context a fresh session needs to implement directly, at high reasoning effort,
+without re-deriving what's below from scratch.
 
 **Not part of the M0–M7 worker-backend track** (`LIB_V1_WORKERS_PLAN.md`). Different
 subsystem entirely — this is the marketing website's build tooling

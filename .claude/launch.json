@@ -49,6 +49,28 @@
         "-s"
       ],
       "port": 4174
+    },
+    {
+      "name": "portfolio-design",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "next",
+        "start",
+        "-p",
+        "4310"
+      ],
+      "port": 4310
+    },
+    {
+      "name": "portfolio-engineer",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "next",
+        "start",
+        "-p",
+        "4311"
+      ],
+      "port": 4311
     }
   ]
 }
