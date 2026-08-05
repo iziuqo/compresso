@@ -20,3 +20,6 @@ _qa/
 # on test failure, never meant to be committed
 packages/compresso/test/browser/__screenshots__/
 packages/compresso/.vitest-attachments/
+
+# Per-user Claude Code local settings (not for the repo)
+.claude/settings.local.json
