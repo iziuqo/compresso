@@ -6,6 +6,21 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-08-04
+
+### Fixed
+- **Never-bigger guarantee ([#6](https://github.com/iziuqo/compresso/issues/6)).**
+  `shrinkToFit`'s final quality-floor fallback (`encode(canvas, mimeType, 0.1)`,
+  used only when no quality in the binary search hits the byte ceiling) could
+  itself return a blob bigger than the source, for a very small or already-
+  incompressible input — a hole in the "never larger than input" promise. The
+  fallback to the source's own bytes when nothing achievable in the target
+  format fits (added while building out the M1 test suite) already closes this
+  for real image inputs; this release adds a deterministic regression test
+  (`test/compress-never-bigger.test.js`) that pins the behavior directly against
+  `shrinkToFit`'s fallback path, rather than relying on it being incidentally
+  exercised by format-specific fixtures.
+
 ## [1.0.1] — 2026-08-04
 
 Docs and metadata only — no code changes.
