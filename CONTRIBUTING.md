@@ -20,6 +20,7 @@ compresso/
 │   └── dist/              # Built output (generated)
 ├── website/               # Next.js marketing site + docs
 ├── examples/              # Framework integration examples
+├── benchmark/             # Public benchmark image corpus (see benchmark/README.md)
 └── _articles/             # Research papers
 ```
 

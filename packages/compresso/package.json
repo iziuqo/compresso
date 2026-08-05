@@ -1,6 +1,6 @@
 {
   "name": "compresso.js",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Tiny image optimizer that runs entirely in the browser — a 3.6 KB core with zero required dependencies. Compress, resize, and convert images (HEIC/HEIF input supported), with parallel Web Worker batching, on the client side — no server needed.",
   "type": "module",
   "main": "dist/compresso.cjs",
@@ -30,6 +30,7 @@
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
     "test:browser": "vitest run --project browser",
+    "generate:benchmark-corpus": "node scripts/generate-benchmark-corpus.mjs",
     "size": "size-limit",
     "prepublishOnly": "npm run build"
   },

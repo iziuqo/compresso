@@ -14,6 +14,10 @@ Run with `npm run test:browser`.
 - `compress.test.js` — always runs; uses the small, committed, synthetic fixtures
   in `test/fixtures/` so CI has real coverage without depending on personal
   photos.
+- `benchmark.test.js` — always runs; uses the public, committed corpus at
+  `benchmark/corpus/` (see `benchmark/README.md`) — larger and more varied than
+  `test/fixtures/`'s tiny 64×64 set, so it also doubles as the input for the
+  comparison figures in the README and the public benchmark suite (issue #4).
 - `corpus.test.js` — additional coverage against the full local `_assets/`
   corpus (gitignored, real photos, not committed) — skips cleanly wherever that
   directory isn't present, which is every CI run today. This is where the wider

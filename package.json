@@ -10,7 +10,6 @@
     "build:web": "npm run build -w website",
     "build": "npm run build:lib && npm run build:web",
     "dev": "npm run dev -w website",
-    "lint": "npm run lint -w website",
     "test:lib": "npm run test -w packages/compresso",
     "test:lib:browser": "npm run test:browser -w packages/compresso",
     "size:lib": "npm run size -w packages/compresso"

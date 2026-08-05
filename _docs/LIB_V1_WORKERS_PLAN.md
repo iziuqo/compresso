@@ -5,12 +5,32 @@ it's the verified-facts research this plan is built on: current source, git/publ
 the proven reference implementation in `compresso-app`, and the open questions this plan now
 answers).
 
-**Status:** implementation plan, revised after a three-angle adversarial review (independent
-backend/systems, frontend/mobile-performance, and application-security passes — full findings
-and resolutions in §11). Two of those findings changed the actual design, not just the
-copy — read §11 before implementing anything, it explains *why* the design looks the way it
-does in a few places that would otherwise look over-engineered. Ready to hand to an
-implementation session. Written 2026-08-03.
+**Status:** done, 2026-08-04. M0 through M6 all implemented and shipped same-day (git log
+`6959348`..`47f82d6`) — see §9's milestone table for the row-by-row done state, and §13–§17
+for implementation notes left by each milestone for the next. `compresso.js` promoted to
+`1.0.0`/`latest` on npm, since bumped to `1.0.1` (docs/metadata only, no code changes —
+`CHANGELOG.md`). **M7 is the only remaining row, explicitly on hold**: its own stated
+criterion is "informed by real `1.0.0` usage," and there's been no time yet for real adoption
+to accrue — check `npm view compresso.js` and the repo's issue tracker for an actual usage
+signal before starting it, not just elapsed calendar time. A process gap surfaced right after
+M6 shipped — batching all seven milestone commits to `main` meant CI's `push` trigger never
+evaluated M0–M5 individually, so their "green CI" done-when criteria went unverified until
+the M6 promotion commit came back red in three places (fixed in
+[PR #8](https://github.com/iziuqo/compresso/pull/8)) — worth remembering before trusting a
+"done" claim from a fast, batched, single-session push again.
+
+Original plan kept as-written below for the historical record of what was decided *before*
+implementation — the adversarial-review findings in §11 held up as designed, and the
+outcome notes above (plus §13–§17) are what actually happened.
+
+---
+
+**Status (original, pre-implementation):** implementation plan, revised after a three-angle
+adversarial review (independent backend/systems, frontend/mobile-performance, and
+application-security passes — full findings and resolutions in §11). Two of those findings
+changed the actual design, not just the copy — read §11 before implementing anything, it
+explains *why* the design looks the way it does in a few places that would otherwise look
+over-engineered. Ready to hand to an implementation session. Written 2026-08-03.
 
 **Handoff:** per this project's multi-model-handoff workflow. This plan is written to be
 executed by a separate, lower-capability model in a later session, with no architectural
