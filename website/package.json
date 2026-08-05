@@ -6,7 +6,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "generate:icons": "node scripts/generate-icons.mjs",
     "generate:shots": "node scripts/generate-shots.mjs"
   },
@@ -15,9 +14,9 @@
     "@vercel/speed-insights": "^2.0.0",
     "compresso.js": "*",
     "geist": "^1.7.2",
-    "next": "^14.2.0",
-    "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "next": "^16.2.12",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
