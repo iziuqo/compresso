@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { server } from 'vitest/browser';
 import { createPool, isPoolSupported } from '../../src/pool.js';
-import { compressMultiple } from '../../src/index.js';
+import { compress, compressMultiple } from '../../src/index.js';
 import sampleJpgUrl from '../fixtures/sample.jpg?url';
 import samplePngUrl from '../fixtures/sample.png?url';
 import sampleHeicUrl from '../fixtures/sample.heic?url';
@@ -183,6 +183,44 @@ describe.skipIf(skipOnWebKit)('createPool() — actually parallelizes', () => {
       // Real multipliers, across real device classes, are §6's job, backed
       // by actual measurement, not asserted here from one CI run.
       expect(parallelMs).toBeLessThan(serialMs * 1.15);
+    } finally {
+      pool.destroy();
+    }
+  });
+
+  // Single-image cold vs. warm pool cost — motivated by a real product question
+  // (compresso-app's src/state/queue.ts keeps one dedicated, lazily-created,
+  // session-long single-worker pool for live preview instead of using the
+  // main thread directly). A pool pays its worker-spawn cost once, on the
+  // pool's FIRST compress() call ("cold"); every call after that on the same
+  // pool ("warm") only pays postMessage marshaling. If that's true, warm
+  // should never cost meaningfully more than cold. Also logs the main-thread
+  // direct cost for visibility — not asserted against, since direct-vs-pool
+  // for one moderate image can legitimately go either way depending on the
+  // machine, and asserting on that would be exactly the kind of unfalsifiable
+  // claim this project's own culture rejects (see the never-executed §6
+  // benchmark plan in _docs/LIB_V1_WORKERS_PLAN.md). retry: 2 / generous
+  // margin for the same shared-CI-runner-noise reason as the test above.
+  it('single image: a warm pool is no slower than a freshly-spawned one (cold vs. warm smoke test)', { retry: 2 }, async () => {
+    const blob = await generateSyntheticImage(1200);
+    const freshFile = () => new File([blob], 'single.png', { type: 'image/png' });
+
+    const directStart = performance.now();
+    await compress(freshFile());
+    const directMs = performance.now() - directStart;
+
+    const pool = createPool({ size: 1 });
+    try {
+      const coldStart = performance.now();
+      await pool.compress(freshFile());
+      const coldMs = performance.now() - coldStart;
+
+      const warmStart = performance.now();
+      await pool.compress(freshFile());
+      const warmMs = performance.now() - warmStart;
+
+      console.log(`single-image pool overhead — direct=${directMs.toFixed(1)}ms cold-pool=${coldMs.toFixed(1)}ms warm-pool=${warmMs.toFixed(1)}ms`);
+      expect(warmMs).toBeLessThan(coldMs * 1.1);
     } finally {
       pool.destroy();
     }
