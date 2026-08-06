@@ -622,6 +622,10 @@ img { max-width: 100%; display: block; }
 .tile:hover .tile__x, .tile__x:focus-visible { opacity: 1; transform: none; }
 
 .strip__add {
+  /* containing block for the .sr label + file input inside it — without it they
+     resolve against the viewport, escape the strip's overflow clip, and stretch
+     the document's scroll width to the far end of the strip */
+  position: relative;
   flex: 0 0 auto; width: 78px; aspect-ratio: 1;
   display: grid; place-items: center;
   color: var(--ink-4); cursor: pointer;
