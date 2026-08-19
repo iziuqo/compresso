@@ -3,7 +3,7 @@
     "title": "Compresso: Bilder sofort im Browser optimieren",
     "description": "Winziger Bildoptimierer ohne Abhängigkeiten. Komprimiere, skaliere und konvertiere Bilder direkt im Client, ganz ohne Server. Kostenlos und quelloffen.",
     "ogTitle": "Compresso: Bilder sofort optimiert, direkt im Browser",
-    "ogDescription": "Ein kostenloser Bildoptimierer, der vollständig in deinem Browser läuft. Nichts wird hochgeladen, und offline läuft es weiter. Auch als 2,50 KB kleine Bibliothek."
+    "ogDescription": "Ein kostenloser Bildoptimierer, der vollständig in deinem Browser läuft. Nichts wird hochgeladen, und offline läuft es weiter. Auch als 3,6-KB-Bibliothek mit HEIC-Eingabe und Web-Worker-Batching."
   },
   "nav": {
     "playground": "Ausprobieren",

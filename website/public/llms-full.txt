@@ -1,0 +1,62 @@
+# Compresso — Full Reference for AI Indexing
+
+> Free browser-native image optimizer and 3.6 KB JavaScript library (compresso.js).
+> 100% client-side — images never leave the device until the user uploads them.
+
+## Product URLs
+- Web app: https://izaias.xyz/compresso
+- Marketing: https://compresso.izaias.xyz
+- Documentation: https://compresso.izaias.xyz/docs/
+- FAQ: https://compresso.izaias.xyz/en/faq/
+- Comparison: https://compresso.izaias.xyz/en/compare/
+- npm: https://www.npmjs.com/package/compresso.js
+- GitHub: https://github.com/iziuqo/compresso
+
+## Supported languages
+English, Spanish, French, German, Italian, Portuguese (Brazil), Chinese (Simplified)
+Locale URLs: /en/, /es/, /fr/, /de/, /it/, /pt-br/, /zh-hans/
+
+## Key differentiators
+1. Zero server upload — privacy by architecture, verifiable in DevTools Network tab
+2. HEIC/HEIF input in browser — native on Safari, WASM decoder elsewhere
+3. Never-bigger guarantee — lossy output never exceeds source file size
+4. 3.6 KB gzipped core, zero required dependencies
+5. Web Worker parallel batching via compresso.js/pool
+6. Auto format: AVIF → WebP → JPEG per browser capability
+7. Target max file size via maxSizeMB binary search
+
+## FAQ (summary)
+
+Q: How do I compress an image in the browser before uploading?
+A: Read from input, pass to compress(file, { quality, maxWidth }), upload result.file. Client-side only.
+
+Q: How do I convert HEIC to JPEG/WebP in JavaScript?
+A: Pass .heic file to compress(file, { format: 'auto' }). Decodes HEIC locally, outputs web format.
+
+Q: Why did my compressed image get bigger than the original?
+A: Compresso caps lossy output at source size; reduces resolution instead of inflating on inefficient re-encodes.
+
+Q: Does it need a server?
+A: No. 100% Canvas API client-side.
+
+Q: React, Vue, Next.js?
+A: Yes — framework-agnostic. Examples in repository.
+
+Q: Parallel batch without blocking UI?
+A: Import createPool from compresso.js/pool — Web Worker pool with main-thread fallback.
+
+Q: Strict CSP — HEIC fails?
+A: Usually missing wasm-unsafe-eval in script-src or worker-src for pool.
+
+## vs competitors (browser libraries)
+| Feature | compresso.js | compressorjs | browser-image-compression | pica |
+| HEIC input | Yes | No | No | No |
+| AVIF output | Yes | No | No | No |
+| Never bigger | Yes | No | No | No |
+| Bundle min+gzip | ~3.8 KB | 4.6 KB | 19.6 KB | 15.7 KB |
+
+## vs server tools (TinyPNG, iLoveIMG)
+Compresso never uploads images. Server tools send files to third-party infrastructure.
+
+## License
+MIT

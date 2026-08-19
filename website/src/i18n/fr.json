@@ -3,7 +3,7 @@
     "title": "Compresso : optimisation d’images instantanée dans le navigateur",
     "description": "Optimiseur d’images minuscule et sans dépendances. Compressez, redimensionnez et convertissez vos images côté client, sans le moindre serveur. Gratuit et open source.",
     "ogTitle": "Compresso : des images optimisées instantanément, dans le navigateur",
-    "ogDescription": "Un optimiseur d’images gratuit qui fonctionne entièrement dans votre navigateur. Rien n’est envoyé, et tout marche hors ligne. Également disponible en bibliothèque de 2,50 Ko."
+    "ogDescription": "Un optimiseur d’images gratuit qui fonctionne entièrement dans votre navigateur. Rien n’est envoyé, et tout marche hors ligne. Également disponible en bibliothèque de 3,6 Ko avec entrée HEIC et batch Web Workers."
   },
   "nav": {
     "playground": "Essayer",

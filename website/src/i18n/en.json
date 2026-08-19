@@ -3,7 +3,7 @@
     "title": "Compresso: Instant Image Optimization in the Browser",
     "description": "Tiny, zero dependency image optimizer. Compress, resize, and convert images on the client side with no server needed. Free and open source.",
     "ogTitle": "Compresso: images optimized instantly, right in the browser",
-    "ogDescription": "A free image optimizer that runs entirely in your browser. Nothing is uploaded, and it works offline. Also available as a 2.50 KB library."
+    "ogDescription": "A free image optimizer that runs entirely in your browser. Nothing is uploaded, and it works offline. Also available as a 3.6 KB library with HEIC input and Web Worker batching."
   },
   "nav": {
     "playground": "Try it",

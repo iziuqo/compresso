@@ -3,7 +3,7 @@
     "title": "Compresso: otimização instantânea de imagens no navegador",
     "description": "Otimizador de imagens ultraleve, sem dependências. Comprime, redimensiona e converte imagens no lado do cliente, sem servidor. Grátis e de código aberto.",
     "ogTitle": "Compresso: imagens otimizadas instantaneamente, direto no navegador",
-    "ogDescription": "Um otimizador de imagens que roda inteiro no seu navegador. Nada é enviado e funciona offline. Também disponível como biblioteca de 2,50 KB."
+    "ogDescription": "Um otimizador de imagens que roda inteiro no seu navegador. Nada é enviado e funciona offline. Também disponível como biblioteca de 3,6 KB com entrada HEIC e batch com Web Workers."
   },
   "nav": {
     "playground": "Testar",

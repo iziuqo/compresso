@@ -468,3 +468,47 @@
     animation-duration: 1ms !important; transition-duration: 120ms !important;
   }
 }
+
+/* SEO / AEO content pages (FAQ, compare, programmatic landing) */
+.mk-seo { padding: 7rem 0 4rem; }
+.mk-seo__article { max-width: 46rem; margin: 0 auto; }
+.mk-seo__h1 {
+  --fs: clamp(2rem, 5vw, 2.75rem);
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+  margin: 0 0 1rem;
+}
+.mk-seo__h2 {
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em;
+  margin: 2.5rem 0 0.75rem;
+}
+.mk-seo__lead { font-size: 1.0625rem; line-height: 1.65; color: var(--ink-2); margin: 0 0 1.5rem; }
+.mk-seo__p { font-size: 0.9375rem; line-height: 1.65; color: var(--ink-2); margin: 0; }
+.mk-seo__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin: 1.5rem 0; }
+.mk-seo__text-link { font-size: 0.875rem; font-weight: 600; color: var(--plum); }
+.mk-seo__text-link:hover { text-decoration: underline; }
+.mk-seo__faq { margin: 2rem 0 0; }
+.mk-seo__faq-item { margin-bottom: 1.75rem; }
+.mk-seo__faq-q { font-weight: 700; font-size: 1rem; margin: 0 0 0.35rem; color: var(--ink); }
+.mk-seo__faq-a { margin: 0; font-size: 0.9375rem; line-height: 1.65; color: var(--ink-2); }
+.mk-seo__steps { margin: 0; padding-left: 1.25rem; color: var(--ink-2); line-height: 1.65; }
+.mk-seo__steps li { margin-bottom: 0.5rem; }
+.mk-seo__table-wrap { overflow-x: auto; margin: 1.5rem 0; }
+.mk-seo__table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.mk-seo__table th, .mk-seo__table td { border: 1px solid var(--line); padding: 0.5rem 0.65rem; text-align: left; }
+.mk-seo__table thead th { background: var(--cream); font-weight: 700; }
+.mk-seo__table tbody th { font-weight: 600; color: var(--ink); }
+.mk-seo__dev { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--line); }
+.mk-seo__code {
+  background: var(--cream); border: 1px solid var(--line); border-radius: 0.5rem;
+  padding: 0.75rem 1rem; font-size: 0.875rem; margin: 0.75rem 0;
+}
+.mk-seo__related { list-style: disc; padding-left: 1.25rem; color: var(--ink-2); }
+.mk-seo__related a { color: var(--plum); font-weight: 600; }
+.mk-seo__foot { margin-top: 3rem; font-size: 0.8125rem; color: var(--ink-3); }
+.mk-seo__foot a { color: var(--ink-3); }
+.mk-seo__foot a:hover { color: var(--ink); }
+.mk-pill--ghost {
+  background: transparent; color: var(--ink); border: 1px solid var(--line);
+}

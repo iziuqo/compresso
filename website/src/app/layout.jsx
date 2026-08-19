@@ -6,6 +6,8 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import ServiceWorker from '../components/ServiceWorker';
+import JsonLd from '../components/seo/JsonLd';
+import { SITE_SCHEMA } from '../lib/seo';
 
 const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -79,27 +81,7 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Compresso" />
         <script src="https://t.contentsquare.net/uxa/17eb42fc937fb.js" defer />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'SoftwareApplication',
-              name: 'Compresso',
-              applicationCategory: 'DeveloperApplication',
-              operatingSystem: 'Any (web browser)',
-              description:
-                'A 3.6 KB, zero-dependency JavaScript image compressor that compresses, resizes, and converts images (including HEIC), with parallel Web Worker batching, entirely in the browser.',
-              url: 'https://compresso.izaias.xyz',
-              license: 'https://opensource.org/licenses/MIT',
-              offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-              sameAs: [
-                'https://github.com/iziuqo/compresso',
-                'https://www.npmjs.com/package/compresso.js',
-              ],
-            }),
-          }}
-        />
+        <JsonLd data={SITE_SCHEMA} />
       </head>
       <body className="font-sans antialiased">
         <ServiceWorker />
