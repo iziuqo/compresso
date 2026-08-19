@@ -31,7 +31,8 @@ Everything else from the SEO/AEO plan is implemented in code or deploys automati
 4. Submit sitemap: `https://compresso.izaias.xyz/sitemap.xml`
 5. Optional: enable **IndexNow** in Bing UI (key file already at `https://compresso.izaias.xyz/339cfae15c2d4a1fb8e9076521bc8f8a.txt`)
 
-**After each major deploy**, ping IndexNow:
+IndexNow runs **automatically on every Vercel deploy** via `npm postbuild`. Manual re-ping (optional):
+
 ```bash
 cd website && npm run ping:indexnow
 ```
