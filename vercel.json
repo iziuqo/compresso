@@ -3,6 +3,13 @@
   "outputDirectory": "website/out",
   "installCommand": "npm install",
   "framework": null,
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/en/",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",

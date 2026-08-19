@@ -7,6 +7,7 @@ export const metadata = {
   title: 'Compress Images Online, Free and Private, In Your Browser | Compresso',
   description:
     'Free online image compressor. Compress, resize, and convert JPEG, PNG, WebP, AVIF, and HEIC images right in your browser. Nothing is uploaded to any server. Powered by compresso.js.',
+  robots: { index: false, follow: true },
   alternates: { canonical: 'https://izaias.xyz/compresso' },
   openGraph: {
     title: 'Compress Images Online, Free and Private | Compresso',

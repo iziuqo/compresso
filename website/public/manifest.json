@@ -38,6 +38,14 @@
       "purpose": "maskable"
     }
   ],
-  "screenshots": [],
+  "screenshots": [
+    {
+      "src": "/og-image.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "form_factor": "wide",
+      "label": "Compresso image optimizer"
+    }
+  ],
   "prefer_related_applications": false
 }

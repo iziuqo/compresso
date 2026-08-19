@@ -24,6 +24,7 @@ const sections = [
   { id: 'formats', titleKey: 'formats' },
   { id: 'frameworks', titleKey: 'frameworks' },
   { id: 'browser', titleKey: 'browser' },
+  { id: 'why-browser', titleKey: 'whyBrowserTitle' },
 ];
 
 export default function DocsPage() {

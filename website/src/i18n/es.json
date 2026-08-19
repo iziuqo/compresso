@@ -3,7 +3,7 @@
     "title": "Compresso: optimización instantánea de imágenes en el navegador",
     "description": "Optimizador de imágenes ultraligero, sin dependencias. Comprime, redimensiona y convierte imágenes del lado del cliente, sin servidor. Gratis y de código abierto.",
     "ogTitle": "Compresso: imágenes optimizadas al instante, directo en el navegador",
-    "ogDescription": "Un optimizador de imágenes que funciona entero en tu navegador. No se sube nada y funciona sin conexión. También disponible como librería de 2,50 KB."
+    "ogDescription": "Un optimizador de imágenes que funciona entero en tu navegador. No se sube nada y funciona sin conexión. También disponible como librería de 3,6 KB con entrada HEIC y procesamiento por lotes con Workers."
   },
   "nav": {
     "playground": "Probar",

@@ -1,0 +1,32 @@
+# Compresso
+
+> Free browser-native image optimizer and 3.6 KB JavaScript library.
+> 100% client-side — images never leave the device until the user uploads them.
+
+## Product
+- Web app: https://izaias.xyz/compresso
+- Marketing: https://compresso.izaias.xyz
+- npm: https://www.npmjs.com/package/compresso.js
+- GitHub: https://github.com/iziuqo/compresso
+
+## Documentation
+- API reference: https://compresso.izaias.xyz/docs/
+- Quick start: https://compresso.izaias.xyz/docs/#quick-start
+- Browser support: https://compresso.izaias.xyz/docs/#browser
+- Why client-side: https://compresso.izaias.xyz/docs/#why-browser
+
+## Key differentiators
+- Zero server upload (privacy by architecture)
+- HEIC/HEIF input in browser (unique among browser compressors)
+- Never-bigger guarantee on lossy output
+- 3.6 KB gzipped, zero required dependencies
+- Web Worker parallel batching via compresso.js/pool
+
+## FAQ
+- https://compresso.izaias.xyz/en/faq/
+
+## Compare
+- https://compresso.izaias.xyz/en/compare/
+
+## License
+MIT — https://opensource.org/licenses/MIT
