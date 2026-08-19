@@ -21,5 +21,11 @@ _qa/
 packages/compresso/test/browser/__screenshots__/
 packages/compresso/.vitest-attachments/
 
+# Vendored consumer app (website/compresso-app) — install/build artifacts
+website/compresso-app/node_modules/
+website/compresso-app/dist/
+website/compresso-app/dev-dist/
+website/compresso-app/.vercel
+
 # Per-user Claude Code local settings (not for the repo)
 .claude/settings.local.json

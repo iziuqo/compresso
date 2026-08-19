@@ -41,21 +41,15 @@ cd website && npm run ping:indexnow
 
 ## 3. App domain SEO — `izaias.xyz/compresso`
 
-**Repository:** `iziuqo/compresso-app` (deployed via `izaias-landing` — see `_docs/PWA_PLAN.md` §15.2).
+**Status: automated in this monorepo.**
 
-**Status:** Implementation is ready — see `_docs/COMPRESSO_APP_SEO.md` and apply patch:
+Source: `website/compresso-app/` · Workflow: `.github/workflows/compresso-app.yml`
 
-`_docs/patches/0001-Add-app-side-SEO-for-izaias.xyz-compresso.patch`
+On merge to `main`, CI builds the app, pings IndexNow, mirrors to `iziuqo/compresso-app` (when `COMPRESSO_APP_DEPLOY_TOKEN` is set), and deploys to Vercel (when `VERCEL_*` secrets are set).
 
-**Your steps after merge + deploy:**
+See `_docs/COMPRESSO_APP_SEO.md` for secret names and pipeline details.
 
-1. Merge branch `cursor/app-side-seo-3795` in `compresso-app` (or apply patch)
-2. Deploy to production (`izaias.xyz/compresso`)
-3. GSC → add URL-prefix property `https://izaias.xyz/compresso/` → submit `https://izaias.xyz/compresso/sitemap.xml`
-4. Bing → same path prefix + sitemap
-5. Request indexing for `/compresso/` and one locale URL (e.g. `/compresso/es/`)
-
-Already included in the patch: consumer meta/OG, `WebApplication` JSON-LD, 7 locale routes, hreflang, robots, sitemap, footer links to docs/FAQ/npm.
+**Optional one-time:** GSC URL-prefix property + submit `https://izaias.xyz/compresso/sitemap.xml` (IndexNow already handles Bing on every deploy).
 
 ---
 
@@ -122,4 +116,4 @@ Validate volume for locale-specific titles in `landing-pages.js` and adjust meta
 | Footer internal links (FAQ, compare, examples) | ✅ |
 | HowTo schema on FAQ | ✅ |
 | IndexNow auto on deploy (postbuild) | ✅ |
-| App-side SEO (`compresso-app` patch) | ✅ ready — apply + deploy (§3) |
+| App-side SEO (vendored in monorepo + CI) | ✅ |

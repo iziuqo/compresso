@@ -1,0 +1,738 @@
+/* ===========================================================================
+   Compresso — interface
+
+   Black ground, white ink, one pill. The photograph is the only colour that
+   ever appears on this screen; the alert red shows on exactly one condition.
+   Structure is carried by space and hairlines — there are no cards.
+   =========================================================================== */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--t-body);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+button, input, label { font: inherit; color: inherit; letter-spacing: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; }
+button[disabled] { cursor: default; opacity: 0.28; }
+h1, h2, p { margin: 0; }
+img { max-width: 100%; display: block; }
+
+::selection { background: var(--ink); color: var(--void); }
+:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+
+.sr {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* Two utilities carry most of the typographic character:
+   `.label` — 10px, uppercase, tracked wide. `.mono` — anything that is data. */
+.label {
+  font-size: var(--t-micro);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--track-label);
+  line-height: 1.2;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.odo, .result__figure, .sl__value { font-variant-numeric: tabular-nums; }
+
+.grain {
+  position: fixed; inset: 0; z-index: 100; pointer-events: none;
+  opacity: var(--grain-alpha);
+  mix-blend-mode: var(--grain-blend);
+  background-repeat: repeat;
+}
+
+/* language swap: text drifts out and settles back, it doesn't snap */
+.t { display: inline; transition: opacity var(--dur-standard) var(--ease-standard); }
+.t--out { opacity: 0; }
+
+/* ================================================================== frame */
+
+.app { display: grid; grid-template-rows: auto 1fr auto; height: 100dvh; overflow: hidden; }
+
+.top { display: flex; flex-direction: column; }
+.head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--s-4);
+  padding: var(--s-4) var(--s-5);
+  min-height: 48px;
+}
+.head__left, .head__right { display: flex; align-items: center; gap: var(--s-4); }
+
+.mark { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink); }
+.mark__glyph { width: 16px; height: 16px; }
+/* the plates close, once, on load */
+.mark__jaw { transform-origin: center; animation: close var(--dur-ceremony) var(--ease-entrance) both; }
+.mark__jaw--top { --from: -3px; }
+.mark__jaw--btm { --from: 3px; }
+@keyframes close {
+  from { transform: translateY(var(--from)); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+.mark__word {
+  font-size: var(--t-small); font-weight: 500; letter-spacing: -0.005em;
+}
+
+.main { min-height: 0; overflow: hidden; }
+
+.ghost {
+  display: inline-flex; align-items: center;
+  color: var(--ink-2);
+  transition: color var(--dur-micro) var(--ease-standard);
+}
+.ghost:hover { color: var(--ink); }
+
+/* The one filled shape in the app. Round, white, and reserved for the action
+   you actually came here to take. */
+.pill {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 38px; padding: 0 var(--s-6);
+  border-radius: var(--r-pill);
+  background: var(--ink); color: var(--void);
+  font-size: var(--t-small); font-weight: 500; letter-spacing: -0.008em;
+  cursor: pointer;
+  transition:
+    transform var(--dur-micro) var(--ease-standard),
+    opacity var(--dur-micro) var(--ease-standard);
+}
+.pill:active { transform: scale(0.972); opacity: 0.86; }
+.pill--lg { height: 44px; padding: 0 var(--s-7); font-size: var(--t-body); }
+
+/* Three faces stacked in one grid cell, so the pill keeps the width of its
+   longest label and nothing on the row moves as the state changes. German
+   ("Wird gepackt…") is what sets that width, which is the point of measuring
+   all three rather than sizing to the English. */
+.pill--stateful { display: inline-grid; }
+.pill--stateful[disabled] { opacity: 1; cursor: default; }
+.pill__face {
+  grid-area: 1 / 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+  white-space: nowrap;
+  transition: opacity var(--dur-standard) var(--ease-standard),
+              transform var(--dur-standard) var(--ease-standard);
+}
+.pill__face--packing, .pill__face--done { opacity: 0; transform: translateY(4px); }
+.pill.is-packing .pill__face--idle,
+.pill.is-done    .pill__face--idle { opacity: 0; transform: translateY(-4px); }
+.pill.is-packing .pill__face--packing,
+.pill.is-done    .pill__face--done { opacity: 1; transform: none; }
+/* while it works, the fill breathes — the control is busy, not broken */
+.pill.is-packing { animation: working 1.4s var(--ease-glide) infinite; }
+@keyframes working { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+
+/* ============================================================ empty state */
+
+.empty {
+  position: relative;
+  height: 100%;
+  display: grid; place-items: center;
+  padding: var(--s-6);
+  text-align: center;
+}
+/* a lamp over the bench: it trails the pointer instead of tracking it */
+.empty__light {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(520px circle at var(--lx, 50%) var(--ly, 50%),
+              rgb(255 255 255 / 0.055), transparent 62%);
+  transition: opacity var(--dur-entrance) var(--ease-standard);
+}
+@media (prefers-color-scheme: light) {
+  .empty__light { background: radial-gradient(520px circle at var(--lx,50%) var(--ly,50%),
+                  rgb(0 0 0 / 0.045), transparent 62%); }
+}
+/* dragging: a hairline draws itself around the whole screen */
+.empty__edge {
+  position: absolute; inset: var(--s-3); pointer-events: none;
+  border: var(--hair) solid var(--ink);
+  opacity: 0; transform: scale(1.004);
+  transition: opacity var(--dur-standard) var(--ease-standard),
+              transform var(--dur-standard) var(--ease-standard);
+}
+.empty.is-over .empty__edge { opacity: 0.5; transform: none; }
+.empty.is-over .empty__light { opacity: 1.6; }
+
+.empty__body {
+  position: relative;
+  display: grid; gap: var(--s-4); justify-items: center;
+  max-width: 30rem;
+  animation: rise var(--dur-ceremony) var(--ease-entrance) both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.empty__title {
+  font-size: clamp(2.25rem, 6.5vw, 3.75rem);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -0.042em;
+  text-wrap: balance;
+}
+.empty__lede {
+  color: var(--ink-2);
+  font-size: var(--t-lead);
+  line-height: 1.5;
+  letter-spacing: -0.014em;
+  max-width: 34ch;
+}
+.empty__hint { color: var(--ink-3); margin-top: var(--s-1); }
+.empty__formats {
+  position: absolute; bottom: var(--s-6); left: 50%; transform: translateX(-50%);
+  color: var(--ink-4); font-size: var(--t-micro); letter-spacing: 0.1em; white-space: nowrap;
+}
+
+/* ============================================================= lang menu */
+
+/* inline-flex, not block: a block wrapper puts its inline-block child on a text
+   baseline, which pushed this 1.5px below the Install chip beside it */
+.lang { position: relative; display: inline-flex; align-items: center; }
+.lang__trigger {
+  display: inline-flex; align-items: center;
+  color: var(--ink-2); transition: color var(--dur-micro) var(--ease-standard);
+}
+.lang__trigger:hover, .lang__trigger[aria-expanded='true'] { color: var(--ink); }
+
+.lang__sheet {
+  position: absolute; top: calc(100% + 12px); right: 0; z-index: 40;
+  min-width: 216px; padding: var(--s-2) 0;
+  background: var(--surface);
+  border-radius: var(--r-well);
+  box-shadow: 0 0 0 var(--hair) var(--line);
+  opacity: 0; visibility: hidden; transform: translateY(-4px);
+  transition:
+    opacity var(--dur-standard) var(--ease-standard),
+    transform var(--dur-standard) var(--ease-standard),
+    visibility 0s linear var(--dur-standard);
+}
+.lang__sheet.is-open { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.lang__row {
+  position: relative;
+  display: grid; gap: 1px;
+  width: 100%; padding: 0.5rem var(--s-4);
+  text-align: left;
+  opacity: 0; transform: translateY(-3px);
+  transition:
+    opacity var(--dur-standard) var(--ease-standard),
+    transform var(--dur-standard) var(--ease-standard),
+    background-color var(--dur-micro) var(--ease-standard);
+}
+.lang__sheet.is-open .lang__row { opacity: 1; transform: none; transition-delay: calc(var(--i) * 16ms); }
+.lang__row:hover { background: var(--surface-2); }
+.lang__native { font-size: var(--t-small); color: var(--ink-2); transition: color var(--dur-micro) var(--ease-standard); }
+.lang__row:hover .lang__native { color: var(--ink); }
+.lang__english { color: var(--ink-4); }
+/* active language: a white rule in the left margin. no checkmark. */
+.lang__row[aria-selected='true']::before {
+  content: ''; position: absolute; left: 0; top: 0.55rem; bottom: 0.55rem;
+  width: 2px; background: var(--ink);
+}
+.lang__row[aria-selected='true'] .lang__native { color: var(--ink); }
+
+/* =================================================================== bench */
+
+.bench {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto auto auto;
+  height: 100%; min-height: 0;
+  gap: var(--s-3);
+  padding-top: var(--s-2);
+}
+
+/* the photograph gets whatever is left, and it is always the largest thing */
+.viewer {
+  min-height: 180px;
+  display: grid; place-items: center;
+  padding: 0 var(--s-5);
+  overflow: hidden;
+}
+
+/* ================================================================= compare */
+
+.cmp {
+  position: relative;
+  aspect-ratio: var(--ar, 3 / 2);
+  max-width: 100%; max-height: 100%; min-height: 0;
+  margin: auto;
+  display: grid; overflow: hidden;
+  border-radius: var(--r-tile);
+  touch-action: none; cursor: ew-resize;
+  opacity: 0;
+  transition: opacity var(--dur-entrance) var(--ease-standard);
+}
+.cmp.is-ready { opacity: 1; }
+.cmp__stage { position: relative; display: grid; min-height: 0; height: 100%; }
+.cmp__img {
+  grid-area: 1 / 1;
+  width: 100%; height: 100%;
+  object-fit: cover; user-select: none;
+}
+.cmp__after {
+  grid-area: 1 / 1; display: grid;
+  clip-path: inset(0 0 0 var(--x));
+  transition: clip-path var(--dur-micro) var(--ease-glide);
+}
+.cmp.is-dragging .cmp__after { transition: none; }
+
+.cmp__seam {
+  position: absolute; top: 0; bottom: 0; left: var(--x);
+  width: var(--hair); background: #fff;
+  transform: translateX(-0.5px);
+  opacity: 0.45;
+  transition: opacity var(--dur-standard) var(--ease-standard),
+              left var(--dur-micro) var(--ease-glide);
+}
+.cmp:hover .cmp__seam, .cmp.is-dragging .cmp__seam { opacity: 0.9; }
+.cmp.is-dragging .cmp__seam { transition: opacity var(--dur-standard) var(--ease-standard); }
+
+.cmp__handle {
+  position: absolute; top: 50%; left: var(--x);
+  width: 52px; height: 52px; margin: -26px 0 0 -26px;
+  display: grid; place-items: center; cursor: ew-resize;
+  transition: left var(--dur-micro) var(--ease-glide);
+}
+.cmp.is-dragging .cmp__handle { transition: none; }
+/* the grip sits on photographic content, so it doesn't follow the theme:
+   always white, always legible, whatever is behind it */
+.cmp__grip {
+  display: grid; place-items: center;
+  width: 26px; height: 26px; border-radius: var(--r-pill);
+  background: #fff; color: #000;
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 0.12);
+  transition: transform var(--dur-standard) var(--ease-standard),
+              box-shadow var(--dur-standard) var(--ease-standard);
+}
+/* the glyph is an invitation; once you have accepted it, it withdraws */
+.cmp__grip svg { transition: opacity var(--dur-standard) var(--ease-standard); }
+.cmp.is-dragging .cmp__grip svg { opacity: 0; }
+.cmp__handle:hover .cmp__grip { transform: scale(1.12); }
+.cmp.is-dragging .cmp__grip { transform: scale(1.2); box-shadow: 0 0 0 5px rgb(0 0 0 / 0.16); }
+
+.cmp__tag {
+  position: absolute; bottom: var(--s-3);
+  color: #fff; mix-blend-mode: difference;
+  opacity: 0;
+  transition: opacity var(--dur-standard) var(--ease-standard);
+}
+.cmp:hover .cmp__tag, .cmp.is-dragging .cmp__tag { opacity: 0.8; }
+.cmp__tag--l { left: var(--s-3); }
+.cmp__tag--r { right: var(--s-3); }
+
+/* ================================================================== result */
+
+.result { display: grid; justify-items: center; gap: 0.35rem; padding: 0 var(--s-5); }
+.result__figure {
+  font-size: clamp(2.125rem, 5.2vw, 3.25rem);
+  font-weight: 300;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+}
+.result__figure.is-grew { color: var(--alert); font-size: clamp(2rem, 7vw, 3rem); }
+.result__detail {
+  display: inline-flex; align-items: center; gap: 0.6ch;
+  font-size: var(--t-meta); color: var(--ink-3);
+}
+.result__label {
+  position: relative; margin-left: 0.5rem; padding-left: 0.75rem;
+  color: var(--ink-4);
+}
+/* the entire ceremony: one hairline drawing itself, once the queue settles */
+.result__label::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  width: var(--hair); height: 0; background: var(--ink-4);
+  transform: translateY(-50%);
+  transition: height var(--dur-ceremony) var(--ease-standard);
+}
+.result.is-settled .result__label::before { height: 11px; }
+
+/* ================================================================ odometer */
+
+.odo { display: inline-flex; align-items: baseline; }
+.odo__win { display: inline-block; height: 1em; line-height: 1; overflow: hidden; vertical-align: baseline; }
+.odo__reel {
+  display: flex; flex-direction: column; will-change: transform;
+  transition: transform var(--dur-standard) var(--ease-glide);
+}
+.odo__reel > span { height: 1em; line-height: 1; }
+.odo__fixed { display: inline-block; }
+.odo.is-grew { color: var(--alert); }
+
+/* ================================================================= console */
+
+.console { display: grid; gap: var(--s-3); padding: 0 var(--s-5); }
+
+/* a fold that grows instead of appearing — 0fr → 1fr animates cleanly and
+   nothing below it jumps */
+.fold {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-standard) var(--ease-standard),
+              opacity var(--dur-standard) var(--ease-standard);
+  opacity: 0;
+}
+.fold.is-open { grid-template-rows: 1fr; opacity: 1; }
+.fold__inner { overflow: hidden; min-height: 0; }
+.fold__toggle {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  color: var(--ink-4);
+  transition: color var(--dur-micro) var(--ease-standard);
+}
+.fold__toggle:hover { color: var(--ink-2); }
+.fold__caret { display: inline-grid; transition: transform var(--dur-standard) var(--ease-standard); }
+/* A default applied without being asked for gets a small nudge to go look —
+   same dot/pulse as .status__pulse, just a touch brighter since this one's
+   job is to be noticed, not to quietly confirm something's running. */
+.fold__badge {
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--ink-2);
+  animation: pulse 1.8s var(--ease-glide) infinite;
+}
+.fold__toggle[aria-expanded='true'] { color: var(--ink-2); }
+.fold__toggle[aria-expanded='true'] .fold__caret { transform: rotate(180deg); }
+.fold__hint { margin-top: var(--s-3); color: var(--ink-3); }
+
+/* ---- the slider: the signature control -------------------------------- */
+.sl { display: grid; justify-items: center; gap: var(--s-2); }
+.sl__value {
+  font-size: var(--t-value);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1;
+  transition: transform var(--dur-standard) var(--ease-standard),
+              color var(--dur-standard) var(--ease-standard);
+}
+.sl.is-live .sl__value { transform: translateY(-2px) scale(1.06); }
+
+.sl__lane { position: relative; width: 100%; height: 30px; display: flex; align-items: center; }
+.sl__track {
+  position: absolute; inset-inline: 0; height: var(--hair);
+  background: var(--line-2);
+  transition: background-color var(--dur-standard) var(--ease-standard);
+}
+.sl.is-live .sl__track { background: var(--ink-4); }
+/* a tick at the default. you can feel your way back to it; nothing snaps. */
+.sl__detent {
+  position: absolute; width: var(--hair); height: 7px;
+  background: var(--line-2); transform: translateX(-0.5px);
+  transition: height var(--dur-standard) var(--ease-standard),
+              background-color var(--dur-standard) var(--ease-standard);
+}
+/* landing on the default is worth feeling. the tick grows and brightens for a
+   beat — a visual detent, plus a 4ms tap on hardware that has one. */
+.sl.is-hit .sl__detent { height: 13px; background: var(--ink); }
+.sl__knob {
+  position: absolute; left: var(--p);
+  width: var(--knob); height: var(--knob); margin-left: calc(var(--knob) / -2);
+  border-radius: var(--r-pill);
+  background: var(--ink);
+  pointer-events: none;
+  transition: left var(--dur-micro) var(--ease-glide),
+              transform var(--dur-standard) var(--ease-standard);
+}
+.sl__lane:hover .sl__knob { transform: scale(1.08); }
+.sl.is-live .sl__knob, .sl.is-live .sl__lane:hover .sl__knob { transform: scale(1.18); }
+.sl__input {
+  position: absolute; inset: -8px 0; width: 100%; height: calc(100% + 16px);
+  opacity: 0; cursor: ew-resize; margin: 0;
+}
+.sl__name { color: var(--ink-3); }
+
+/* ---- tabs ------------------------------------------------------------- */
+.console__row { display: flex; justify-content: center; }
+.tabs { position: relative; display: inline-block; isolation: isolate; }
+.tabs__pill {
+  position: absolute; top: 0; bottom: 0; left: 0;
+  border-radius: var(--r-pill); background: var(--ink); z-index: 0;
+  transition: transform var(--dur-standard) var(--ease-standard),
+              width var(--dur-standard) var(--ease-standard);
+}
+.tabs__layer {
+  position: relative; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  z-index: 1; pointer-events: none;
+}
+/* the inverted copy, clipped to exactly the pill: each label wipes in place as
+   the pill travels over it, rather than flipping colour when it arrives */
+.tabs__layer--inv {
+  position: absolute; inset: 0; color: var(--void); z-index: 2;
+  transition: clip-path var(--dur-standard) var(--ease-standard);
+}
+.tabs__label {
+  padding: 0.5rem 0.95rem; text-align: center; white-space: nowrap;
+  font-size: var(--t-meta); font-weight: 500; letter-spacing: 0.02em;
+  color: var(--ink-3);
+}
+.tabs__layer--inv .tabs__label { color: var(--void); }
+.tabs__hits { position: absolute; inset: 0; z-index: 3; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.tabs__hit { border-radius: var(--r-pill); }
+
+/* ---- fields ----------------------------------------------------------- */
+.console__row--fields {
+  padding-top: var(--s-2);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s-3);
+  max-width: 460px; margin: 0 auto; width: 100%;
+}
+.nf { display: grid; gap: 0.35rem; justify-items: center; }
+.nf__label { color: var(--ink-3); }
+.nf__box {
+  display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+  width: 100%; padding: 0.4rem var(--s-2);
+  border-radius: var(--r-well);
+  background: var(--surface);
+  transition: box-shadow var(--dur-standard) var(--ease-standard),
+              background-color var(--dur-standard) var(--ease-standard);
+}
+.nf__box:focus-within { background: var(--surface-2); box-shadow: inset 0 0 0 1px var(--line-2); }
+.nf__input {
+  width: 100%; min-width: 0; border: 0; background: none; outline: none;
+  text-align: center; font-size: var(--t-small);
+}
+.nf__input::placeholder { color: var(--ink-4); }
+.nf__suffix { font-size: var(--t-micro); color: var(--ink-4); }
+
+.console__readout {
+  text-align: center; font-size: var(--t-micro);
+  color: var(--ink-4); letter-spacing: 0.04em;
+}
+.console__k { color: var(--ink-3); }
+
+/* the only place the alert colour appears in the entire app */
+.alert {
+  max-width: 460px; margin: 0 auto;
+  padding-left: var(--s-3);
+  border-left: 2px solid var(--alert);
+}
+.alert__text { font-size: var(--t-meta); color: var(--ink-2); line-height: 1.45; }
+.alert__act {
+  margin-top: 0.35rem; font-size: var(--t-meta); color: var(--alert);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* =================================================================== strip */
+
+.strip {
+  display: flex; align-items: flex-start; gap: var(--s-2);
+  padding: 0 var(--s-5);
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* centred while the row fits, and left-anchored the moment it overflows —
+     without `safe`, flex centring hides the first tiles past the scroll origin */
+  justify-content: flex-start;
+  justify-content: safe center;
+}
+.strip::-webkit-scrollbar { display: none; }
+.strip__cell {
+  flex: 0 0 auto;
+  animation: rise var(--dur-entrance) var(--ease-entrance) both;
+  animation-delay: calc(var(--i) * var(--stagger));
+}
+/* the batch landing: when the last job settles, every figure resolves in
+   sequence and the total lands behind them. once per batch, never per file. */
+.strip.is-settling .tile__figure {
+  animation: land 420ms var(--ease-entrance) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+@keyframes land {
+  from { opacity: 0.25; transform: translateY(4px); }
+  to   { opacity: 1;    transform: none; }
+}
+/* overflow should read as continuing, not as cut off */
+.strip {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--s-5), #000 calc(100% - var(--s-5)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--s-5), #000 calc(100% - var(--s-5)), transparent 100%);
+}
+
+.tile {
+  position: relative; width: 78px;
+  /* done = lighter, so it settles two pixels up. subliminal, and it is the
+     whole thesis of the product expressed as movement. */
+  transform: translateY(0);
+  transition: transform 400ms var(--ease-standard);
+}
+.tile--done { transform: translateY(-2px); }
+
+.tile__hit { display: grid; gap: 0.4rem; width: 100%; text-align: center; }
+.tile__hit:hover .tile__img { opacity: 1; }
+.tile__frame::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 0 1px var(--ink);
+  opacity: 0;
+  transition: opacity var(--dur-standard) var(--ease-standard);
+}
+.tile__hit:hover .tile__frame::after { opacity: 0.28; }
+.tile.is-selected .tile__frame::after { opacity: 0; }
+.tile__frame {
+  position: relative; display: block;
+  aspect-ratio: 1; overflow: hidden;
+  border-radius: var(--r-tile);
+  background: var(--surface);
+}
+/* THE DEVELOP REVEAL — the image resolving is the progress indicator.
+   There is no bar. */
+.tile__img {
+  width: 100%; height: 100%; object-fit: cover;
+  opacity: calc(0.28 + var(--p) * 0.72);
+  filter: blur(calc((1 - var(--p)) * 6px)) saturate(calc(0.25 + var(--p) * 0.75));
+  transform: scale(calc(1 + (1 - var(--p)) * 0.02));
+  transition:
+    opacity var(--dur-entrance) var(--ease-standard),
+    filter var(--dur-entrance) var(--ease-standard),
+    transform var(--dur-entrance) var(--ease-standard);
+}
+/* selection is a white rule under the frame that slides, not a border box */
+.tile__mark {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: var(--ink);
+  transform: scaleX(0); transform-origin: center;
+  transition: transform var(--dur-standard) var(--ease-standard);
+}
+.tile.is-selected .tile__mark { transform: scaleX(1); }
+.tile--failed .tile__img { opacity: 0.24; filter: grayscale(1); }
+.tile__strike {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom right,
+    transparent calc(50% - 0.5px), var(--ink-3) calc(50% - 0.5px),
+    var(--ink-3) calc(50% + 0.5px), transparent calc(50% + 0.5px));
+}
+.tile__figure { font-size: var(--t-meta); color: var(--ink); }
+.tile--queued .tile__figure, .tile--running .tile__figure { color: var(--ink-4); }
+.tile__status { color: var(--ink-4); }
+.tile__retry { color: var(--alert); text-decoration: underline; text-underline-offset: 3px; }
+
+.tile__x {
+  position: absolute; top: 4px; right: 4px;
+  display: grid; place-items: center; width: 18px; height: 18px;
+  border-radius: var(--r-pill);
+  background: rgb(0 0 0 / 0.55); color: #fff;
+  opacity: 0; transform: scale(0.85);
+  transition: opacity var(--dur-standard) var(--ease-standard),
+              transform var(--dur-standard) var(--ease-standard);
+}
+.tile:hover .tile__x, .tile__x:focus-visible { opacity: 1; transform: none; }
+
+.strip__add {
+  flex: 0 0 auto; width: 78px; aspect-ratio: 1;
+  display: grid; place-items: center;
+  color: var(--ink-4); cursor: pointer;
+  box-shadow: inset 0 0 0 var(--hair) var(--line);
+  transition: color var(--dur-standard) var(--ease-standard),
+              box-shadow var(--dur-standard) var(--ease-standard);
+}
+.strip__add:hover { color: var(--ink-2); box-shadow: inset 0 0 0 var(--hair) var(--line-2); }
+
+
+/* ==================================================================== dock */
+
+.dock {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  padding: var(--s-3) var(--s-5) max(var(--s-4), env(safe-area-inset-bottom));
+}
+.dock__icon {
+  display: grid; place-items: center; width: 38px; height: 38px;
+  border-radius: var(--r-pill); color: var(--ink-2);
+  transition: color var(--dur-micro) var(--ease-standard),
+              transform var(--dur-micro) var(--ease-standard);
+}
+.dock__icon:first-child { justify-self: start; }
+.dock__icon:last-child { justify-self: end; }
+.dock__icon:hover:not([disabled]) { color: var(--ink); }
+.dock__icon:active:not([disabled]) { transform: scale(0.92); }
+
+/* ============================================================== status bar */
+
+.status {
+  display: flex; align-items: center; gap: 0.55rem;
+  padding: 0 var(--s-5) var(--s-2);
+  min-height: 26px;
+  color: var(--ink-4);
+}
+.status__spacer { flex: 1; }
+.status__links { display: flex; align-items: center; gap: 0.55rem; }
+.status__link {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--dur-standard) var(--ease-standard);
+}
+.status__link:hover { color: var(--ink-2); }
+.status__sep { opacity: 0.5; }
+.status__sent { color: var(--ink-3); }
+.status__pulse {
+  width: 4px; height: 4px; border-radius: 50%; background: var(--ink-3);
+  animation: pulse 1.8s var(--ease-glide) infinite;
+}
+@keyframes pulse { 0%, 100% { opacity: 0.28; } 50% { opacity: 1; } }
+
+/* ================================================================ ephemera */
+
+.dropveil {
+  position: fixed; inset: 0; z-index: 60;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--void) 72%, transparent);
+  opacity: 0; pointer-events: none;
+  transition: opacity var(--dur-standard) var(--ease-standard);
+}
+.dropveil.is-on { opacity: 1; }
+.dropveil__label {
+  color: var(--ink);
+  padding: var(--s-3) var(--s-5);
+  box-shadow: inset 0 0 0 var(--hair) var(--line-2);
+  border-radius: var(--r-pill);
+  transform: translateY(4px);
+  transition: transform var(--dur-standard) var(--ease-standard);
+}
+.dropveil.is-on .dropveil__label { transform: none; }
+
+.update {
+  display: flex; align-items: center; justify-content: center; gap: var(--s-3);
+  padding: 0.5rem var(--s-5);
+  color: var(--ink-3);
+  animation: rise var(--dur-entrance) var(--ease-entrance) both;
+}
+.update__act { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ================================================================== mobile */
+
+@media (max-width: 760px) {
+  .head { padding: var(--s-3) var(--s-4); }
+  .bench { gap: var(--s-3); }
+  .viewer, .console, .strip { padding-inline: var(--s-4); }
+  .status { padding: 0 var(--s-4) var(--s-2); }
+  .dock { padding: var(--s-2) var(--s-4) max(var(--s-3), env(safe-area-inset-bottom)); }
+  .console__row--fields { gap: var(--s-2); }
+  .tile, .strip__add { width: 64px; }
+  .empty__formats { display: none; }
+  .strip { -webkit-mask-image: none; mask-image: none; }
+}
+
+/* ========================================================= reduced motion ==
+   Defined once for the whole system. Everything still resolves — the interface
+   has to read as finished, not as stripped.                                  */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: var(--dur-micro) !important;
+    transition-property: opacity, color, background-color, clip-path !important;
+  }
+  .empty__light { display: none; }
+  .odo__reel { transition: none; }
+  .strip.is-settling .tile__figure { animation: none; }
+  .pill.is-packing { animation: none; }
+  /* the blur IS the progress indicator, so it can't just be removed — motion
+     goes, the opacity ramp stays, because a fade is not motion */
+  .tile__img { filter: none; transform: none; }
+  .result__label::before { width: 6px; }
+  .tile__mark { transition: none; }
+}

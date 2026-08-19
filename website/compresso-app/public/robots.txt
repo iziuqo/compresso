@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /compresso/
+
+Sitemap: https://izaias.xyz/compresso/sitemap.xml

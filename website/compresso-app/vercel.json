@@ -1,0 +1,35 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "outputDirectory": "dist",
+  "redirects": [{ "source": "/", "destination": "/compresso/", "permanent": false }],
+  "headers": [
+    {
+      "source": "/compresso/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/compresso/fonts/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
+    {
+      "source": "/compresso/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
+        { "key": "Service-Worker-Allowed", "value": "/compresso" }
+      ]
+    },
+    {
+      "source": "/compresso/sitemap.xml",
+      "headers": [{ "key": "Content-Type", "value": "application/xml; charset=utf-8" }]
+    },
+    {
+      "source": "/compresso/robots.txt",
+      "headers": [{ "key": "Content-Type", "value": "text/plain; charset=utf-8" }]
+    }
+  ],
+  "rewrites": [
+    { "source": "/compresso/:locale(es|fr|de|it|pt-br|zh-hans)", "destination": "/compresso/:locale/index.html" },
+    { "source": "/compresso/:locale(es|fr|de|it|pt-br|zh-hans)/", "destination": "/compresso/:locale/index.html" }
+  ]
+}
