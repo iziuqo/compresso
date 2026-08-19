@@ -38,6 +38,9 @@ export const metadata = {
     'batch image compression javascript',
   ],
   metadataBase: new URL('https://compresso.izaias.xyz'),
+  ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
+    ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
+    : {}),
   openGraph: {
     title: 'Compresso: Free Image Compressor That Runs In Your Browser',
     description:

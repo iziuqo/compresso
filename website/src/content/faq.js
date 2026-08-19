@@ -311,3 +311,28 @@ export function faqJsonLd(items) {
     })),
   };
 }
+
+export function faqHowToJsonLd(items) {
+  const first = items[0];
+  if (!first) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name: first.q,
+    description: first.a,
+    step: [
+      {
+        '@type': 'HowToStep',
+        text: 'Read the image from a file input in your web application.',
+      },
+      {
+        '@type': 'HowToStep',
+        text: 'Pass the file to compress(file, { quality, maxWidth, format: "auto" }).',
+      },
+      {
+        '@type': 'HowToStep',
+        text: 'Upload result.file — compression stayed entirely in the browser.',
+      },
+    ],
+  };
+}

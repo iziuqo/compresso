@@ -328,6 +328,15 @@ async function handleFile(e) {
                 <tr><td>{t.docs.compDeps}</td><td>{t.docs.compDepsServer}</td><td><strong>{t.docs.compDepsClient}</strong></td></tr>
               </tbody>
             </table>
+            <p>
+              <a href="https://izaias.xyz/compresso">{t.nav.openApp}</a>
+              {' · '}
+              <a href="/en/faq/">FAQ</a>
+              {' · '}
+              <a href="/en/compare/">Compare</a>
+              {' · '}
+              <a href="/en/examples/">Examples</a>
+            </p>
           </main>
         </div>
       </div>

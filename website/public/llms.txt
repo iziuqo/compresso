@@ -14,6 +14,18 @@
 - Quick start: https://compresso.izaias.xyz/docs/#quick-start
 - Browser support: https://compresso.izaias.xyz/docs/#browser
 - Why client-side: https://compresso.izaias.xyz/docs/#why-browser
+- Examples: https://compresso.izaias.xyz/en/examples/
+
+## Key pages (English)
+- FAQ: https://compresso.izaias.xyz/en/faq/
+- Compare: https://compresso.izaias.xyz/en/compare/
+- Privacy: https://compresso.izaias.xyz/en/privacy/
+- HEIC to JPEG: https://compresso.izaias.xyz/en/heic-to-jpeg/
+- No-upload compression: https://compresso.izaias.xyz/en/compress-images-without-uploading/
+- TinyPNG alternative: https://compresso.izaias.xyz/en/tinypng-alternative/
+
+## Locales
+/en/ /es/ /fr/ /de/ /it/ /pt-br/ /zh-hans/
 
 ## Key differentiators
 - Zero server upload (privacy by architecture)
@@ -21,12 +33,6 @@
 - Never-bigger guarantee on lossy output
 - 3.6 KB gzipped, zero required dependencies
 - Web Worker parallel batching via compresso.js/pool
-
-## FAQ
-- https://compresso.izaias.xyz/en/faq/
-
-## Compare
-- https://compresso.izaias.xyz/en/compare/
 
 ## License
 MIT — https://opensource.org/licenses/MIT

@@ -2,18 +2,19 @@
 
 import Link from 'next/link';
 import { APP_URL, GITHUB_URL, NPM_URL } from '../marketing/links';
-import { appUrlWithUtm, localePath } from '../../lib/seo';
-import { getFaqForLocale, faqJsonLd } from '../../content/faq';
+import { getFaqForLocale, faqJsonLd, faqHowToJsonLd } from '../../content/faq';
 import JsonLd from './JsonLd';
 import SeoPageShell from './SeoPageShell';
 
 export default function FaqClient({ locale }) {
   const { copy, items } = getFaqForLocale(locale);
   const schema = faqJsonLd(items);
+  const howTo = faqHowToJsonLd(items);
 
   return (
     <SeoPageShell initialLocale={locale}>
       <JsonLd data={schema} />
+      {howTo && <JsonLd data={howTo} />}
       <article className="mk-seo__article">
         <h1 className="mk-seo__h1">{copy.title}</h1>
         <p className="mk-seo__lead">{copy.intro}</p>

@@ -9,7 +9,7 @@ import { LANDING_PAGE_SLUGS } from '../content/landing-pages';
 
 export const dynamic = 'force-static';
 
-const STATIC_PATHS = ['faq', 'compare', ...LANDING_PAGE_SLUGS];
+const STATIC_PATHS = ['faq', 'compare', 'examples', 'privacy', ...LANDING_PAGE_SLUGS];
 
 export default function sitemap() {
   const lastModified = BUILD_DATE;

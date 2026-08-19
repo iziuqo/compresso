@@ -39,7 +39,7 @@ export default function SeoPageShell({ initialLocale, children }) {
       <main className="mk-seo">
         <div className="mk-wrap">{children}</div>
       </main>
-      <Footer t={t} basePath={basePath} />
+      <Footer t={t} basePath={basePath} locale={locale} />
     </div>
   );
 }
