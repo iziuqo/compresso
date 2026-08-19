@@ -1,62 +1,35 @@
-# App-Side SEO — `izaias.xyz/compresso`
+# App-Side SEO — `compresso.izaias.xyz/compresso`
 
-The consumer app is **vendored in this monorepo** at `website/compresso-app/`.  
-Source of truth lives here; CI mirrors to `iziuqo/compresso-app` on every merge to `main`.
+The consumer app is vendored at `website/compresso-app/` and **deploys automatically** with every marketing-site Vercel build.
 
-## Automated pipeline (no manual patch)
+## Pipeline (fully automatic)
 
-On push to `main` (paths under `website/compresso-app/`):
+1. `vercel.json` runs `npm run build:app` then `website` build
+2. `embed-app-in-out.mjs` copies `dist/compresso` → `website/out/compresso`
+3. App postbuild: locale SEO shells, sitemap, robots, IndexNow ping
+4. Marketing postbuild: IndexNow for `compresso.izaias.xyz` URLs
 
-1. **Build** — `npm run build:app` (Vite + SEO locale shells + sitemap + robots)
-2. **IndexNow** — pings Bing/Yandex for all `izaias.xyz/compresso/*` URLs (postbuild)
-3. **Mirror** — `scripts/sync-compresso-app-repo.mjs` → `iziuqo/compresso-app` (if secret set)
-4. **Deploy** — Vercel prod deploy of `website/compresso-app` (if secrets set)
+No separate repo push required.
 
-Workflow: `.github/workflows/compresso-app.yml`
+## Live URLs
 
-## One-time GitHub secrets (enables full automation)
-
-Add in **compresso** repo → Settings → Secrets → Actions:
-
-| Secret | Purpose |
+| Resource | URL |
 |---|---|
-| `COMPRESSO_APP_DEPLOY_TOKEN` | PAT with `contents:write` on `iziuqo/compresso-app` — mirrors source on every main merge |
-| `VERCEL_TOKEN` | Vercel deploy token |
-| `VERCEL_ORG_ID` | Vercel team/user id |
-| `VERCEL_PROJECT_ID_COMPRESSO_APP` | Vercel project id for the app (serves `izaias.xyz/compresso`) |
+| App (en) | https://compresso.izaias.xyz/compresso/ |
+| Locales | `/compresso/es/`, `/compresso/fr/`, … |
+| Sitemap | https://compresso.izaias.xyz/compresso/sitemap.xml |
+| robots.txt | https://compresso.izaias.xyz/compresso/robots.txt |
 
-After secrets are set, merging to `main` builds, syncs, deploys, and pings IndexNow with zero manual steps.
+## Optional: mirror to `iziuqo/compresso-app`
 
-## Local development
+GitHub Action `.github/workflows/compresso-app.yml` can mirror to the standalone repo and deploy to `izaias.xyz/compresso` when these secrets are set:
+
+- `COMPRESSO_APP_DEPLOY_TOKEN`
+- `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID_COMPRESSO_APP`
+
+## Local dev
 
 ```bash
-npm run build:app          # from monorepo root
+npm run build:app
 cd website/compresso-app && npm run dev
 ```
-
-## What ships in the build
-
-| Item | URL |
-|---|---|
-| App (en) | `https://izaias.xyz/compresso/` |
-| Locale routes | `/compresso/es/`, `/compresso/fr/`, … |
-| Sitemap | `https://izaias.xyz/compresso/sitemap.xml` |
-| robots.txt | `https://izaias.xyz/compresso/robots.txt` |
-| IndexNow key | `https://izaias.xyz/compresso/339cfae15c2d4a1fb8e9076521bc8f8a.txt` |
-
-## SEO features
-
-- Consumer-focused meta / OG / Twitter in all 7 locales
-- `WebApplication` JSON-LD
-- hreflang across app locale URLs
-- Footer links → docs, FAQ, npm on `compresso.izaias.xyz`
-- Path-based locale URLs synced on language switch
-
-## GSC / Bing (optional one-time)
-
-IndexNow runs automatically after each app deploy. For Google Search Console:
-
-1. Add URL-prefix property `https://izaias.xyz/compresso/` (if not already)
-2. Submit sitemap: `https://izaias.xyz/compresso/sitemap.xml`
-
-No env vars required if domain is already verified at path level.

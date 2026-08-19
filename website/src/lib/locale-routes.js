@@ -46,7 +46,7 @@ export function generateLocaleStaticParams() {
   return LOCALE_SLUG_LIST.map((locale) => ({ locale }));
 }
 
-export const APP_URL = 'https://izaias.xyz/compresso';
+export const APP_URL = 'https://compresso.izaias.xyz/compresso';
 
 export function appUrlWithUtm(campaign, locale) {
   const params = new URLSearchParams({

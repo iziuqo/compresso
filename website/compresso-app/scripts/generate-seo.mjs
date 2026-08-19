@@ -11,7 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const OUT = join(ROOT, 'dist/compresso');
 
-const APP_ORIGIN = 'https://izaias.xyz';
+const APP_ORIGIN = 'https://compresso.izaias.xyz';
 const APP_BASE = '/compresso';
 const SITE_URL = 'https://compresso.izaias.xyz';
 const OG_IMAGE = `${SITE_URL}/og-image.jpg`;

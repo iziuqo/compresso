@@ -147,7 +147,7 @@ export const TIER_BC_PAGES = {
     h1: 'Squoosh alternative with batch and HEIC',
     answer:
       'Squoosh pioneered in-browser WASM codecs but lacks batch polish and HEIC-in. Compresso targets upload flows: private, fast, library-first.',
-    steps: ['Try the free app at izaias.xyz/compresso', 'Or npm install compresso.js for your product'],
+    steps: ['Try the free app at compresso.izaias.xyz/compresso', 'Or npm install compresso.js for your product'],
     faq: [{ q: 'Same WASM codecs?', a: 'Compresso core uses Canvas API; app roadmap includes optional WASM engines.' }],
     related: ['tinypng-alternative', 'compress-images-online-free', 'javascript-image-compressor'],
   }),

@@ -4,7 +4,7 @@
 > 100% client-side — images never leave the device until the user uploads them.
 
 ## Product
-- Web app: https://izaias.xyz/compresso
+- Web app: https://compresso.izaias.xyz/compresso
 - Marketing: https://compresso.izaias.xyz
 - npm: https://www.npmjs.com/package/compresso.js
 - GitHub: https://github.com/iziuqo/compresso
