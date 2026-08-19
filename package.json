@@ -8,7 +8,9 @@
   "scripts": {
     "build:lib": "npm run build -w packages/compresso",
     "build:web": "npm run build -w website",
+    "build:app": "npm ci --prefix website/compresso-app && npm run build --prefix website/compresso-app",
     "build": "npm run build:lib && npm run build:web",
+    "build:all": "npm run build:lib && npm run build:web && npm run build:app",
     "dev": "npm run dev -w website",
     "test:lib": "npm run test -w packages/compresso",
     "test:lib:browser": "npm run test:browser -w packages/compresso",

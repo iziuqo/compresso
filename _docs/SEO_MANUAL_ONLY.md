@@ -39,19 +39,17 @@ cd website && npm run ping:indexnow
 
 ---
 
-## 3. App domain SEO — `izaias.xyz/compresso` (~1–2 hr)
+## 3. App domain SEO — `izaias.xyz/compresso`
 
-**Why manual:** Different repository (`izaias-landing`), not this monorepo.
+**Status: automated in this monorepo.**
 
-In that repo, add:
-- Consumer-focused title / description / OG tags
-- `WebApplication` JSON-LD
-- `robots.txt` + sitemap including the app URL
-- Footer links → `compresso.izaias.xyz/docs/`, `/en/faq/`, npm
-- PWA manifest `start_url` = canonical app URL
-- Optional: locale routes mirroring `/en/` … `/zh-hans/`
+Source: `website/compresso-app/` · Workflow: `.github/workflows/compresso-app.yml`
 
-Then add `https://izaias.xyz` (or path prefix) as a separate GSC property and submit its sitemap.
+On merge to `main`, CI builds the app, pings IndexNow, mirrors to `iziuqo/compresso-app` (when `COMPRESSO_APP_DEPLOY_TOKEN` is set), and deploys to Vercel (when `VERCEL_*` secrets are set).
+
+See `_docs/COMPRESSO_APP_SEO.md` for secret names and pipeline details.
+
+**Optional one-time:** GSC URL-prefix property + submit `https://izaias.xyz/compresso/sitemap.xml` (IndexNow already handles Bing on every deploy).
 
 ---
 
@@ -117,4 +115,5 @@ Validate volume for locale-specific titles in `landing-pages.js` and adjust meta
 | README + npm README site links | ✅ |
 | Footer internal links (FAQ, compare, examples) | ✅ |
 | HowTo schema on FAQ | ✅ |
-| Google verification meta (env var hook) | ✅ — you add the token |
+| IndexNow auto on deploy (postbuild) | ✅ |
+| App-side SEO (vendored in monorepo + CI) | ✅ |

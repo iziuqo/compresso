@@ -1,0 +1,71 @@
+name: Compresso App
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'website/compresso-app/**'
+      - 'scripts/sync-compresso-app-repo.mjs'
+      - '.github/workflows/compresso-app.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'website/compresso-app/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            website/compresso-app/package-lock.json
+
+      - name: Install monorepo deps (compresso.js for app)
+        run: npm ci
+
+      - name: Build consumer app
+        run: npm run build:app
+
+  sync-and-deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            website/compresso-app/package-lock.json
+
+      - run: npm ci
+      - run: npm run build:app
+
+      - name: Mirror to iziuqo/compresso-app
+        env:
+          COMPRESSO_APP_DEPLOY_TOKEN: ${{ secrets.COMPRESSO_APP_DEPLOY_TOKEN }}
+        run: node scripts/sync-compresso-app-repo.mjs
+
+      - name: Deploy to Vercel (compresso-app project)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_COMPRESSO_APP }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "[deploy] VERCEL_TOKEN or VERCEL_PROJECT_ID_COMPRESSO_APP not set — skipping Vercel deploy"
+            exit 0
+          fi
+          npm i -g vercel@latest
+          cd website/compresso-app
+          vercel deploy --prod --token "$VERCEL_TOKEN" --yes

@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "compresso-app", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 5173 },
+    { "name": "compresso-app-preview", "runtimeExecutable": "npm", "runtimeArgs": ["run", "preview"], "port": 4173 }
+  ]
+}

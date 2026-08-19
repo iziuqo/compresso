@@ -1,0 +1,112 @@
+/* ===========================================================================
+   Compresso — design tokens
+
+   The photograph is the only colour on screen. Everything else is black,
+   white, or a step between. That is the whole thesis: the interface has no
+   opinion about your image, so it doesn't put a hue next to one.
+
+   Borrowed from the darkroom-app tradition (VSCO most directly): a true black
+   ground, a full-bleed hairline slider with a big white knob, micro uppercase
+   labels, and a single white pill for the one action that matters.
+   =========================================================================== */
+
+:root {
+  color-scheme: dark light;
+
+  /* --- ground & ink ------------------------------------------------------
+     True #000, not a near-black. Committing to it is what makes a photograph
+     sitting in the middle of the screen look like it's lit from behind. */
+  --void:      #000000;
+  --surface:   #0E0E0E;   /* input wells — barely a lift */
+  --surface-2: #171717;   /* pressed / hovered */
+  --ink:       #FFFFFF;
+  --ink-2:     rgb(255 255 255 / 0.60);
+  --ink-3:     rgb(255 255 255 / 0.34);
+  --ink-4:     rgb(255 255 255 / 0.16);
+  --line:      rgb(255 255 255 / 0.13);
+  --line-2:    rgb(255 255 255 / 0.26);
+
+  /* Not an accent — an alert. It appears on exactly one condition (output
+     grew) and nowhere else in the app. */
+  --alert:     #E5484D;
+
+  --grain-alpha: 0.028;
+  --grain-blend: overlay;
+
+  /* --- type -------------------------------------------------------------
+     One family for the interface, one for anything numeric. Geist because it
+     is drawn for product surfaces and gets out of the way; the mono because
+     bytes and dimensions are data and should look like data. */
+  --font-ui:   'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --t-micro: 0.625rem;    /* 10 — uppercase labels, tracked out */
+  --t-meta:  0.6875rem;   /* 11 */
+  --t-small: 0.8125rem;   /* 13 */
+  --t-body:  0.875rem;    /* 14 */
+  --t-lead:  1rem;        /* 16 */
+  --t-value: 1.375rem;    /* 22 — the slider readout */
+  --t-hero:  5rem;        /* 80 — the savings figure, once */
+
+  --track-label: 0.16em;  /* the tracking that makes a 10px label look drawn */
+
+  --s-1: .25rem; --s-2: .5rem;  --s-3: .75rem; --s-4: 1rem;
+  --s-5: 1.5rem; --s-6: 2rem;   --s-7: 3rem;   --s-8: 4rem;
+
+  --hair: 1px;
+  --knob: 26px;           /* the slider knob. large on purpose — it's the
+                             thing you reach for, so it should look reachable */
+
+  --r-pill: 999px;
+  --r-well: 4px;
+  --r-tile: 0px;          /* a photograph is a rectangle */
+
+  /* --- motion — no control point above y=1, so overshoot cannot be
+         expressed in this system. there are no springs. ------------------- */
+  --ease-standard: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-entrance: cubic-bezier(0.16, 1,    0.30, 1);
+  --ease-exit:     cubic-bezier(0.40, 0,    1,    1);
+  --ease-glide:    cubic-bezier(0.65, 0,    0.35, 1);
+
+  --dur-micro:    120ms;
+  --dur-standard: 240ms;
+  --dur-entrance: 360ms;
+  --dur-ceremony: 520ms;
+  --stagger:       24ms;
+}
+
+/* Light is a genuine inversion, not a tinted variant: paper white, ink black.
+   Same discipline, opposite ground. */
+@media (prefers-color-scheme: light) {
+  :root {
+    --void:      #FFFFFF;
+    --surface:   #F4F4F4;
+    --surface-2: #EBEBEB;
+    --ink:       #000000;
+    --ink-2:     rgb(0 0 0 / 0.58);
+    --ink-3:     rgb(0 0 0 / 0.36);
+    --ink-4:     rgb(0 0 0 / 0.14);
+    --line:      rgb(0 0 0 / 0.12);
+    --line-2:    rgb(0 0 0 / 0.24);
+    --alert:     #D0353A;
+    --grain-alpha: 0.02;
+    --grain-blend: multiply;
+  }
+}
+
+@font-face { font-family: 'Geist'; src: url('../assets/fonts/geist-300.woff2') format('woff2');
+  font-weight: 300; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('../assets/fonts/geist-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist'; src: url('../assets/fonts/geist-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: 'Geist Mono'; src: url('../assets/fonts/geistmono-latin.woff2') format('woff2');
+  font-weight: 400 500; font-style: normal; font-display: swap; }
+
+/* Chinese falls back to a system CJK stack: zero font bytes, and it looks
+   native. Tracked-out uppercase is a Latin device — it breaks CJK, so it goes. */
+:lang(zh-Hans) {
+  --font-ui: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+  --track-label: 0.04em;
+}
+:lang(zh-Hans) .label { text-transform: none; }
