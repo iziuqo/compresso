@@ -51,7 +51,7 @@ export default function HomeClient({ initialLocale, localeSlug }) {
         <Library t={t} basePath={basePath} />
         <Close t={t} />
       </main>
-      <Footer t={t} basePath={basePath} />
+      <Footer t={t} basePath={basePath} locale={locale} />
     </div>
   );
 }

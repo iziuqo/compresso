@@ -1,18 +1,9 @@
 /**
  * Tier A programmatic SEO landing pages — 10 intents × 7 locales.
+ * Tier B/C merged from landing-tier-bc.js at module init.
  */
-export const LANDING_PAGE_SLUGS = [
-  'compress-images-online-free',
-  'compress-images-without-uploading',
-  'private-image-compressor',
-  'heic-to-jpeg',
-  'heic-to-webp',
-  'compress-heic-online',
-  'compress-image-under-2mb',
-  'compress-image-for-email',
-  'offline-image-compressor',
-  'batch-compress-images',
-];
+import { LANDING_STUB_LOCALES } from './landing-stubs-locales';
+import { TIER_BC_PAGES, TIER_BC_SLUGS } from './landing-tier-bc';
 
 /** @type {Record<string, Record<string, object>>} */
 export const LANDING_PAGES = {
@@ -496,16 +487,32 @@ const PAGE_STUBS = {
   },
 };
 
-/** Fill missing locale content from English for stub pages. */
+/** Fill stub pages with locale translations; merge Tier B/C. */
 for (const slug of Object.keys(PAGE_STUBS)) {
   const en = PAGE_STUBS[slug].en;
   LANDING_PAGES[slug] = LANDING_PAGES[slug] || {};
-  for (const locale of ['en', 'es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans']) {
-    if (!LANDING_PAGES[slug][locale]) {
-      LANDING_PAGES[slug][locale] = { ...en };
-    }
+  LANDING_PAGES[slug].en = en;
+  for (const locale of ['es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans']) {
+    LANDING_PAGES[slug][locale] =
+      LANDING_STUB_LOCALES[slug]?.[locale] || LANDING_PAGES[slug][locale] || { ...en };
   }
 }
+
+Object.assign(LANDING_PAGES, TIER_BC_PAGES);
+
+export const LANDING_PAGE_SLUGS = [
+  'compress-images-online-free',
+  'compress-images-without-uploading',
+  'private-image-compressor',
+  'heic-to-jpeg',
+  'heic-to-webp',
+  'compress-heic-online',
+  'compress-image-under-2mb',
+  'compress-image-for-email',
+  'offline-image-compressor',
+  'batch-compress-images',
+  ...TIER_BC_SLUGS,
+];
 
 export const LANDING_UI = {
   en: {
