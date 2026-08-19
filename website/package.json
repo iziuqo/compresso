@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/ping-indexnow.mjs",
+    "postbuild": "node scripts/embed-app-in-out.mjs && node scripts/ping-indexnow.mjs",
     "start": "next start",
     "generate:icons": "node scripts/generate-icons.mjs",
     "generate:shots": "node scripts/generate-shots.mjs",
