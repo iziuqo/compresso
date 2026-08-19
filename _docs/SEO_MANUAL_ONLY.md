@@ -39,19 +39,23 @@ cd website && npm run ping:indexnow
 
 ---
 
-## 3. App domain SEO — `izaias.xyz/compresso` (~1–2 hr)
+## 3. App domain SEO — `izaias.xyz/compresso`
 
-**Why manual:** Different repository (`izaias-landing`), not this monorepo.
+**Repository:** `iziuqo/compresso-app` (deployed via `izaias-landing` — see `_docs/PWA_PLAN.md` §15.2).
 
-In that repo, add:
-- Consumer-focused title / description / OG tags
-- `WebApplication` JSON-LD
-- `robots.txt` + sitemap including the app URL
-- Footer links → `compresso.izaias.xyz/docs/`, `/en/faq/`, npm
-- PWA manifest `start_url` = canonical app URL
-- Optional: locale routes mirroring `/en/` … `/zh-hans/`
+**Status:** Implementation is ready — see `_docs/COMPRESSO_APP_SEO.md` and apply patch:
 
-Then add `https://izaias.xyz` (or path prefix) as a separate GSC property and submit its sitemap.
+`_docs/patches/0001-Add-app-side-SEO-for-izaias.xyz-compresso.patch`
+
+**Your steps after merge + deploy:**
+
+1. Merge branch `cursor/app-side-seo-3795` in `compresso-app` (or apply patch)
+2. Deploy to production (`izaias.xyz/compresso`)
+3. GSC → add URL-prefix property `https://izaias.xyz/compresso/` → submit `https://izaias.xyz/compresso/sitemap.xml`
+4. Bing → same path prefix + sitemap
+5. Request indexing for `/compresso/` and one locale URL (e.g. `/compresso/es/`)
+
+Already included in the patch: consumer meta/OG, `WebApplication` JSON-LD, 7 locale routes, hreflang, robots, sitemap, footer links to docs/FAQ/npm.
 
 ---
 
@@ -117,4 +121,5 @@ Validate volume for locale-specific titles in `landing-pages.js` and adjust meta
 | README + npm README site links | ✅ |
 | Footer internal links (FAQ, compare, examples) | ✅ |
 | HowTo schema on FAQ | ✅ |
-| Google verification meta (env var hook) | ✅ — you add the token |
+| IndexNow auto on deploy (postbuild) | ✅ |
+| App-side SEO (`compresso-app` patch) | ✅ ready — apply + deploy (§3) |
