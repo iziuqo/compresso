@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 /**
- * Ping IndexNow for izaias.xyz/compresso URLs after app build/deploy.
- * Key file: https://izaias.xyz/compresso/{key}.txt (same key as marketing site).
+ * Ping IndexNow for compresso.izaias.xyz/compresso URLs after app build/deploy.
  */
 import { readFileSync, existsSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
 const KEY = '339cfae15c2d4a1fb8e9076521bc8f8a';
-const HOST = 'izaias.xyz';
-const KEY_LOCATION = `https://${HOST}/compresso/${KEY}.txt`;
+const HOST = 'compresso.izaias.xyz';
+const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 const BATCH_SIZE = 10_000;
 const STRICT = process.env.INDEXNOW_STRICT === '1';
 

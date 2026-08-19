@@ -39,17 +39,13 @@ cd website && npm run ping:indexnow
 
 ---
 
-## 3. App domain SEO — `izaias.xyz/compresso`
+## 3. App domain SEO — `compresso.izaias.xyz/compresso`
 
-**Status: automated in this monorepo.**
+**Status: automated.** App builds and deploys with every Vercel push to `main`.
 
-Source: `website/compresso-app/` · Workflow: `.github/workflows/compresso-app.yml`
+See `_docs/COMPRESSO_APP_SEO.md`. IndexNow pings run on every deploy.
 
-On merge to `main`, CI builds the app, pings IndexNow, mirrors to `iziuqo/compresso-app` (when `COMPRESSO_APP_DEPLOY_TOKEN` is set), and deploys to Vercel (when `VERCEL_*` secrets are set).
-
-See `_docs/COMPRESSO_APP_SEO.md` for secret names and pipeline details.
-
-**Optional one-time:** GSC URL-prefix property + submit `https://izaias.xyz/compresso/sitemap.xml` (IndexNow already handles Bing on every deploy).
+**Optional:** Submit `https://compresso.izaias.xyz/compresso/sitemap.xml` in GSC (same property as marketing site).
 
 ---
 

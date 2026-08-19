@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://izaias.xyz/compresso"><strong>▶ Try the live demo</strong></a> ·
+  <a href="https://compresso.izaias.xyz/compresso"><strong>▶ Try the live demo</strong></a> ·
   <a href="https://compresso.izaias.xyz/docs">Documentation</a> ·
   <a href="https://compresso.izaias.xyz/en/compare/">Compare</a> ·
   <a href="https://compresso.izaias.xyz/en/faq/">FAQ</a> ·

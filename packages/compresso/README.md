@@ -10,7 +10,7 @@ Tiny, zero-dependency image optimizer that runs entirely in the browser. Compres
 
 **3.6 KB gzipped core** · **Zero required dependencies** · **HEIC/HEIF input** · **Parallel Web Worker batching** · **Never returns a bigger file**
 
-[Website](https://compresso.izaias.xyz) · [Live demo](https://izaias.xyz/compresso) · [Documentation](https://compresso.izaias.xyz/docs) · [FAQ](https://compresso.izaias.xyz/en/faq/) · [Compare](https://compresso.izaias.xyz/en/compare/) · [GitHub](https://github.com/iziuqo/compresso)
+[Website](https://compresso.izaias.xyz) · [Live demo](https://compresso.izaias.xyz/compresso) · [Documentation](https://compresso.izaias.xyz/docs) · [FAQ](https://compresso.izaias.xyz/en/faq/) · [Compare](https://compresso.izaias.xyz/en/compare/) · [GitHub](https://github.com/iziuqo/compresso)
 
 ## Why Compresso
 

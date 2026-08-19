@@ -1,7 +1,7 @@
 import type { Locale } from '../i18n';
 
 /** Consumer app canonical origin + path prefix. */
-export const APP_ORIGIN = 'https://izaias.xyz';
+export const APP_ORIGIN = 'https://compresso.izaias.xyz';
 export const APP_BASE_PATH = '/compresso';
 export const APP_URL = `${APP_ORIGIN}${APP_BASE_PATH}`;
 
