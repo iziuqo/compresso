@@ -1,22 +1,25 @@
 #!/usr/bin/env node
 /**
- * Ping IndexNow after deploy so Bing/Yandex pick up new URLs faster.
- * Submits all URLs from the live sitemap (or SITEMAP_URL override).
+ * Ping IndexNow after build/deploy so Bing/Yandex pick up new URLs faster.
+ * Runs automatically via npm postbuild on Vercel.
  *
- * Usage:
- *   npm run ping:indexnow
- *   SITEMAP_URL=https://compresso.izaias.xyz/sitemap.xml npm run ping:indexnow
+ * Prefers the freshly built out/sitemap.xml; falls back to live sitemap URL.
+ * Failures are non-fatal (exit 0) so deploys are not blocked.
  */
+import { readFileSync, existsSync } from 'fs';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
 const KEY = '339cfae15c2d4a1fb8e9076521bc8f8a';
 const HOST = 'compresso.izaias.xyz';
 const KEY_LOCATION = `https://${HOST}/${KEY}.txt`;
 const SITEMAP_URL = process.env.SITEMAP_URL || `https://${HOST}/sitemap.xml`;
 const BATCH_SIZE = 10_000;
+const STRICT = process.env.INDEXNOW_STRICT === '1';
 
-async function fetchSitemapUrls() {
-  const res = await fetch(SITEMAP_URL);
-  if (!res.ok) throw new Error(`Sitemap fetch failed: ${res.status} ${SITEMAP_URL}`);
-  const xml = await res.text();
+const LOCAL_SITEMAP = join(dirname(fileURLToPath(import.meta.url)), '../out/sitemap.xml');
+
+function parseSitemapXml(xml, source) {
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)]
     .map((m) => m[1].trim())
     .filter((url) => {
@@ -26,8 +29,20 @@ async function fetchSitemapUrls() {
         return false;
       }
     });
-  if (urls.length === 0) throw new Error(`No URLs found in ${SITEMAP_URL}`);
+  if (urls.length === 0) throw new Error(`No ${HOST} URLs found in ${source}`);
   return urls;
+}
+
+async function getSitemapUrls() {
+  if (existsSync(LOCAL_SITEMAP)) {
+    const xml = readFileSync(LOCAL_SITEMAP, 'utf8');
+    return { urls: parseSitemapXml(xml, LOCAL_SITEMAP), source: LOCAL_SITEMAP };
+  }
+
+  const res = await fetch(SITEMAP_URL);
+  if (!res.ok) throw new Error(`Sitemap fetch failed: ${res.status} ${SITEMAP_URL}`);
+  const xml = await res.text();
+  return { urls: parseSitemapXml(xml, SITEMAP_URL), source: SITEMAP_URL };
 }
 
 async function pingBatch(urlList) {
@@ -48,19 +63,28 @@ async function pingBatch(urlList) {
   return { status: res.status, statusText: res.statusText, text };
 }
 
-const urls = await fetchSitemapUrls();
-console.log(`Sitemap: ${SITEMAP_URL} (${urls.length} URLs)`);
-
-let submitted = 0;
-for (let i = 0; i < urls.length; i += BATCH_SIZE) {
-  const batch = urls.slice(i, i + BATCH_SIZE);
-  const { status, statusText, text } = await pingBatch(batch);
-  console.log(`Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${status} ${statusText} (${batch.length} URLs)`);
-  if (status !== 200 && status !== 202) {
-    console.error(text || 'IndexNow request failed');
-    process.exit(1);
-  }
-  submitted += batch.length;
+function fail(message, err) {
+  console.warn(`[indexnow] ${message}`);
+  if (err) console.warn(err);
+  process.exit(STRICT ? 1 : 0);
 }
 
-console.log(`IndexNow complete — submitted ${submitted} URLs`);
+try {
+  const { urls, source } = await getSitemapUrls();
+  console.log(`[indexnow] Sitemap: ${source} (${urls.length} URLs)`);
+
+  let submitted = 0;
+  for (let i = 0; i < urls.length; i += BATCH_SIZE) {
+    const batch = urls.slice(i, i + BATCH_SIZE);
+    const { status, statusText, text } = await pingBatch(batch);
+    console.log(`[indexnow] Batch ${Math.floor(i / BATCH_SIZE) + 1}: ${status} ${statusText} (${batch.length} URLs)`);
+    if (status !== 200 && status !== 202) {
+      fail(`IndexNow request failed: ${text || statusText}`);
+    }
+    submitted += batch.length;
+  }
+
+  console.log(`[indexnow] Complete — submitted ${submitted} URLs`);
+} catch (err) {
+  fail('Ping skipped (non-fatal for deploy)', err);
+}
