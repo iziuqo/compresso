@@ -79,10 +79,10 @@
     "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.0",
     "@size-limit/file": "^13.0.3",
-    "@vitest/browser": "^4.1.10",
+    "@vitest/browser": "^4.1.11",
     "@vitest/browser-playwright": "^4.1.10",
     "playwright": "^1.62.1",
-    "rollup": "^4.62.4",
+    "rollup": "^4.62.5",
     "size-limit": "^13.0.3",
     "vitest": "^4.1.10"
   },
