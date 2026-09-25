@@ -113,29 +113,52 @@ export default function App() {
 
   useEffect(() => {
     if (!('serviceWorker' in navigator) || !import.meta.env.PROD) return;
-    let reg: ServiceWorkerRegistration | undefined;
     const base = import.meta.env.BASE_URL;
     // Scope drops the trailing slash so the worker also controls the bare
     // /compresso URL — prefix matching would otherwise leave it uncontrolled,
     // and that is the address people actually type. Requires the sw.js response
     // to carry `Service-Worker-Allowed: /compresso`.
     const scope = base === '/' ? '/' : base.replace(/\/$/, '');
+
+    // `installed` alongside an existing controller is precisely "a new version
+    // is ready behind the one still running" — the only state the bar offers.
+    const offerIfReady = (sw: ServiceWorker | null | undefined) => {
+      if (sw?.state === 'installed' && navigator.serviceWorker.controller) setUpdateReady(true);
+    };
+
     navigator.serviceWorker.register(`${base}sw.js`, { scope }).then((r) => {
-      reg = r;
+      // `updatefound` fires once, when a new worker STARTS installing — so a
+      // worker that finished installing during an earlier page load is already
+      // waiting and will never announce itself again. Reloading past the bar
+      // once, or simply opening the app in a new tab, therefore used to hide it
+      // for the life of that tab: the update only landed when every tab in
+      // scope had been closed. Asking the registration what it is holding, at
+      // the moment we attach, is what closes that gap.
+      offerIfReady(r.waiting);
+      // Same reasoning for one still mid-install when this page loaded.
+      r.installing?.addEventListener('statechange', function () { offerIfReady(this); });
       // Never auto-activate: a batch in flight must not be killed by an update.
       r.addEventListener('updatefound', () => {
-        r.installing?.addEventListener('statechange', function () {
-          if (this.state === 'installed' && navigator.serviceWorker.controller) setUpdateReady(true);
-        });
+        r.installing?.addEventListener('statechange', function () { offerIfReady(this); });
       });
     }).catch(() => {});
-    return () => { void reg; };
   }, []);
 
   const applyUpdate = useCallback(() => {
     navigator.serviceWorker.getRegistration().then((r) => {
-      r?.waiting?.postMessage({ type: 'SKIP_WAITING' });
-      setTimeout(() => window.location.reload(), 120);
+      const waiting = r?.waiting;
+      if (!waiting) { window.location.reload(); return; }
+      // Reload when the new worker has actually taken over, rather than after a
+      // fixed delay and a hope. The handover measures ~5ms on localhost, which
+      // is what made a 120ms timer look safe, but it is still a race — and
+      // losing it reloads while the old worker is still in control, quietly serving the
+      // previous build again. The timeout is only a floor, so a worker that
+      // never activates still leaves the button doing something.
+      let reloaded = false;
+      const reload = () => { if (!reloaded) { reloaded = true; window.location.reload(); } };
+      navigator.serviceWorker.addEventListener('controllerchange', reload, { once: true });
+      window.setTimeout(reload, 3000);
+      waiting.postMessage({ type: 'SKIP_WAITING' });
     });
   }, []);
 
