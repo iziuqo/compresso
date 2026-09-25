@@ -63,7 +63,18 @@ img { max-width: 100%; display: block; }
 
 /* ================================================================== frame */
 
-.app { display: grid; grid-template-rows: auto 1fr auto; height: 100dvh; overflow: hidden; }
+.app {
+  display: grid; grid-template-rows: auto 1fr auto; height: 100dvh;
+  /* `overflow: hidden` only clips descendants it is a containing block for. While
+     this box stayed static, any absolutely positioned descendant without a
+     positioned ancestor resolved against the viewport instead and escaped the
+     clip entirely — stretching the document's scroll width and letting the whole
+     page drag sideways. `.strip__add` hit exactly that. Positioning the frame
+     closes the escape route for every such descendant, present and future.
+     `position: relative` creates no stacking context, so `.grain` and
+     `.dropveil` stay fixed to the viewport as before. */
+  position: relative; overflow: hidden;
+}
 
 .top { display: flex; flex-direction: column; }
 .head {
