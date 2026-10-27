@@ -77,7 +77,7 @@ for (const lang of LOCALES) {
   const head = (screen) => c.screenshots.find((s) => s.screen === screen).headline;
 
   await png(card(c.name.split(/[:：]/)[0], head('1-home')), join(tmp, 'intro.png'));
-  await png(card('Compresso', c.subtitle, 'App Store  ·  Google Play'), join(tmp, 'outro.png'));
+  await png(card('Compresso', c.subtitle), join(tmp, 'outro.png'));
   await png(mask, join(tmp, 'mask.png'), { width: PHONE_W, height: PHONE_H });
   await png(ring, join(tmp, 'ring.png'));
   const caps = [
