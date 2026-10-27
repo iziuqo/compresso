@@ -39,3 +39,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# store kit renders (see store/README.md)
+store/out/

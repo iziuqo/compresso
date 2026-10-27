@@ -1,0 +1,30 @@
+Vos photos sont trop lourdes à envoyer ? Compresso les allège en un geste, directement sur votre téléphone.
+
+Choisissez une photo ou cent. Dites à quoi elles servent. Compresso choisit la bonne taille et garde leur beauté.
+
+PENSÉ POUR CE QUE VOUS FAITES
+• Message : environ 400 Ko chacune, idéal pour les messageries et les SMS
+• E-mail : toutes vos photos ensemble sous 5 Mo
+• Formulaire : sous la limite demandée par le site, comme 1 Mo ou 500 Ko
+• Libérer de l'espace : des copies bien plus petites, fidèles à l'original
+• Web : des images légères et rapides pour votre site ou boutique
+
+SIMPLE POUR TOUT LE MONDE
+• De grands boutons et des mots clairs
+• Compatible avec le grand texte et le lecteur d'écran de votre téléphone
+• Aucun réglage compliqué. Choisissez un usage et c'est fini
+
+VOS PHOTOS RESTENT À VOUS
+• Tout se passe sur votre téléphone. Rien n'est jamais envoyé
+• Vos originaux ne sont jamais modifiés ni supprimés
+• La position peut être retirée avant de partager
+• Pas de compte, pas de pub, pas de suivi
+
+BIEN FAIT
+• Ne rend jamais une photo plus lourde
+• Garde la date de prise de vue, pour que votre galerie reste dans l'ordre
+• Fonctionne avec HEIC, JPEG, PNG et WebP
+• Comparez avant et après avec un simple curseur
+• Disponible en English, Español, Français, Deutsch, Italiano, Português et 简体中文
+
+Compresso repose sur compresso.js, la bibliothèque d'images open source.
