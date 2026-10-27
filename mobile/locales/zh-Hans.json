@@ -1,4 +1,6 @@
 {
-  "CFBundleDisplayName": "Compresso",
-  "NSPhotoLibraryAddUsageDescription": "Compresso 会把你生成的轻量副本存入相册，绝不会读取或更改你的其他照片。"
+  "ios": {
+    "CFBundleDisplayName": "Compresso",
+    "NSPhotoLibraryAddUsageDescription": "Compresso 会把你生成的轻量副本存入相册，绝不会读取或更改你的其他照片。"
+  }
 }
