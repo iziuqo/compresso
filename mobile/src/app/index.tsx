@@ -4,9 +4,9 @@ import { StyleSheet, View } from 'react-native';
 
 import { useI18n, type Key } from '../i18n';
 import { useApp } from '../state/app';
-import { pickPhotos } from '../state/pick';
+import { usePicker } from '../state/pick';
 import { font, space, type, useTheme } from '../theme';
-import { useReduceMotion } from '../ui/Develop';
+import { useReduceMotion } from '../ui/useReduceMotion';
 import { PhotoStack, PurposeTrio, ShieldMark, SizeStory } from '../ui/Hero';
 import { Gear, Mark, Shield } from '../ui/icons';
 import { Ghost, IconButton, Pill, T, Title } from '../ui/primitives';
@@ -21,22 +21,9 @@ export default function Home() {
 function Start() {
   const { t, bytes } = useI18n();
   const { c } = useTheme();
-  const { prefs, setSelection } = useApp();
+  const { prefs } = useApp();
   const reduceMotion = useReduceMotion();
-  const [busy, setBusy] = useState(false);
-
-  const choose = async () => {
-    setBusy(true);
-    try {
-      const picked = await pickPhotos();
-      if (picked.length > 0) {
-        setSelection(picked);
-        router.push('/purpose');
-      }
-    } finally {
-      setBusy(false);
-    }
-  };
+  const { pick, busy } = usePicker(() => router.push('/purpose'));
 
   return (
     <Screen
@@ -47,7 +34,7 @@ function Start() {
         </View>
         <IconButton label={t('home.settings')} icon={<Gear color={c.ink} />} onPress={() => router.push('/settings')} />
       </>}
-      footer={<Pill label={t('home.choose')} onPress={choose} busy={busy} />}
+      footer={<Pill label={t('home.choose')} onPress={pick} busy={busy} />}
     >
       <View style={styles.hero}>
         <SizeStory reduceMotion={reduceMotion} />

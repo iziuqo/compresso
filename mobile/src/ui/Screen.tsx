@@ -12,51 +12,53 @@ import { T } from './primitives';
  * primary action stays pinned in the thumb zone, and on a tablet or an open
  * foldable the column stops at a readable width instead of stretching.
  *
- * When anything sits below the fold, a labelled "More below" button sits
- * just above the footer (never over the content) until the person reaches it. A faded scroll bar is not
- * enough of a hint for someone who doesn't know phones scroll.
+ * When anything sits below the fold, a labelled "More below" bar covers the
+ * bottom edge of the scroll area until the person reaches it: a faded scroll
+ * bar is no hint to someone who doesn't know phones scroll. The bar floats,
+ * so showing it never changes the layout it measures (a bar that took space
+ * shrank the job preview, which hid the bar, which grew the preview, in a
+ * loop). It hides once the end is in reach, so it never covers the last row.
  *
  * `fill` lets the body take the whole height, so one flexible child (the
- * job preview) can grow into the space that's left and shrink before
- * anything else is pushed off screen.
+ * job preview) can grow into the space that's left.
  */
-export function Screen({ header, children, footer, scroll = true, fill = false }: {
-  header?: ReactNode; children: ReactNode; footer?: ReactNode; scroll?: boolean; fill?: boolean;
+export function Screen({ header, children, footer, fill = false }: {
+  header?: ReactNode; children: ReactNode; footer?: ReactNode; fill?: boolean;
 }) {
   const { c } = useTheme();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const ref = useRef<ComponentRef<typeof ScrollView>>(null);
-  const [frame, setFrame] = useState(0);
-  const [content, setContent] = useState(0);
-  const [offset, setOffset] = useState(0);
-  const more = scroll && content - frame - offset > space[5];
+  const metrics = useRef({ frame: 0, content: 0, offset: 0 });
+  const [more, setMore] = useState(false);
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => setOffset(e.nativeEvent.contentOffset.y);
-  const body = <View style={[styles.column, fill && { flex: 1 }]}>{children}</View>;
+  // Measurements live in a ref; only the yes/no answer is state, so scrolling
+  // re-renders the screen at most twice, not on every frame.
+  const measure = (patch: Partial<typeof metrics.current>) => {
+    const m = Object.assign(metrics.current, patch);
+    setMore(m.content - m.frame - m.offset > target.min);
+  };
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => measure({ offset: e.nativeEvent.contentOffset.y });
 
   return (
     <View style={[styles.root, { backgroundColor: c.void, paddingTop: insets.top }]}>
       {header && <View style={[styles.column, styles.header]}>{header}</View>}
-      {scroll ? (
-        <>
-          <ScrollView style={{ flex: 1 }} ref={ref} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled"
-            onLayout={(e) => setFrame(e.nativeEvent.layout.height)} onContentSizeChange={(_, h) => setContent(h)}
-            onScroll={onScroll} scrollEventThrottle={64}>
-            {body}
-          </ScrollView>
-          {more && (
-            <Pressable onPress={() => ref.current?.scrollToEnd({ animated: true })} accessibilityRole="button"
-              accessibilityLabel={t('a11y.more')}
-              style={({ pressed }) => [styles.more, { backgroundColor: pressed ? c.surface2 : c.void, borderTopColor: c.line }]}>
-              <T style={{ fontFamily: font.medium, fontSize: type.meta }}>{t('a11y.more')}</T>
-              <Down color={c.ink} size={18} />
-            </Pressable>
-          )}
-        </>
-      ) : (
-        <View style={[styles.scroll, { flex: 1 }]}>{body}</View>
-      )}
+      <View style={styles.body}>
+        <ScrollView ref={ref} contentContainerStyle={[styles.scroll, fill && styles.scrollFill]} keyboardShouldPersistTaps="handled"
+          onLayout={(e) => measure({ frame: e.nativeEvent.layout.height })}
+          onContentSizeChange={(_, h) => measure({ content: h })}
+          onScroll={onScroll} scrollEventThrottle={100}>
+          <View style={[styles.column, fill && styles.body]}>{children}</View>
+        </ScrollView>
+        {more && (
+          <Pressable onPress={() => ref.current?.scrollToEnd({ animated: true })} accessibilityRole="button"
+            accessibilityLabel={t('a11y.more')}
+            style={({ pressed }) => [styles.more, { backgroundColor: pressed ? c.surface2 : c.void, borderTopColor: c.line }]}>
+            <T style={{ fontFamily: font.medium, fontSize: type.meta }}>{t('a11y.more')}</T>
+            <Down color={c.ink} size={18} />
+          </Pressable>
+        )}
+      </View>
       {footer && (
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[4]), borderTopColor: c.line, backgroundColor: c.void }]}>
           <View style={[styles.column, { gap: space[3] }]}>{footer}</View>
@@ -68,12 +70,14 @@ export function Screen({ header, children, footer, scroll = true, fill = false }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  body: { flex: 1 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center', paddingHorizontal: space[5] },
   header: { minHeight: 56, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: space[2] },
   scroll: { flexGrow: 1, paddingBottom: space[6] },
+  scrollFill: { paddingBottom: space[3] },
   footer: { paddingTop: space[4], borderTopWidth: StyleSheet.hairlineWidth, gap: space[3] },
   more: {
-    minHeight: target.min - 4, borderTopWidth: StyleSheet.hairlineWidth,
+    position: 'absolute', left: 0, right: 0, bottom: 0, minHeight: target.min, borderTopWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[2],
   },
 });

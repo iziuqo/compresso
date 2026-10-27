@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import { useI18n } from '../i18n';
@@ -17,13 +17,13 @@ const TO = 412_000;
 export function SizeStory({ reduceMotion }: { reduceMotion: boolean }) {
   const { t, bytes, percent } = useI18n();
   const { c } = useTheme();
-  const p = useRef(new Animated.Value(reduceMotion ? 1 : 0)).current;
-  const [shown, setShown] = useState(reduceMotion ? TO : FROM);
+  const [p] = useState(() => new Animated.Value(0));
+  const [counted, setShown] = useState(FROM);
+  const shown = reduceMotion ? TO : counted;
 
   useEffect(() => {
     if (reduceMotion) {
       p.setValue(1);
-      setShown(TO);
       return;
     }
     const id = p.addListener(({ value }) => setShown(Math.round(FROM + (TO - FROM) * value)));

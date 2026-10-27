@@ -6,7 +6,7 @@ import { engine } from '../engine/host';
 import { KB, MB } from '../engine/presets';
 import type { EncodeFormat, MetadataPolicy } from '../engine/types';
 import { useI18n, type Key } from '../i18n';
-import { useApp } from '../state/app';
+import { useApp, useJob } from '../state/app';
 import { space, type, useTheme } from '../theme';
 import { Close } from '../ui/icons';
 import { Choice, ChoiceRow, Ghost, IconButton, Label, Pill, T, Title } from '../ui/primitives';
@@ -31,7 +31,8 @@ const METADATA: { value: MetadataPolicy; key: Key }[] = [
 export default function FineTune() {
   const { t, bytes, count } = useI18n();
   const { c } = useTheme();
-  const { tweaks, setTweaks, job, start } = useApp();
+  const { tweaks, setTweaks, start } = useApp();
+  const job = useJob();
   // Opened from a finished result: "Done" re-runs the same photos with the new settings.
   const { redo } = useLocalSearchParams<{ redo?: string }>();
   const rerun = redo === '1' && !!job;

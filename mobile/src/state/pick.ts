@@ -1,6 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
+import { useState } from 'react';
 
 import type { Source } from '../engine/types';
+import { useApp } from './app';
 
 /**
  * The system photo picker: PHPicker on iOS, the Android Photo Picker. Neither
@@ -36,4 +38,26 @@ function baseName(fileName?: string | null): string | null {
   if (!fileName) return null;
   const dot = fileName.lastIndexOf('.');
   return (dot > 0 ? fileName.slice(0, dot) : fileName).replace(/[^\w.-]+/g, '-');
+}
+
+/**
+ * Open the picker and make the result the selection. `busy` covers the time
+ * the picker is open; `then` runs only when something was picked.
+ */
+export function usePicker(then?: () => void): { pick: () => Promise<void>; busy: boolean } {
+  const { setSelection } = useApp();
+  const [busy, setBusy] = useState(false);
+  const pick = async () => {
+    setBusy(true);
+    try {
+      const picked = await pickPhotos();
+      if (picked.length > 0) {
+        setSelection(picked);
+        then?.();
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+  return { pick, busy };
 }

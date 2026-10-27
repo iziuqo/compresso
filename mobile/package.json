@@ -29,6 +29,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~58.0.4",
     "typescript": "~6.0.3",
     "vitest": "^4.1.10"
   },
@@ -47,7 +49,8 @@
     "store:compose": "node store/compose.mjs store/out/raw store/out/images",
     "store:record": "node store/record.mjs store/out/photos store/out/rec",
     "store:reel": "node store/reel.mjs store/out/rec store/out/video",
-    "eas-build-on-success": "[ \"$EAS_BUILD_PLATFORM\" != android ] || python3 scripts/android-size-report.py"
+    "eas-build-on-success": "[ \"$EAS_BUILD_PLATFORM\" != android ] || python3 scripts/android-size-report.py",
+    "lint": "expo lint"
   },
   "private": true
 }

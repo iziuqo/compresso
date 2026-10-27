@@ -6,10 +6,10 @@ import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { PURPOSES, type PurposeId } from '../engine/presets';
 import { useI18n, type Key } from '../i18n';
 import { useApp } from '../state/app';
-import { pickPhotos } from '../state/pick';
+import { usePicker } from '../state/pick';
 import { font, space, type, useTheme } from '../theme';
 import { Back, Form, Globe, Mail, Message, Plus, Sliders, Space } from '../ui/icons';
-import { Choice, ChoiceRow, IconButton, Label, Pill, T, Title } from '../ui/primitives';
+import { Choice, ChoiceRow, IconButton, Label, Pill, strip, T, Title } from '../ui/primitives';
 import { Screen } from '../ui/Screen';
 
 const GLYPH: Record<PurposeId, ComponentType<{ color: string; size?: number }>> = {
@@ -19,7 +19,8 @@ const GLYPH: Record<PurposeId, ComponentType<{ color: string; size?: number }>> 
 export default function PurposeScreen() {
   const { t, count, bytes } = useI18n();
   const { c } = useTheme();
-  const { selection, setSelection, prefs, setPrefs, start, tweaks } = useApp();
+  const { selection, prefs, setPrefs, start, tweaks } = useApp();
+  const { pick: change } = usePicker();
   const [purpose, setPurpose] = useState<PurposeId>(prefs.lastPurpose);
   const one = selection.length === 1;
   const limits = PURPOSES.find((p) => p.id === 'upload')!.limits!;
@@ -29,12 +30,8 @@ export default function PurposeScreen() {
     start(purpose);
     router.push('/job');
   };
-  const change = async () => {
-    const picked = await pickPhotos();
-    if (picked.length > 0) setSelection(picked);
-  };
 
-  // Back and Fine-tune are both words in the header, so they never scroll away.
+  // Back and Fine-tune are words in the header, so they never scroll away.
   return (
     <Screen
       header={<>
@@ -47,8 +44,7 @@ export default function PurposeScreen() {
       <Label>{one ? t('purpose.countOne') : t('purpose.count', { n: count(selection.length) })}</Label>
       <FlatList
         horizontal data={selection} keyExtractor={(s) => s.uri} showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ gap: space[1], paddingRight: space[5] * 2 }}
-        style={{ marginHorizontal: -space[5], paddingLeft: space[5], flexGrow: 0, marginTop: space[2] }}
+        contentContainerStyle={strip.content} style={[strip.list, { marginTop: space[2] }]}
         ListHeaderComponent={
           <Pressable onPress={change} accessibilityRole="button" accessibilityLabel={t('purpose.change')}
             style={({ pressed }) => [styles.film, styles.change, { borderColor: c.line2, backgroundColor: pressed ? c.surface2 : c.surface }]}>
@@ -56,7 +52,6 @@ export default function PurposeScreen() {
             <T style={{ fontFamily: font.medium, fontSize: type.label }} numberOfLines={1}>{t('purpose.change')}</T>
           </Pressable>
         }
-        ListHeaderComponentStyle={{ marginRight: space[1] }}
         renderItem={({ item, index }) => (
           <Image source={{ uri: item.uri }} contentFit="cover" style={styles.film}
             accessibilityLabel={t('a11y.thumb', { n: count(index + 1), total: count(selection.length) })} />

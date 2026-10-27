@@ -71,7 +71,6 @@ type AppCtx = {
   setSelection: (sources: Source[]) => void;
   tweaks: Partial<Recipe>;
   setTweaks: (tweaks: Partial<Recipe>) => void;
-  job: Job | null;
   start: (purpose: PurposeId) => void;
   cancel: () => void;
   retry: (id: string) => void;
@@ -79,6 +78,14 @@ type AppCtx = {
 };
 
 const AppContext = createContext<AppCtx | null>(null);
+/**
+ * The running job changes on every progress tick, so it has a context of its
+ * own: only the job screen re-renders while photos are being made, not the
+ * providers and every screen in the stack.
+ */
+const JobContext = createContext<Job | null>(null);
+
+
 
 let seq = 0;
 const nextId = () => `${Date.now().toString(36)}-${(seq++).toString(36)}`;
@@ -90,6 +97,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [job, dispatch] = useReducer(reducer, null);
   const abort = useRef<AbortController | null>(null);
   const recipes = useRef(new Map<string, Recipe>());
+  // Bytes saved per finished photo of the current job, for Home's "last time".
+  const savings = useRef(new Map<string, number>());
+  const jobRef = useRef(job);
+  useEffect(() => {
+    jobRef.current = job;
+  }, [job]);
 
   const setPrefs = useCallback((patch: Partial<Prefs>) => {
     setPrefsState((prev) => {
@@ -112,6 +125,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             signal,
             onProgress: (progress) => dispatch({ type: 'item', id, patch: { progress } }),
           });
+          savings.current.set(id, Math.max(0, outcome.originalSize - outcome.size));
           dispatch({ type: 'item', id, patch: { status: 'done', progress: 1, outcome } });
         } catch (e) {
           if ((e as Error).name === 'AbortError') return;
@@ -120,7 +134,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
     };
     await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
-  }, []);
+    if (signal.aborted) return;
+    let total = 0;
+    for (const bytes of savings.current.values()) total += bytes;
+    setPrefs({ lastSaved: total });
+  }, [setPrefs]);
 
   const start = useCallback((purpose: PurposeId) => {
     abort.current?.abort();
@@ -129,6 +147,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const perItem = recipesFor(purpose, selection, tweaks, prefs.uploadLimit);
     const items: Item[] = selection.map((source) => ({ id: nextId(), source, status: 'queued', progress: 0 }));
     recipes.current = new Map(items.map((it, i) => [it.id, perItem[i]]));
+    savings.current = new Map();
     dispatch({ type: 'start', job: { id: nextId(), purpose, items, status: 'running' } });
     setPrefs({ lastPurpose: purpose });
     runItems(items, controller.signal).then(() => {
@@ -142,12 +161,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const retry = useCallback((id: string) => {
-    const item = job?.items.find((it) => it.id === id);
+    const item = jobRef.current?.items.find((it) => it.id === id);
     if (!item) return;
     const controller = abort.current && !abort.current.signal.aborted ? abort.current : new AbortController();
     abort.current = controller;
     runItems([item], controller.signal);
-  }, [job, runItems]);
+  }, [runItems]);
 
   const clear = useCallback(() => {
     abort.current?.abort();
@@ -156,19 +175,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setTweaks({});
   }, []);
 
-  // Remember the total for Home once a job finishes.
-  useEffect(() => {
-    if (job?.status !== 'done') return;
-    const saved = job.items.reduce((sum, it) => sum + (it.outcome ? Math.max(0, it.outcome.originalSize - it.outcome.size) : 0), 0);
-    setPrefs({ lastSaved: saved });
-  }, [job?.status, job?.items, setPrefs]);
-
   const value = useMemo<AppCtx>(() => ({
-    prefs, setPrefs, selection, setSelection, tweaks, setTweaks, job, start, cancel, retry, clear,
-  }), [prefs, setPrefs, selection, tweaks, job, start, cancel, retry, clear]);
+    prefs, setPrefs, selection, setSelection, tweaks, setTweaks, start, cancel, retry, clear,
+  }), [prefs, setPrefs, selection, tweaks, start, cancel, retry, clear]);
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      <JobContext.Provider value={job}>{children}</JobContext.Provider>
+    </AppContext.Provider>
+  );
 }
+
+export const useJob = (): Job | null => useContext(JobContext);
 
 export function useApp(): AppCtx {
   const ctx = useContext(AppContext);

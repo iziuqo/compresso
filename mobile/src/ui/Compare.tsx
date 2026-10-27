@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
 import { useRef, useState } from 'react';
-import { Animated, PanResponder, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { Animated, PanResponder, StyleSheet, View, type LayoutChangeEvent, type ViewStyle } from 'react-native';
 
 import { useI18n } from '../i18n';
-import { space, type, useTheme } from '../theme';
+import { space, useTheme } from '../theme';
 import { Drag } from './icons';
 import { Label } from './primitives';
 
@@ -18,7 +18,7 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
   const { c } = useTheme();
   const [width, setWidth] = useState(0);
   const [split, setSplit] = useState(0.5);
-  const x = useRef(new Animated.Value(0)).current;
+  const [x] = useState(() => new Animated.Value(0));
   const widthRef = useRef(0);
   const splitRef = useRef(0.5);
 
@@ -26,7 +26,9 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
     splitRef.current = s;
     x.setValue(s * widthRef.current);
   };
-  const pan = useRef(PanResponder.create({
+  // The handlers only read the refs on touch, never during render.
+  // eslint-disable-next-line react-hooks/refs
+  const [pan] = useState(() => PanResponder.create({
     onStartShouldSetPanResponder: () => true,
     onMoveShouldSetPanResponder: () => true,
     onPanResponderTerminationRequest: () => false,
@@ -34,7 +36,7 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
     onPanResponderMove: (e) => move(clamp(e.nativeEvent.locationX / (widthRef.current || 1))),
     // State only on release, for the screen reader value.
     onPanResponderRelease: () => setSplit(splitRef.current),
-  })).current;
+  }));
   const step = (d: number) => {
     const s = clamp(splitRef.current + d);
     move(s);
@@ -64,12 +66,20 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
         <Animated.View pointerEvents="none" style={[styles.knob, { transform: [{ translateX: x }] }]}>
           <Drag color="#000000" size={18} />
         </Animated.View>
+        <Chip label={t('job.before')} style={{ top: space[2], left: space[2] }} />
+        <Chip label={t('job.after')} style={{ top: space[2], right: space[2] }} />
+        <Chip label={t('job.compare')} style={{ bottom: space[2], alignSelf: 'center', maxWidth: '90%' }} />
       </View>
-      <View style={styles.legend}>
-        <Label>{t('job.before')}</Label>
-        <Label style={{ fontSize: type.label }}>{t('job.compare')}</Label>
-        <Label>{t('job.after')}</Label>
-      </View>
+    </View>
+  );
+}
+
+/** A label over the photo: white on a dark scrim in both themes, so it reads on any picture. */
+function Chip({ label, style }: { label: string; style: ViewStyle }) {
+  return (
+    <View pointerEvents="none" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden
+      style={[styles.chip, style]}>
+      <Label numberOfLines={1} style={{ color: '#FFFFFF' }}>{label}</Label>
     </View>
   );
 }
@@ -84,5 +94,8 @@ const styles = StyleSheet.create({
     position: 'absolute', top: '50%', left: -22, marginTop: -22, width: 44, height: 44, borderRadius: 22,
     backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
   },
-  legend: { flexDirection: 'row', justifyContent: 'space-between', marginTop: space[2] },
+  chip: {
+    position: 'absolute', maxWidth: '45%', paddingHorizontal: space[2], paddingVertical: 2, borderRadius: 999,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
 });
