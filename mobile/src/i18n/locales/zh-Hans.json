@@ -85,5 +85,17 @@
   "a11y.thumb": "第 {n} 张，共 {total} 张",
   "a11y.progress": "已完成 {percent}",
   "error.permission": "Compresso 需要权限才能把照片存入你的相册。你可以在设置中允许。",
-  "error.generic": "出了点问题，请重试。"
+  "error.generic": "出了点问题，请重试。",
+  "purpose.change": "更换",
+  "a11y.more": "下方还有",
+  "job.ready": "已做好，但还没有存储。点「存储」即可留下。",
+  "job.readyOne": "已做好，但还没有存储。点「存储」即可留下。",
+  "job.noneDone": "这次没有可存储的照片。点「重试」，或点「返回」重新选择。",
+  "job.whereAndroid": "已存储。在相册中名为 Compresso 的相册里可以找到。",
+  "job.whereIos": "已存储。在「照片」中原图旁边可以找到，日期相同。",
+  "job.whereWeb": "已存储到「下载」文件夹。",
+  "job.openGallery": "打开相册",
+  "job.openPhotos": "打开照片",
+  "job.pick": "点一张照片查看",
+  "fine.redo": "用这些设置重新处理"
 }

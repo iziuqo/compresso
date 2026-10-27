@@ -85,5 +85,17 @@
   "a11y.thumb": "Foto {n} di {total}",
   "a11y.progress": "{percent} completato",
   "error.permission": "Compresso ha bisogno del permesso per aggiungere foto alla tua libreria. Puoi concederlo in Impostazioni.",
-  "error.generic": "Qualcosa è andato storto. Riprova."
+  "error.generic": "Qualcosa è andato storto. Riprova.",
+  "purpose.change": "Cambia",
+  "a11y.more": "Altro sotto",
+  "job.ready": "Pronte, ma non ancora salvate. Tocca Salva per tenerle.",
+  "job.readyOne": "Pronta, ma non ancora salvata. Tocca Salva per tenerla.",
+  "job.noneDone": "Niente da salvare questa volta. Tocca Riprova, o Indietro per scegliere di nuovo.",
+  "job.whereAndroid": "Salvato. Le trovi nella Galleria, nell’album chiamato Compresso.",
+  "job.whereIos": "Salvato. Le trovi in Foto, accanto agli originali, con la stessa data.",
+  "job.whereWeb": "Salvato nella cartella Download.",
+  "job.openGallery": "Apri Galleria",
+  "job.openPhotos": "Apri Foto",
+  "job.pick": "Tocca una foto per vederla",
+  "fine.redo": "Rifai con queste impostazioni"
 }

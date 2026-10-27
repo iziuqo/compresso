@@ -85,5 +85,17 @@
   "a11y.thumb": "Photo {n} of {total}",
   "a11y.progress": "{percent} done",
   "error.permission": "Compresso needs permission to add photos to your library. You can allow it in Settings.",
-  "error.generic": "Something went wrong. Please try again."
+  "error.generic": "Something went wrong. Please try again.",
+  "purpose.change": "Change",
+  "a11y.more": "More below",
+  "job.ready": "Ready, but not saved yet. Tap Save to keep them.",
+  "job.readyOne": "Ready, but not saved yet. Tap Save to keep it.",
+  "job.noneDone": "Nothing to save this time. Tap Retry, or Back to choose again.",
+  "job.whereAndroid": "Saved. Find them in your Gallery, in the album called Compresso.",
+  "job.whereIos": "Saved. Find them in Photos, next to the originals, under the same date.",
+  "job.whereWeb": "Saved to your Downloads folder.",
+  "job.openGallery": "Open Gallery",
+  "job.openPhotos": "Open Photos",
+  "job.pick": "Tap a photo to see it",
+  "fine.redo": "Redo with these settings"
 }

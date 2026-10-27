@@ -18,6 +18,7 @@ const Icon = ({ size = 22, color, children }: Props & { children: React.ReactNod
 export const Close = (p: Props) => <Icon {...p}><Path d="M3.4 3.4l9.2 9.2M12.6 3.4l-9.2 9.2" /></Icon>;
 export const Back = (p: Props) => <Icon {...p}><Path d="M10 3.4L5.4 8l4.6 4.6" /></Icon>;
 export const Check = (p: Props) => <Icon {...p}><Path d="M3 8.4l3.4 3.3L13 4.8" /></Icon>;
+export const Down = (p: Props) => <Icon {...p}><Path d="M3.4 6l4.6 4.6L12.6 6" /></Icon>;
 export const Plus = (p: Props) => <Icon {...p}><Path d="M8 3.6v8.8M3.6 8h8.8" /></Icon>;
 export const Drag = (p: Props) => <Icon {...p}><Path d="M6.3 5.2L3.6 8l2.7 2.8M9.7 5.2L12.4 8l-2.7 2.8" /></Icon>;
 export const Share = (p: Props) => (
@@ -43,6 +44,10 @@ export const Download = (p: Props) => (
 );
 export const Shield = (p: Props) => (
   <Icon {...p}><Path d="M8 1.9l5 1.9v3.9c0 3.1-2.1 5.4-5 6.4-2.9-1-5-3.3-5-6.4V3.8l5-1.9z" /><Path d="M5.8 8l1.6 1.6 2.9-3" /></Icon>
+);
+
+export const Gallery = (p: Props) => (
+  <Icon {...p}><Rect x={2.2} y={2.6} width={11.6} height={10.8} rx={1.4} /><Path d="M2.6 11.2l3.4-3.4 2.6 2.6 1.6-1.6 3.2 3.2" /><Path d="M10.6 6.2a.9.9 0 100-1.8.9.9 0 000 1.8z" /></Icon>
 );
 
 /* purpose glyphs */

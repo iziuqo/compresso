@@ -85,5 +85,17 @@
   "a11y.thumb": "Foto {n} von {total}",
   "a11y.progress": "{percent} erledigt",
   "error.permission": "Compresso braucht die Erlaubnis, Fotos zu deiner Mediathek hinzuzufügen. Du kannst sie in den Einstellungen erteilen.",
-  "error.generic": "Etwas ist schiefgelaufen. Bitte versuche es noch einmal."
+  "error.generic": "Etwas ist schiefgelaufen. Bitte versuche es noch einmal.",
+  "purpose.change": "Ändern",
+  "a11y.more": "Weiter unten",
+  "job.ready": "Fertig, aber noch nicht gesichert. Tippe auf Sichern, um sie zu behalten.",
+  "job.readyOne": "Fertig, aber noch nicht gesichert. Tippe auf Sichern, um es zu behalten.",
+  "job.noneDone": "Diesmal gibt es nichts zu sichern. Tippe auf Erneut versuchen oder auf Zurück, um neu zu wählen.",
+  "job.whereAndroid": "Gesichert. Du findest sie in deiner Galerie im Album „Compresso“.",
+  "job.whereIos": "Gesichert. Du findest sie in Fotos neben den Originalen, mit demselben Datum.",
+  "job.whereWeb": "In deinem Download-Ordner gesichert.",
+  "job.openGallery": "Galerie öffnen",
+  "job.openPhotos": "Fotos öffnen",
+  "job.pick": "Tippe auf ein Foto, um es anzusehen",
+  "fine.redo": "Mit diesen Einstellungen neu machen"
 }

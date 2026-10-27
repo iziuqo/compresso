@@ -11,6 +11,13 @@ export async function saveToPhotos(outcomes: Outcome[]): Promise<'saved' | 'deni
   return 'saved';
 }
 
+/** Downloads have no gallery to open. */
+export async function openLibrary(): Promise<boolean> {
+  return false;
+}
+
+export const canOpenLibrary = false;
+
 export async function share(uri: string): Promise<void> {
   const blob = await (await fetch(uri)).blob();
   const file = new File([blob], 'compresso', { type: blob.type });

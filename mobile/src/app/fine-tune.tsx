@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
@@ -31,7 +31,14 @@ const METADATA: { value: MetadataPolicy; key: Key }[] = [
 export default function FineTune() {
   const { t, bytes, count } = useI18n();
   const { c } = useTheme();
-  const { tweaks, setTweaks } = useApp();
+  const { tweaks, setTweaks, job, start } = useApp();
+  // Opened from a finished result: "Done" re-runs the same photos with the new settings.
+  const { redo } = useLocalSearchParams<{ redo?: string }>();
+  const rerun = redo === '1' && !!job;
+  const done = () => {
+    if (rerun) start(job!.purpose);
+    router.back();
+  };
   const formats = engine.formats();
   const set = (patch: Partial<typeof tweaks>) => setTweaks({ ...tweaks, ...patch });
 
@@ -42,7 +49,7 @@ export default function FineTune() {
         <IconButton label={t('settings.close')} showLabel={false} icon={<Close color={c.ink} />} onPress={() => router.back()} />
       </>}
       footer={<>
-        <Pill label={t('fine.done')} onPress={() => router.back()} />
+        <Pill label={t(rerun ? 'fine.redo' : 'fine.done')} onPress={done} />
         <Ghost label={t('fine.reset')} onPress={() => setTweaks({})} />
       </>}
     >
