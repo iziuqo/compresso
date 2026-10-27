@@ -28,8 +28,8 @@ export const Share = (p: Props) => (
 );
 export const Gear = (p: Props) => (
   <Icon {...p}>
-    <Path d="M8 10.2a2.2 2.2 0 100-4.4 2.2 2.2 0 000 4.4z" />
-    <Path d="M8 1.8v1.6M8 12.6v1.6M1.8 8h1.6M12.6 8h1.6M3.6 3.6l1.1 1.1M11.3 11.3l1.1 1.1M3.6 12.4l1.1-1.1M11.3 4.7l1.1-1.1" />
+    <Path d="M12.72 6.69 L14.22 6.98 L14.22 9.02 L12.72 9.31 L12.26 10.42 L13.11 11.68 L11.68 13.11 L10.42 12.26 L9.31 12.72 L9.02 14.22 L6.98 14.22 L6.69 12.72 L5.58 12.26 L4.32 13.11 L2.89 11.68 L3.74 10.42 L3.28 9.31 L1.78 9.02 L1.78 6.98 L3.28 6.69 L3.74 5.58 L2.89 4.32 L4.32 2.89 L5.58 3.74 L6.69 3.28 L6.98 1.78 L9.02 1.78 L9.31 3.28 L10.42 3.74 L11.68 2.89 L13.11 4.32 L12.26 5.58Z" />
+    <Path d="M8 10a2 2 0 100-4 2 2 0 000 4z" />
   </Icon>
 );
 export const Sliders = (p: Props) => (
@@ -60,4 +60,12 @@ export const Space = (p: Props) => (
 );
 export const Globe = (p: Props) => (
   <Icon {...p}><Path d="M8 13.8A5.8 5.8 0 108 2.2a5.8 5.8 0 000 11.6z" /><Path d="M2.4 8h11.2M8 2.2c1.6 1.6 2.4 3.6 2.4 5.8S9.6 12.2 8 13.8C6.4 12.2 5.6 10.2 5.6 8S6.4 3.8 8 2.2z" /></Icon>
+);
+
+/** The Compresso mark (website/public/logo.svg): two plates pressing in. Filled, not stroked. */
+export const Mark = ({ size = 22, color }: Props) => (
+  <Svg width={size} height={size} viewBox="0 0 512 512" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+    <Path d="M104 128 H408 L332 236 H180 Z" fill={color} />
+    <Path d="M104 384 H408 L332 276 H180 Z" fill={color} />
+  </Svg>
 );

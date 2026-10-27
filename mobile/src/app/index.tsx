@@ -6,8 +6,10 @@ import { useI18n, type Key } from '../i18n';
 import { useApp } from '../state/app';
 import { pickPhotos } from '../state/pick';
 import { font, space, type, useTheme } from '../theme';
-import { Gear, Shield } from '../ui/icons';
-import { Ghost, IconButton, Label, Pill, T, Title } from '../ui/primitives';
+import { useReduceMotion } from '../ui/Develop';
+import { PhotoStack, PurposeTrio, ShieldMark, SizeStory } from '../ui/Hero';
+import { Gear, Mark, Shield } from '../ui/icons';
+import { Ghost, IconButton, Pill, T, Title } from '../ui/primitives';
 import { Screen } from '../ui/Screen';
 
 export default function Home() {
@@ -20,6 +22,7 @@ function Start() {
   const { t, bytes } = useI18n();
   const { c } = useTheme();
   const { prefs, setSelection } = useApp();
+  const reduceMotion = useReduceMotion();
   const [busy, setBusy] = useState(false);
 
   const choose = async () => {
@@ -38,13 +41,17 @@ function Start() {
   return (
     <Screen
       header={<>
-        <Label>Compresso</Label>
+        <View style={styles.brand} accessible accessibilityRole="header" accessibilityLabel="Compresso">
+          <Mark color={c.ink} size={20} />
+          <T style={{ fontFamily: font.semibold, fontSize: type.body, letterSpacing: -0.2 }}>Compresso</T>
+        </View>
         <IconButton label={t('home.settings')} icon={<Gear color={c.ink} />} onPress={() => router.push('/settings')} />
       </>}
       footer={<Pill label={t('home.choose')} onPress={choose} busy={busy} />}
     >
       <View style={styles.hero}>
-        <Title style={{ fontSize: type.hero * 0.75, lineHeight: type.hero * 0.82 }}>{t('home.title')}</Title>
+        <SizeStory reduceMotion={reduceMotion} />
+        <Title style={{ fontSize: type.hero * 0.75, lineHeight: type.hero * 0.82, marginTop: space[5] }}>{t('home.title')}</Title>
         <T muted style={{ fontSize: type.lead, lineHeight: type.lead * 1.4 }}>{t('home.lede')}</T>
       </View>
       <View style={styles.meta}>
@@ -60,10 +67,10 @@ function Start() {
   );
 }
 
-const INTRO: { title: Key; body: Key }[] = [
-  { title: 'intro.1.title', body: 'intro.1.body' },
-  { title: 'intro.2.title', body: 'intro.2.body' },
-  { title: 'intro.3.title', body: 'intro.3.body' },
+const INTRO: { title: Key; body: Key; Art: () => React.JSX.Element }[] = [
+  { title: 'intro.1.title', body: 'intro.1.body', Art: PhotoStack },
+  { title: 'intro.2.title', body: 'intro.2.body', Art: PurposeTrio },
+  { title: 'intro.3.title', body: 'intro.3.body', Art: ShieldMark },
 ];
 
 /** Three cards, skippable, shown once. Plain words, one idea each. */
@@ -72,21 +79,22 @@ function Intro({ onDone }: { onDone: () => void }) {
   const { c } = useTheme();
   const [step, setStep] = useState(0);
   const last = step === INTRO.length - 1;
+  const { Art } = INTRO[step];
   return (
     <Screen
       header={<>
-        <Label>{`${count(step + 1)} / ${count(INTRO.length)}`}</Label>
+        <View style={styles.dots} accessible accessibilityLabel={`${count(step + 1)} / ${count(INTRO.length)}`}>
+          {INTRO.map((_, i) => (
+            <View key={i} style={[styles.dot, i === step && styles.dotOn, { backgroundColor: i === step ? c.ink : c.line2 }]} />
+          ))}
+        </View>
         {!last && <IconButton label={t('intro.skip')} icon={null} onPress={onDone} />}
       </>}
       footer={<Pill label={t(last ? 'intro.start' : 'intro.next')} onPress={() => (last ? onDone() : setStep(step + 1))} />}
     >
       <View style={styles.hero}>
-        <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          {INTRO.map((_, i) => (
-            <View key={i} style={[styles.dot, { backgroundColor: i === step ? c.ink : c.line2 }]} />
-          ))}
-        </View>
-        <Title>{t(INTRO[step].title)}</Title>
+        <Art />
+        <Title style={{ marginTop: space[5] }}>{t(INTRO[step].title)}</Title>
         <T muted style={{ fontSize: type.lead, lineHeight: type.lead * 1.4 }}>{t(INTRO[step].body)}</T>
       </View>
       {step > 0 && <Ghost label={t('a11y.back')} onPress={() => setStep(step - 1)} style={{ alignSelf: 'flex-start' }} />}
@@ -97,6 +105,8 @@ function Intro({ onDone }: { onDone: () => void }) {
 const styles = StyleSheet.create({
   hero: { flex: 1, justifyContent: 'flex-end', gap: space[4], paddingTop: space[8], paddingBottom: space[6] },
   meta: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  dots: { flexDirection: 'row', gap: space[2], marginBottom: space[4] },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: space[2], minHeight: 48 },
+  dots: { flexDirection: 'row', alignItems: 'center', gap: space[2], minHeight: 48 },
   dot: { width: 8, height: 8, borderRadius: 4 },
+  dotOn: { width: 24 },
 });

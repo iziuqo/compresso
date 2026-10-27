@@ -25,7 +25,7 @@ export function Screen({ header, children, footer, scroll = true }: {
       )}
       {footer && (
         <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, space[4]), borderTopColor: c.line, backgroundColor: c.void }]}>
-          <View style={styles.column}>{footer}</View>
+          <View style={[styles.column, { gap: space[3] }]}>{footer}</View>
         </View>
       )}
     </View>

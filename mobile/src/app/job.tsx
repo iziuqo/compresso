@@ -92,7 +92,8 @@ export default function JobScreen() {
     >
       <View style={{ gap: space[2], marginTop: space[4], marginBottom: space[5] }}>
         <Title style={{ fontSize: type.hero * 0.7, lineHeight: type.hero * 0.8, fontFamily: font.medium }}>
-          {items.length === 1 ? t('job.savedOne', { amount: bytes(saved) }) : t('job.saved', { amount: bytes(saved) })}
+          {running ? t('job.soFar', { amount: bytes(saved) })
+            : items.length === 1 ? t('job.savedOne', { amount: bytes(saved) }) : t('job.saved', { amount: bytes(saved) })}
         </Title>
         {original > 0 && (
           <T muted style={{ fontFamily: font.mono, fontSize: type.meta }}>

@@ -48,7 +48,9 @@ export function Pill({ label, onPress, busy, disabled, icon, style }: {
   return (
     <Pressable onPress={onPress} disabled={off} accessibilityRole="button" accessibilityLabel={label}
       accessibilityState={{ disabled: !!off, busy: !!busy }}
-      style={({ pressed }) => [styles.pill, { backgroundColor: c.pill, opacity: off ? 0.5 : pressed ? 0.82 : 1 }, style]}>
+      style={({ pressed }) => [styles.pill, {
+        backgroundColor: c.pill, opacity: off ? 0.5 : pressed ? 0.86 : 1, transform: [{ scale: pressed && !off ? 0.98 : 1 }],
+      }, style]}>
       {busy ? <ActivityIndicator color={c.pillInk} /> : icon}
       <T style={{ color: c.pillInk, fontFamily: font.semibold, fontSize: type.lead, lineHeight: type.lead * 1.25, textAlign: 'center' }}>
         {label}

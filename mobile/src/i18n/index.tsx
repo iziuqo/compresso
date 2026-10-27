@@ -84,7 +84,8 @@ export function I18nProvider({ locale, children }: { locale: Locale; children: R
       t: (key, vars) => {
         let s = dict[key] ?? fallback[key] ?? key;
         if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
-        return s;
+        // "5 MB" in a sentence must not break between the number and the unit.
+        return s.replace(/(\d) (KB|MB|GB)\b/g, '$1\u00A0$2');
       },
       bytes: (n) => formatBytes(locale, n),
       percent: (f) => formatPercent(locale, f),

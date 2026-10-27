@@ -2,6 +2,7 @@
   "expo": {
     "name": "Compresso",
     "slug": "compresso",
+    "owner": "izaias.cavalcanti",
     "scheme": "compresso",
     "version": "0.1.0",
     "orientation": "default",
@@ -60,6 +61,18 @@
           "photosPermission": false,
           "cameraPermission": false,
           "microphonePermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon-light.png",
+          "imageWidth": 96,
+          "backgroundColor": "#FFFFFF",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#000000"
+          }
         }
       ]
     ],

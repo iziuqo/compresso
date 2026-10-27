@@ -15,6 +15,7 @@
     "expo-localization": "~58.0.5",
     "expo-router": "~58.0.26",
     "expo-sharing": "~58.0.20",
+    "expo-splash-screen": "~58.0.11",
     "expo-status-bar": "~58.0.4",
     "expo-system-ui": "~58.0.6",
     "react": "19.3.0",
@@ -37,7 +38,14 @@
     "web": "expo start --web",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "icons": "python3 scripts/make-icons.py",
+    "store:metadata": "node scripts/store-metadata.mjs",
+    "store:photos": "python3 store/make-sample-photos.py store/out/photos",
+    "store:capture": "node store/capture.mjs store/out/photos store/out/raw",
+    "store:compose": "node store/compose.mjs store/out/raw store/out/images",
+    "store:record": "node store/record.mjs store/out/photos store/out/rec",
+    "store:reel": "node store/reel.mjs store/out/rec store/out/video"
   },
   "private": true
 }
