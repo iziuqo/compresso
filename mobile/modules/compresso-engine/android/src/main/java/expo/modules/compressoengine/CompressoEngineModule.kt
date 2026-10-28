@@ -1,8 +1,10 @@
 package expo.modules.compressoengine
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -97,7 +99,21 @@ class CompressoEngineModule : Module() {
     // MediaStore insert into Pictures/Compresso: no permission at all on
     // Android 10+, and it shows up as a "Compresso" album in the gallery.
     AsyncFunction("saveToLibrary") Coroutine { uri: String, takenAt: Double? ->
-      withContext(Dispatchers.IO) { saveToLibrary(parseUri(uri), takenAt) }
+      withContext(Dispatchers.IO) { saveToLibrary(parseUri(uri), takenAt).toString() }
+    }
+
+    // Our own MediaStore item, so the gallery can read it without any permission.
+    Function("openInGallery") { uri: String ->
+      val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(Uri.parse(uri), "image/*")
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+      }
+      try {
+        context.startActivity(intent)
+        true
+      } catch (e: ActivityNotFoundException) {
+        false
+      }
     }
 
     Function("release") { handle: String ->
@@ -198,7 +214,7 @@ class CompressoEngineModule : Module() {
       .also { if (it !== sized) sized.recycle() }
   }
 
-  private fun saveToLibrary(file: Uri, takenAt: Double?) {
+  private fun saveToLibrary(file: Uri, takenAt: Double?): Uri {
     val legacy = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
     if (legacy && context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
       throw PermissionException()
@@ -231,6 +247,7 @@ class CompressoEngineModule : Module() {
       if (!legacy) {
         resolver.update(item, ContentValues().apply { put(MediaStore.Images.Media.IS_PENDING, 0) }, null, null)
       }
+      return item
     } catch (e: Exception) {
       resolver.delete(item, null, null)
       throw if (e is SaveException) e else SaveException(e)

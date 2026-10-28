@@ -14,8 +14,13 @@ declare class CompressoEngineModule extends NativeModule<{}> {
   /** Copy the source unchanged (the never-bigger fallback). */
   copyOriginal(handle: string, name: string): Promise<Written>;
   release(handle: string): void;
-  /** Add a file to the photo library as a new photo (add-only access). */
-  saveToLibrary(uri: string, takenAt: number | null): Promise<void>;
+  /**
+   * Add a file to the photo library as a new photo (add-only access).
+   * Android returns the new photo's content URI; iOS returns null.
+   */
+  saveToLibrary(uri: string, takenAt: number | null): Promise<string | null>;
+  /** Android only: show a saved photo in the gallery app. False if no app can. */
+  openInGallery(uri: string): boolean;
 }
 
 export default requireNativeModule<CompressoEngineModule>('CompressoEngine');

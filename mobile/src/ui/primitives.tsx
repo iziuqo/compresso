@@ -19,23 +19,21 @@ export function T({ style, muted, ...rest }: TextProps & { muted?: boolean }) {
 }
 
 /** The tracked uppercase label from the web app, 13pt here. Not uppercased in Chinese. */
-export function Label({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
+export function Label({ children, style, numberOfLines }: { children: ReactNode; style?: StyleProp<TextStyle>; numberOfLines?: number }) {
   const { locale } = useI18n();
   const cjk = locale === 'zh-Hans';
   return (
-    <T muted style={[{
+    <T muted numberOfLines={numberOfLines} style={[{
       fontFamily: font.medium, fontSize: type.label, lineHeight: type.label * 1.4,
       letterSpacing: cjk ? 0.5 : 1.6, textTransform: cjk ? 'none' : 'uppercase',
     }, style]}>{children}</T>
   );
 }
 
-export function Title({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
+export function Title({ style, ...rest }: TextProps) {
   return (
-    <T accessibilityRole="header"
-      style={[{ fontFamily: font.medium, fontSize: type.title, lineHeight: type.title * 1.15, letterSpacing: -0.6 }, style]}>
-      {children}
-    </T>
+    <T accessibilityRole="header" {...rest}
+      style={[{ fontFamily: font.medium, fontSize: type.title, lineHeight: type.title * 1.15, letterSpacing: -0.6 }, style]} />
   );
 }
 
@@ -59,14 +57,15 @@ export function Pill({ label, onPress, busy, disabled, icon, style }: {
   );
 }
 
-/** A secondary action: outlined, same height as the pill, still a big target. */
-export function Ghost({ label, onPress, icon, style }: {
-  label: string; onPress: () => void; icon?: ReactNode; style?: StyleProp<ViewStyle>;
+/** A secondary action: outlined, same height as the pill (or 48 when `compact`), still a big target. */
+export function Ghost({ label, onPress, icon, compact, style }: {
+  label: string; onPress: () => void; icon?: ReactNode; compact?: boolean; style?: StyleProp<ViewStyle>;
 }) {
   const { c } = useTheme();
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label}
-      style={({ pressed }) => [styles.pill, { borderWidth: 1, borderColor: c.line2, backgroundColor: pressed ? c.surface2 : 'transparent' }, style]}>
+      style={({ pressed }) => [styles.pill, compact && styles.compact,
+        { borderWidth: 1, borderColor: c.line2, backgroundColor: pressed ? c.surface2 : 'transparent' }, style]}>
       {icon}
       <T style={{ fontFamily: font.medium, fontSize: type.body, textAlign: 'center' }}>{label}</T>
     </Pressable>
@@ -97,6 +96,7 @@ const styles = StyleSheet.create({
     minHeight: target.primary, borderRadius: 999, paddingHorizontal: space[5], paddingVertical: space[3],
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[2],
   },
+  compact: { minHeight: target.min, paddingVertical: space[2], paddingHorizontal: space[4] },
   iconButton: {
     minHeight: target.min, minWidth: target.min, paddingHorizontal: space[2], borderRadius: 999,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[2],
@@ -121,3 +121,9 @@ export function Choice({ label, selected, onPress }: { label: string; selected: 
 export function ChoiceRow({ children }: { children: ReactNode }) {
   return <View accessibilityRole="radiogroup" style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[2] }}>{children}</View>;
 }
+
+/** A horizontal list that bleeds to the screen edges, so a cut-off last photo hints it scrolls. */
+export const strip = StyleSheet.create({
+  list: { marginHorizontal: -space[5], paddingLeft: space[5], flexGrow: 0 },
+  content: { gap: space[2], paddingRight: space[5] * 2, paddingVertical: 2 },
+});
