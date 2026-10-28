@@ -30,12 +30,10 @@ export function Label({ children, style, numberOfLines }: { children: ReactNode;
   );
 }
 
-export function Title({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) {
+export function Title({ style, ...rest }: TextProps) {
   return (
-    <T accessibilityRole="header"
-      style={[{ fontFamily: font.medium, fontSize: type.title, lineHeight: type.title * 1.15, letterSpacing: -0.6 }, style]}>
-      {children}
-    </T>
+    <T accessibilityRole="header" {...rest}
+      style={[{ fontFamily: font.medium, fontSize: type.title, lineHeight: type.title * 1.15, letterSpacing: -0.6 }, style]} />
   );
 }
 

@@ -87,7 +87,7 @@
   "error.permission": "Compresso ha bisogno del permesso per aggiungere foto alla tua libreria. Puoi concederlo in Impostazioni.",
   "error.generic": "Qualcosa è andato storto. Riprova.",
   "purpose.change": "Cambia",
-  "a11y.more": "Altro sotto",
+  "a11y.more": "Scorri in basso per altro",
   "job.ready": "Pronte, ma non ancora salvate. Tocca Salva per tenerle.",
   "job.readyOne": "Pronta, ma non ancora salvata. Tocca Salva per tenerla.",
   "job.noneDone": "Niente da salvare questa volta. Tocca Riprova, o Indietro per scegliere di nuovo.",
@@ -96,5 +96,15 @@
   "job.whereWeb": "Salvato nella cartella Download.",
   "job.openGallery": "Apri Galleria",
   "job.pick": "Tocca una foto per vederla",
-  "fine.redo": "Rifai con queste impostazioni"
+  "fine.redo": "Rifai con queste impostazioni",
+  "fine.auto": "Automatico",
+  "purpose.tapPhoto": "Tocca una foto per regolarla o toglierla.",
+  "a11y.remove": "Togli la foto {n}",
+  "a11y.ownSettings": "Ha impostazioni sue",
+  "photo.remove": "Togli dall’elenco",
+  "photo.settings": "Impostazioni di questa foto",
+  "photo.shared": "Come le altre",
+  "photo.own": "Impostazioni sue",
+  "photo.sharedHint": "Questa foto usa le impostazioni scelte per tutte.",
+  "photo.ownHint": "Solo questa foto usa queste impostazioni. Le altre mantengono quelle comuni."
 }

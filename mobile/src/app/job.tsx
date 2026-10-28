@@ -114,33 +114,41 @@ function JobView({ job }: { job: Job }) {
 
   const headline = running ? t('job.soFar', { amount: bytes(saved) })
     : t(single ? 'job.savedOne' : 'job.saved', { amount: bytes(saved) });
-  const guide = running ? null
+  const guide = running ? t('job.working', { done: count(finished), total: count(items.length) })
     : saving === 'done' ? t(WHERE)
     : doneItems.length === 0 ? t('job.noneDone')
     : t(single ? 'job.readyOne' : 'job.ready');
 
-  // Before saving: Save, then Share / Start over. After: Open Gallery where the
-  // platform can, otherwise Start over becomes the main action.
+  // The footer is the same height in every state, so the preview never
+  // resizes when the run ends. While working: Save (waiting) and Cancel.
+  // Before saving: Save, then Share / Start over. After: Open Gallery where
+  // the platform can, otherwise Start over becomes the main action.
   const afterSave = saving === 'done';
   const primary = !afterSave
-    ? <Pill label={t(single ? 'job.save' : 'job.saveAll')} busy={saving === 'busy'} disabled={doneItems.length === 0}
+    ? <Pill label={t(single ? 'job.save' : 'job.saveAll')} busy={saving === 'busy'} disabled={running || doneItems.length === 0}
         onPress={save} icon={<Download color={c.pillInk} />} />
     : canOpenLibrary
       ? <Pill label={t('job.openGallery')} icon={<Gallery color={c.pillInk} />} onPress={open} />
       : <Pill label={t('job.again')} onPress={startOver} />;
-  const footer = running ? null : (
+  const footer = (
     <>
       {primary}
       <View style={styles.row}>
-        {focus.outcome && (
-          <Ghost compact label={t('job.share')} icon={<Share color={c.ink} />} style={styles.half} onPress={() => share(focus.outcome!.uri)} />
-        )}
-        {(!afterSave || canOpenLibrary) && <Ghost compact label={t('job.again')} onPress={startOver} style={styles.half} />}
+        {running
+          ? <Ghost compact label={t('job.cancel')} style={styles.half} onPress={() => { cancel(); startOver(); }} />
+          : <>
+              {focus.outcome && (
+                <Ghost compact label={t('job.share')} icon={<Share color={c.ink} />} style={styles.half} onPress={() => share(focus.outcome!.uri)} />
+              )}
+              {(!afterSave || canOpenLibrary) && <Ghost compact label={t('job.again')} onPress={startOver} style={styles.half} />}
+            </>}
       </View>
     </>
   );
 
   const titleSize = short ? type.title * 0.8 : type.title;
+  // Two lines of text, whichever message the box holds, at the system text size.
+  const guideHeight = space[2] * 2 + type.meta * 1.35 * 2 * Math.min(PixelRatio.getFontScale(), 2);
   const gap = short ? space[3] : space[4];
   const describe = (item: Item, i: number) => `${t('a11y.thumb', { n: count(i + 1), total: count(items.length) })}. ${
     item.status === 'done' && item.outcome ? t('job.from', { from: bytes(item.outcome.originalSize), to: bytes(item.outcome.size) })
@@ -151,33 +159,29 @@ function JobView({ job }: { job: Job }) {
       fill
       header={<>
         <IconButton label={t('a11y.back')} icon={<Back color={c.ink} />} onPress={back} />
-        {running
-          ? <Ghost compact label={t('job.cancel')} onPress={() => { cancel(); startOver(); }} />
-          : <IconButton label={t('purpose.fineTune')} icon={<Sliders color={c.ink} />}
-              onPress={() => router.push({ pathname: '/fine-tune', params: { redo: '1' } })} />}
+        {!running && <IconButton label={t('purpose.fineTune')} icon={<Sliders color={c.ink} />}
+          onPress={() => router.push({ pathname: '/fine-tune', params: { redo: '1' } })} />}
       </>}
       footer={footer}
     >
+      {/* Same rows in every state (headline, sizes, one status box), so nothing below moves. */}
       <View style={{ gap: space[1], marginTop: space[2], marginBottom: gap }}>
-        {running && <Label>{t('job.working', { done: count(finished), total: count(items.length) })}</Label>}
-        <Title style={{ fontSize: titleSize, lineHeight: titleSize * 1.1 }}>{headline}</Title>
-        {/* On a small phone the guide takes this line's place once the run is over. */}
-        {original > 0 && !(short && guide) && (
-          <T muted style={{ fontFamily: font.mono, fontSize: type.meta }}>
-            {t('job.from', { from: bytes(original), to: bytes(now) })}  ·  −{percent(saved / original)}
-          </T>
-        )}
-        {running && (
-          <View style={[styles.track, { backgroundColor: c.line }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <View style={[styles.bar, { backgroundColor: c.ink, width: `${(finished / items.length) * 100}%` }]} />
+        <Title numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: titleSize, lineHeight: titleSize * 1.15 }}>{headline}</Title>
+        <T muted style={{ fontFamily: font.mono, fontSize: type.meta }}>
+          {original > 0 ? `${t('job.from', { from: bytes(original), to: bytes(now) })}  ·  −${percent(saved / original)}` : ' '}
+        </T>
+        <View style={[styles.guide, { backgroundColor: c.surface, borderColor: afterSave ? c.ink : c.line, minHeight: guideHeight }]}
+          accessibilityLiveRegion="polite">
+          {afterSave ? <Check color={c.ink} size={20} /> : <Shield color={c.ink2} size={20} />}
+          <View style={{ flex: 1, gap: space[2] }}>
+            <T style={{ fontSize: type.meta, lineHeight: type.meta * 1.35 }}>{guide}</T>
+            {running && (
+              <View style={[styles.track, { backgroundColor: c.line }]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <View style={[styles.bar, { backgroundColor: c.ink, width: `${(finished / items.length) * 100}%` }]} />
+              </View>
+            )}
           </View>
-        )}
-        {guide && (
-          <View style={[styles.guide, { backgroundColor: c.surface, borderColor: afterSave ? c.ink : c.line }]} accessibilityLiveRegion="polite">
-            {afterSave ? <Check color={c.ink} size={20} /> : <Shield color={c.ink2} size={20} />}
-            <T style={{ flex: 1, fontSize: type.meta, lineHeight: type.meta * 1.35 }}>{guide}</T>
-          </View>
-        )}
+        </View>
       </View>
 
       {!single && (
@@ -271,7 +275,7 @@ const styles = StyleSheet.create({
   half: { flexGrow: 1, flexBasis: 120 },
   preview: { flex: 1, minHeight: 120 },
   fit: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
-  track: { height: 4, borderRadius: 2, marginTop: space[2], overflow: 'hidden' },
+  track: { height: 4, borderRadius: 2, overflow: 'hidden' },
   bar: { height: 4 },
   guide: {
     flexDirection: 'row', alignItems: 'center', gap: space[3], borderWidth: 1, borderRadius: 12,

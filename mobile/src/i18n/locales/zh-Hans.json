@@ -87,7 +87,7 @@
   "error.permission": "Compresso 需要权限才能把照片存入你的相册。你可以在设置中允许。",
   "error.generic": "出了点问题，请重试。",
   "purpose.change": "更换",
-  "a11y.more": "下方还有",
+  "a11y.more": "向下滑动查看更多",
   "job.ready": "已做好，但还没有存储。点「存储」即可留下。",
   "job.readyOne": "已做好，但还没有存储。点「存储」即可留下。",
   "job.noneDone": "这次没有可存储的照片。点「重试」，或点「返回」重新选择。",
@@ -96,5 +96,15 @@
   "job.whereWeb": "已存储到「下载」文件夹。",
   "job.openGallery": "打开相册",
   "job.pick": "点一张照片查看",
-  "fine.redo": "用这些设置重新处理"
+  "fine.redo": "用这些设置重新处理",
+  "fine.auto": "自动",
+  "purpose.tapPhoto": "点一张照片可调整或移除。",
+  "a11y.remove": "移除第 {n} 张照片",
+  "a11y.ownSettings": "有单独设置",
+  "photo.remove": "从列表中移除",
+  "photo.settings": "这张照片的设置",
+  "photo.shared": "与其他照片相同",
+  "photo.own": "单独设置",
+  "photo.sharedHint": "这张照片使用为所有照片选择的设置。",
+  "photo.ownHint": "只有这张照片使用这些设置，其他照片保持通用设置。"
 }

@@ -50,6 +50,7 @@ function Navigator() {
         <Stack.Screen name="purpose" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="job" options={{ gestureEnabled: false }} />
         <Stack.Screen name="fine-tune" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="photo" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="settings" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
       </Stack>
     </>

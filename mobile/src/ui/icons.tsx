@@ -19,6 +19,9 @@ export const Close = (p: Props) => <Icon {...p}><Path d="M3.4 3.4l9.2 9.2M12.6 3
 export const Back = (p: Props) => <Icon {...p}><Path d="M10 3.4L5.4 8l4.6 4.6" /></Icon>;
 export const Check = (p: Props) => <Icon {...p}><Path d="M3 8.4l3.4 3.3L13 4.8" /></Icon>;
 export const Down = (p: Props) => <Icon {...p}><Path d="M3.4 6l4.6 4.6L12.6 6" /></Icon>;
+export const Trash = (p: Props) => (
+  <Icon {...p}><Path d="M2.8 4.4h10.4M6.4 4.4V2.8h3.2v1.6M4.2 4.4l.7 8.6a1 1 0 001 .9h4.2a1 1 0 001-.9l.7-8.6M6.8 7v4.4M9.2 7v4.4" /></Icon>
+);
 export const Plus = (p: Props) => <Icon {...p}><Path d="M8 3.6v8.8M3.6 8h8.8" /></Icon>;
 export const Drag = (p: Props) => <Icon {...p}><Path d="M6.3 5.2L3.6 8l2.7 2.8M9.7 5.2L12.4 8l-2.7 2.8" /></Icon>;
 export const Share = (p: Props) => (

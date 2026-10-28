@@ -4,7 +4,8 @@ import {
 
 import { concurrency, engine } from '../engine/host';
 import { compressOne } from '../engine/plan';
-import { allocateBudget, purposeById, type PurposeId } from '../engine/presets';
+import type { PurposeId } from '../engine/presets';
+import { recipesFor, type Tweaks } from '../engine/recipes';
 import type { Outcome, Recipe, Source } from '../engine/types';
 import { loadPrefs, savePrefs } from './prefs';
 import { DEFAULT_PREFS, type Prefs } from './prefs.types';
@@ -53,24 +54,20 @@ function reducer(job: Job | null, action: Action): Job | null {
   }
 }
 
-/** The recipe each photo gets: the purpose's, the person's tweaks, its budget share. */
-export function recipesFor(purpose: PurposeId, sources: Source[], tweaks: Partial<Recipe>, uploadLimit: number): Recipe[] {
-  const p = purposeById(purpose);
-  const base: Recipe = { ...p.recipe, ...(purpose === 'upload' ? { targetBytes: uploadLimit } : {}), ...tweaks };
-  if (p.totalBytes && tweaks.targetBytes === undefined) {
-    const shares = allocateBudget(p.totalBytes, sources.map((s) => s.size));
-    return shares.map((targetBytes) => ({ ...base, targetBytes }));
-  }
-  return sources.map(() => base);
-}
-
 type AppCtx = {
   prefs: Prefs;
   setPrefs: (patch: Partial<Prefs>) => void;
   selection: Source[];
   setSelection: (sources: Source[]) => void;
-  tweaks: Partial<Recipe>;
-  setTweaks: (tweaks: Partial<Recipe>) => void;
+  /** Take one photo out of the selection, with its own settings. */
+  remove: (uri: string) => void;
+  /** Settings for every photo. */
+  tweaks: Tweaks;
+  setTweaks: (tweaks: Tweaks) => void;
+  /** Settings for single photos, by source URI, on top of `tweaks`. */
+  own: Record<string, Tweaks>;
+  /** `null` puts the photo back on the shared settings. */
+  setOwn: (uri: string, tweaks: Tweaks | null) => void;
   start: (purpose: PurposeId) => void;
   cancel: () => void;
   retry: (id: string) => void;
@@ -85,15 +82,14 @@ const AppContext = createContext<AppCtx | null>(null);
  */
 const JobContext = createContext<Job | null>(null);
 
-
-
 let seq = 0;
 const nextId = () => `${Date.now().toString(36)}-${(seq++).toString(36)}`;
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [prefs, setPrefsState] = useState<Prefs>(() => ({ ...DEFAULT_PREFS, ...loadPrefs() }));
   const [selection, setSelection] = useState<Source[]>([]);
-  const [tweaks, setTweaks] = useState<Partial<Recipe>>({});
+  const [tweaks, setTweaks] = useState<Tweaks>({});
+  const [own, setOwnState] = useState<Record<string, Tweaks>>({});
   const [job, dispatch] = useReducer(reducer, null);
   const abort = useRef<AbortController | null>(null);
   const recipes = useRef(new Map<string, Recipe>());
@@ -144,7 +140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     abort.current?.abort();
     const controller = new AbortController();
     abort.current = controller;
-    const perItem = recipesFor(purpose, selection, tweaks, prefs.uploadLimit);
+    const perItem = recipesFor(purpose, selection, tweaks, prefs.uploadLimit, own);
     const items: Item[] = selection.map((source) => ({ id: nextId(), source, status: 'queued', progress: 0 }));
     recipes.current = new Map(items.map((it, i) => [it.id, perItem[i]]));
     savings.current = new Map();
@@ -153,7 +149,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     runItems(items, controller.signal).then(() => {
       if (!controller.signal.aborted) dispatch({ type: 'finish', status: 'done' });
     });
-  }, [selection, tweaks, prefs.uploadLimit, runItems, setPrefs]);
+  }, [selection, tweaks, own, prefs.uploadLimit, runItems, setPrefs]);
+
+  const setOwn = useCallback((uri: string, next: Tweaks | null) => {
+    setOwnState(({ [uri]: _, ...rest }) => (next ? { ...rest, [uri]: next } : rest));
+  }, []);
+
+  const remove = useCallback((uri: string) => {
+    setSelection((list) => list.filter((s) => s.uri !== uri));
+    setOwn(uri, null);
+  }, [setOwn]);
 
   const cancel = useCallback(() => {
     abort.current?.abort();
@@ -173,11 +178,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'clear' });
     setSelection([]);
     setTweaks({});
+    setOwnState({});
   }, []);
 
   const value = useMemo<AppCtx>(() => ({
-    prefs, setPrefs, selection, setSelection, tweaks, setTweaks, start, cancel, retry, clear,
-  }), [prefs, setPrefs, selection, tweaks, start, cancel, retry, clear]);
+    prefs, setPrefs, selection, setSelection, remove, tweaks, setTweaks, own, setOwn, start, cancel, retry, clear,
+  }), [prefs, setPrefs, selection, remove, tweaks, own, setOwn, start, cancel, retry, clear]);
 
   return (
     <AppContext.Provider value={value}>

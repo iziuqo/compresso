@@ -8,7 +8,7 @@ import { useI18n, type Key } from '../i18n';
 import { useApp } from '../state/app';
 import { usePicker } from '../state/pick';
 import { font, space, type, useTheme } from '../theme';
-import { Back, Form, Globe, Mail, Message, Plus, Sliders, Space } from '../ui/icons';
+import { Back, Close, Form, Globe, Mail, Message, Plus, Sliders, Space } from '../ui/icons';
 import { Choice, ChoiceRow, IconButton, Label, Pill, strip, T, Title } from '../ui/primitives';
 import { Screen } from '../ui/Screen';
 
@@ -19,7 +19,7 @@ const GLYPH: Record<PurposeId, ComponentType<{ color: string; size?: number }>> 
 export default function PurposeScreen() {
   const { t, count, bytes } = useI18n();
   const { c } = useTheme();
-  const { selection, prefs, setPrefs, start, tweaks } = useApp();
+  const { selection, prefs, setPrefs, start, tweaks, own, remove } = useApp();
   const { pick: change } = usePicker();
   const [purpose, setPurpose] = useState<PurposeId>(prefs.lastPurpose);
   const one = selection.length === 1;
@@ -42,6 +42,7 @@ export default function PurposeScreen() {
       footer={<Pill label={t(one ? 'purpose.goOne' : 'purpose.go')} onPress={go} />}
     >
       <Label>{one ? t('purpose.countOne') : t('purpose.count', { n: count(selection.length) })}</Label>
+      <T muted style={{ fontSize: type.meta, marginTop: space[1] }}>{t('purpose.tapPhoto')}</T>
       <FlatList
         horizontal data={selection} keyExtractor={(s) => s.uri} showsHorizontalScrollIndicator={false}
         contentContainerStyle={strip.content} style={[strip.list, { marginTop: space[2] }]}
@@ -52,10 +53,29 @@ export default function PurposeScreen() {
             <T style={{ fontFamily: font.medium, fontSize: type.label }} numberOfLines={1}>{t('purpose.change')}</T>
           </Pressable>
         }
-        renderItem={({ item, index }) => (
-          <Image source={{ uri: item.uri }} contentFit="cover" style={styles.film}
-            accessibilityLabel={t('a11y.thumb', { n: count(index + 1), total: count(selection.length) })} />
-        )}
+        renderItem={({ item, index }) => {
+          const name = t('a11y.thumb', { n: count(index + 1), total: count(selection.length) });
+          const custom = item.uri in own;
+          return (
+            <View style={styles.film}>
+              <Pressable onPress={() => router.push({ pathname: '/photo', params: { uri: item.uri } })}
+                accessibilityRole="button" accessibilityLabel={`${name}${custom ? `. ${t('a11y.ownSettings')}` : ''}`}
+                accessibilityHint={t('purpose.tapPhoto')} style={({ pressed }) => [StyleSheet.absoluteFill, { opacity: pressed ? 0.7 : 1 }]}>
+                <Image source={{ uri: item.uri }} contentFit="cover" recyclingKey={item.uri} style={StyleSheet.absoluteFill} />
+                {custom && (
+                  <View style={[styles.badge, styles.custom, { backgroundColor: c.void }]}>
+                    <Sliders color={c.ink} size={14} />
+                  </View>
+                )}
+              </Pressable>
+              <Pressable onPress={() => { remove(item.uri); if (one) router.back(); }} hitSlop={10}
+                accessibilityRole="button" accessibilityLabel={t('a11y.remove', { n: count(index + 1) })}
+                style={({ pressed }) => [styles.badge, styles.remove, { backgroundColor: pressed ? c.surface2 : c.void, borderColor: c.line2 }]}>
+                <Close color={c.ink} size={14} />
+              </Pressable>
+            </View>
+          );
+        }}
       />
 
       <Title style={{ fontSize: type.title * 0.85, lineHeight: type.title, marginTop: space[5], marginBottom: space[3] }}>
@@ -108,7 +128,10 @@ export default function PurposeScreen() {
 }
 
 const styles = StyleSheet.create({
-  film: { width: 64, height: 64, borderRadius: 2 },
+  film: { width: 72, height: 72, borderRadius: 2, overflow: 'hidden' },
+  badge: { position: 'absolute', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  remove: { top: 4, right: 4, borderWidth: StyleSheet.hairlineWidth },
+  custom: { bottom: 4, left: 4 },
   change: { borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 2, borderRadius: 8 },
   card: { borderRadius: 16, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[4], paddingVertical: space[3], minHeight: 68 },
