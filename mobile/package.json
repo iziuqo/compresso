@@ -44,6 +44,7 @@
     "export:web": "expo export --platform web",
     "icons": "python3 scripts/make-icons.py",
     "store:metadata": "node scripts/store-metadata.mjs",
+    "store:play": "node scripts/play-publish.mjs store/out/images",
     "store:photos": "python3 store/make-sample-photos.py store/out/photos",
     "store:capture": "node store/capture.mjs store/out/photos store/out/raw",
     "store:compose": "node store/compose.mjs store/out/raw store/out/images",
