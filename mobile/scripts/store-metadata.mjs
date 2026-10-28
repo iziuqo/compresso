@@ -4,35 +4,18 @@
 //   fastlane/metadata/android/*  Google Play, read by `fastlane supply` or pasted into Play Console
 //
 // Each of the seven app languages is published to every store locale that
-// speaks it, so Mexico, Canada, Portugal and the rest get a native listing too.
+// speaks it (see store-locales.mjs).
 // Run: node scripts/store-metadata.mjs
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { APPLE, PLAY } from './store-locales.mjs';
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const listing = JSON.parse(readFileSync(join(root, 'store/listing.json'), 'utf8'));
 const site = 'https://compresso.izaias.xyz';
 const slug = { en: 'en', es: 'es', fr: 'fr', de: 'de', it: 'it', 'pt-BR': 'pt-br', 'zh-Hans': 'zh-hans' };
-
-const APPLE = {
-  en: ['en-US', 'en-GB', 'en-AU', 'en-CA'],
-  es: ['es-ES', 'es-MX'],
-  fr: ['fr-FR', 'fr-CA'],
-  de: ['de-DE'],
-  it: ['it'],
-  'pt-BR': ['pt-BR', 'pt-PT'],
-  'zh-Hans': ['zh-Hans'],
-};
-const PLAY = {
-  en: ['en-US', 'en-GB', 'en-AU', 'en-CA', 'en-IN', 'en-SG', 'en-ZA'],
-  es: ['es-ES', 'es-419', 'es-US'],
-  fr: ['fr-FR', 'fr-CA'],
-  de: ['de-DE'],
-  it: ['it-IT'],
-  'pt-BR': ['pt-BR', 'pt-PT'],
-  'zh-Hans': ['zh-CN'],
-};
 
 const LIMITS = { name: 30, subtitle: 30, shortDescription: 80, promotionalText: 170, description: 4000, releaseNotes: 500 };
 for (const [lang, copy] of Object.entries(listing)) {
