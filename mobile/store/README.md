@@ -6,7 +6,7 @@ itself so it never drifts from what ships.
 | What | Source | Command |
 |---|---|---|
 | Listing copy, 7 languages | `listing.json` | `npm run store:metadata` writes `store.config.json` (App Store, `eas metadata:push`) and `fastlane/metadata/android` (Play) |
-| Sample photos | `make-sample-photos.py` | `npm run store:photos` |
+| Sample photos | `generate-photos.mjs` (OpenAI, run once, kept in `photos/`), then `make-sample-photos.py` | `node store/generate-photos.mjs`, then `npm run store:photos` |
 | Raw screens | `capture.mjs` | `npm run store:capture` |
 | Store images | `compose.mjs` | `npm run store:compose` |
 | Flow recording | `record.mjs` | `npm run store:record` |
@@ -14,7 +14,8 @@ itself so it never drifts from what ships.
 
 Capture, compose, record and reel drive the web build, so first run
 `npx expo export --platform web` and serve `dist/` on port 8765. They need
-Playwright and ffmpeg on the machine, and Noto Sans SC installed for Chinese.
+Playwright and ffmpeg on the machine, and Noto Sans SC installed for Chinese. Generating new photos needs
+`OPENAI_API_KEY`; the six in `photos/` have no people, text or brands.
 
 Each language is published to every store locale that speaks it: 13 App Store
 locales and 17 Play locales (see `scripts/store-metadata.mjs`).

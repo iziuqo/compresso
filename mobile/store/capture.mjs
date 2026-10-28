@@ -63,7 +63,11 @@ for (const locale of LOCALES) {
       await page.getByRole('radio').nth(0).click();
 
       await page.getByRole('button', { name: t['purpose.go'] }).click();
-      await page.waitForTimeout(700);
+      // Shoot mid-run, once a few photos are done, so the screen shows real savings.
+      const midway = [2, 3, 4].map((n) => t['job.working'].replace('{done}', n).replace('{total}', photos.length));
+      await page.waitForFunction((texts) => texts.some((x) => document.body.innerText.toLowerCase().includes(x.toLowerCase())), midway, { timeout: 60000 })
+        .catch(() => console.warn(locale, device.id, scheme, 'no midway frame'));
+      await page.waitForTimeout(300);
       await page.screenshot({ path: join(dir, '4-working.png') });
       await page.getByRole('button', { name: t['job.again'] }).waitFor({ timeout: 120000 });
       await page.waitForTimeout(1500);

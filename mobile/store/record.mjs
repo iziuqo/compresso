@@ -9,13 +9,13 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const here = dirname(fileURLToPath(import.meta.url));
-const [photoDir, outDir, ...only] = process.argv.slice(2);
+const [photoDir, outDir, ...only] = process.argv.slice(2).map((a, i) => (i < 2 ? resolve(a) : a));
 const photos = readdirSync(photoDir).filter((f) => /\.jpe?g$/i.test(f)).sort().map((f) => join(photoDir, f));
 const LOCALES = only.length ? only : ['en', 'es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans'];
 const URL = process.env.APP_URL ?? 'http://localhost:8765/';

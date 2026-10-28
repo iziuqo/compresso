@@ -25,7 +25,7 @@ export default function Settings() {
   return (
     <Screen header={<>
       <Title style={{ fontSize: type.lead * 1.2 }}>{t('settings.title')}</Title>
-      <IconButton label={t('settings.close')} showLabel={false} icon={<Close color={c.ink} />} onPress={() => router.back()} />
+      <IconButton label={t('settings.close')} icon={<Close color={c.ink} />} onPress={() => router.back()} />
     </>}>
       <Section label={t('settings.language')}>
         {/* Native name first, English beneath. Never flags: a flag is a country. */}
