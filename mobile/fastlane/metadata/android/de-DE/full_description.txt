@@ -1,0 +1,30 @@
+Fotos zu groß zum Senden? Compresso macht sie mit einem Tipp kleiner, direkt auf deinem Handy.
+
+Wähle ein Foto oder hundert. Sag, wofür sie sind. Compresso wählt die richtige Größe und sie sehen weiter toll aus.
+
+GEMACHT FÜR DEINEN ZWECK
+• Nachricht: etwa 400 KB pro Foto, perfekt für Messenger und SMS
+• E-Mail: alle Fotos zusammen unter 5 MB
+• Upload-Formular: unter dem Limit der Website, zum Beispiel 1 MB oder 500 KB
+• Speicher freigeben: viel kleinere Kopien, die wie das Original aussehen
+• Web: leichte, schnelle Bilder für deine Website oder deinen Shop
+
+EINFACH FÜR ALLE
+• Große, klare Tasten und verständliche Worte
+• Funktioniert mit großer Schrift und dem Bildschirmleser deines Handys
+• Keine Regler zum Raten. Zweck wählen, fertig
+
+DEINE FOTOS BLEIBEN DEINE
+• Alles passiert auf deinem Handy. Nichts wird hochgeladen
+• Deine Originale werden nie verändert oder gelöscht
+• Den Aufnahmeort kannst du vor dem Teilen entfernen
+• Kein Konto, keine Werbung, kein Tracking
+
+RICHTIG GEMACHT
+• Macht ein Foto niemals größer
+• Behält das Aufnahmedatum, damit deine Mediathek in Ordnung bleibt
+• Unterstützt HEIC, JPEG, PNG und WebP
+• Vorher und nachher mit einem Schieberegler vergleichen
+• Verfügbar auf English, Español, Français, Deutsch, Italiano, Português und 简体中文
+
+Compresso basiert auf compresso.js, der Open-Source-Bildbibliothek.

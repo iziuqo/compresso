@@ -1,0 +1,30 @@
+Foto troppo pesanti da inviare? Compresso le rende più leggere con un tocco, direttamente sul telefono.
+
+Scegli una foto o cento. Di' a cosa servono. Compresso sceglie la dimensione giusta e le mantiene belle.
+
+PENSATO PER QUELLO CHE FAI
+• Messaggio: circa 400 KB l'una, perfetto per chat e SMS
+• Email: tutte le foto insieme sotto i 5 MB
+• Modulo: sotto il limite richiesto dal sito, come 1 MB o 500 KB
+• Libera spazio: copie molto più piccole che sembrano l'originale
+• Web: immagini leggere e veloci per il tuo sito o negozio
+
+SEMPLICE PER TUTTI
+• Pulsanti grandi e parole chiare
+• Funziona con il testo grande e il lettore schermo del telefono
+• Nessun cursore da indovinare. Scegli un uso e hai finito
+
+LE TUE FOTO RESTANO TUE
+• Tutto avviene sul telefono. Non viene mai caricato nulla
+• Gli originali non vengono mai modificati né eliminati
+• Puoi togliere la posizione prima di condividere
+• Nessun account, nessuna pubblicità, nessun tracciamento
+
+FATTO BENE
+• Non rende mai una foto più grande
+• Mantiene la data di scatto, così la galleria resta in ordine
+• Funziona con HEIC, JPEG, PNG e WebP
+• Confronta prima e dopo con un semplice cursore
+• Disponibile in English, Español, Français, Deutsch, Italiano, Português e 简体中文
+
+Compresso è basato su compresso.js, la libreria di immagini open source.

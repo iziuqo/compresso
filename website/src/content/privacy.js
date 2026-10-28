@@ -17,6 +17,9 @@ export const PRIVACY_COPY = {
     libraryTitle: 'Developer library',
     libraryBody:
       'compresso.js runs in your application under your control. It makes no network requests unless your code uploads the optimized file.',
+    mobileTitle: 'Compresso for iPhone and Android',
+    mobileBody:
+      'The Compresso mobile app makes smaller copies of photos entirely on your phone. It collects no data: no account, no analytics, no ads and no tracking, and it makes no network requests. It only sees the photos you pick in the system photo picker, and it can only add new photos to your library, never read or change the others. Your settings stay on your phone.',
     contact: 'Questions: open an issue on GitHub.',
   },
   es: {
@@ -33,6 +36,9 @@ export const PRIVACY_COPY = {
       'Este sitio usa Vercel Analytics, Speed Insights y Contentsquare para métricas agregadas. No reciben tus archivos de imagen.',
     libraryTitle: 'Biblioteca para desarrolladores',
     libraryBody: 'compresso.js se ejecuta en tu aplicación. No hace peticiones de red salvo que tu código suba el archivo.',
+    mobileTitle: 'Compresso para iPhone y Android',
+    mobileBody:
+      'La app móvil de Compresso crea copias más pequeñas de tus fotos íntegramente en tu teléfono. No recopila ningún dato: sin cuenta, sin analítica, sin anuncios ni rastreo, y no hace peticiones de red. Solo ve las fotos que eliges en el selector del sistema y solo puede añadir fotos nuevas a tu galería, nunca leer ni cambiar las demás. Tus ajustes se quedan en tu teléfono.',
     contact: 'Preguntas: abre un issue en GitHub.',
   },
   fr: {
@@ -49,6 +55,9 @@ export const PRIVACY_COPY = {
       'Ce site utilise Vercel Analytics, Speed Insights et Contentsquare — métriques agrégées, pas vos fichiers image.',
     libraryTitle: 'Bibliothèque développeur',
     libraryBody: 'compresso.js s’exécute dans votre application sous votre contrôle.',
+    mobileTitle: 'Compresso pour iPhone et Android',
+    mobileBody:
+      'L’application mobile Compresso crée des copies plus légères de vos photos entièrement sur votre téléphone. Elle ne collecte aucune donnée : pas de compte, pas d’analytics, pas de publicité ni de suivi, et aucune requête réseau. Elle ne voit que les photos que vous choisissez dans le sélecteur du système et peut seulement ajouter de nouvelles photos à votre photothèque, jamais lire ni modifier les autres. Vos réglages restent sur votre téléphone.',
     contact: 'Questions : ouvrez une issue sur GitHub.',
   },
   de: {
@@ -65,6 +74,9 @@ export const PRIVACY_COPY = {
       'Diese Website nutzt Vercel Analytics, Speed Insights und Contentsquare — aggregierte Metriken, keine Bilddateien.',
     libraryTitle: 'Entwickler-Bibliothek',
     libraryBody: 'compresso.js läuft in Ihrer Anwendung unter Ihrer Kontrolle.',
+    mobileTitle: 'Compresso für iPhone und Android',
+    mobileBody:
+      'Die Compresso-App für Mobilgeräte erstellt kleinere Kopien deiner Fotos vollständig auf deinem Handy. Sie erhebt keine Daten: kein Konto, keine Analyse, keine Werbung, kein Tracking und keine Netzwerkanfragen. Sie sieht nur die Fotos, die du in der Fotoauswahl des Systems wählst, und kann deiner Mediathek nur neue Fotos hinzufügen, andere aber nie lesen oder ändern. Deine Einstellungen bleiben auf deinem Handy.',
     contact: 'Fragen: Issue auf GitHub eröffnen.',
   },
   it: {
@@ -81,6 +93,9 @@ export const PRIVACY_COPY = {
       'Questo sito usa Vercel Analytics, Speed Insights e Contentsquare — metriche aggregate, non i file immagine.',
     libraryTitle: 'Libreria per sviluppatori',
     libraryBody: 'compresso.js gira nella tua applicazione sotto il tuo controllo.',
+    mobileTitle: 'Compresso per iPhone e Android',
+    mobileBody:
+      'L’app mobile di Compresso crea copie più leggere delle foto interamente sul telefono. Non raccoglie alcun dato: nessun account, nessuna analisi, nessuna pubblicità o tracciamento e nessuna richiesta di rete. Vede solo le foto che scegli nel selettore di sistema e può solo aggiungere nuove foto alla libreria, mai leggere o modificare le altre. Le impostazioni restano sul telefono.',
     contact: 'Domande: apri una issue su GitHub.',
   },
   'pt-BR': {
@@ -97,6 +112,9 @@ export const PRIVACY_COPY = {
       'Este site usa Vercel Analytics, Speed Insights e Contentsquare — métricas agregadas, não seus arquivos.',
     libraryTitle: 'Biblioteca para desenvolvedores',
     libraryBody: 'O compresso.js roda na sua aplicação sob seu controle.',
+    mobileTitle: 'Compresso para iPhone e Android',
+    mobileBody:
+      'O app do Compresso para celular cria cópias menores das suas fotos inteiramente no seu aparelho. Ele não coleta nenhum dado: sem conta, sem analytics, sem anúncios nem rastreamento, e não faz requisições de rede. Ele só vê as fotos que você escolhe no seletor do sistema e só pode adicionar fotos novas à sua galeria, nunca ler ou alterar as outras. Suas configurações ficam no seu celular.',
     contact: 'Dúvidas: abra uma issue no GitHub.',
   },
   'zh-Hans': {
@@ -113,6 +131,9 @@ export const PRIVACY_COPY = {
       '本网站使用 Vercel Analytics、Speed Insights 和 Contentsquare 收集汇总指标，不接收图片文件。',
     libraryTitle: '开发者库',
     libraryBody: 'compresso.js 在您的应用中运行，由您控制。',
+    mobileTitle: 'Compresso iPhone 和 Android 版',
+    mobileBody:
+      'Compresso 手机应用完全在您的手机上生成更小的照片副本。它不收集任何数据：无需账号，没有分析、广告或追踪，也不发起任何网络请求。它只能看到您在系统照片选择器中选择的照片，并且只能向相册添加新照片，绝不会读取或更改其他照片。您的设置只保存在手机上。',
     contact: '问题：请在 GitHub 提交 issue。',
   },
 };

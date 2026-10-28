@@ -1,0 +1,289 @@
+{
+  "en": {
+    "name": "Compresso: Photo Compressor",
+    "subtitle": "Lighter photos in one tap",
+    "shortDescription": "Make photos smaller for messages, email and forms. Private, simple, no ads.",
+    "promotionalText": "Pick photos, say what they're for, done. Compresso makes them smaller on your phone and never uploads a thing.",
+    "keywords": "compress,resize,reduce,shrink,image,size,jpeg,heic,mb,kb,email,upload,storage",
+    "description": "Photos too big to send? Compresso makes them smaller in one tap, right on your phone.\n\nPick one photo or a hundred. Say what they're for. Compresso picks the right size and keeps them looking great.\n\nMADE FOR WHAT YOU'RE DOING\n• Message: about 400 KB each, perfect for chat apps and texts\n• Email: all your photos together under 5 MB\n• Upload form: under the limit a website asks for, like 1 MB or 500 KB\n• Free up space: much smaller copies that still look like the original\n• Web: light, fast images for your site or shop\n\nSIMPLE ENOUGH FOR EVERYONE\n• Big, clear buttons and plain words\n• Works with your phone's larger text size and screen reader\n• No sliders to guess at. Pick a purpose and you're done\n\nYOUR PHOTOS STAY YOURS\n• Everything happens on your phone. Nothing is uploaded, ever\n• Your originals are never changed or deleted\n• Location can be removed before you share\n• No account, no ads, no tracking\n\nDONE RIGHT\n• Never makes a photo bigger\n• Keeps the date the photo was taken, so your library stays in order\n• Works with HEIC, JPEG, PNG and WebP\n• Compare before and after with a simple slider\n• Available in English, Español, Français, Deutsch, Italiano, Português and 简体中文\n\nCompresso is built on compresso.js, the open-source image library.",
+    "releaseNotes": "Welcome to Compresso. Make photos lighter in one tap.",
+    "screenshots": [
+      {
+        "screen": "1-home",
+        "headline": "Photos too big to send?",
+        "sub": "Make them lighter in one tap."
+      },
+      {
+        "screen": "2-purpose",
+        "headline": "Say what they're for.",
+        "sub": "Compresso picks the right size."
+      },
+      {
+        "screen": "5-done",
+        "headline": "Same photo. 95% lighter.",
+        "sub": "Slide to compare before and after."
+      },
+      {
+        "screen": "3-upload",
+        "headline": "Fits any upload limit.",
+        "sub": "1 MB, 500 KB or 200 KB. You choose."
+      },
+      {
+        "screen": "7-private",
+        "headline": "Private by design.",
+        "sub": "Nothing is uploaded. Your originals stay untouched."
+      },
+      {
+        "screen": "6-settings",
+        "headline": "Speaks your language.",
+        "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
+      }
+    ]
+  },
+  "es": {
+    "name": "Compresso: Comprimir Fotos",
+    "subtitle": "Fotos más ligeras con un toque",
+    "shortDescription": "Reduce el tamaño de tus fotos para mensajes, correo y formularios. Sin anuncios.",
+    "promotionalText": "Elige tus fotos, di para qué son y listo. Compresso las reduce en tu teléfono y nunca sube nada.",
+    "keywords": "comprimir,reducir,redimensionar,foto,imagen,tamaño,jpeg,heic,mb,kb,correo,espacio",
+    "description": "¿Tus fotos pesan demasiado para enviarlas? Compresso las hace más ligeras con un toque, directamente en tu teléfono.\n\nElige una foto o cien. Di para qué son. Compresso elige el tamaño adecuado y las mantiene bonitas.\n\nPENSADO PARA LO QUE HACES\n• Mensaje: unos 400 KB cada una, ideal para apps de chat y SMS\n• Correo: todas tus fotos juntas en menos de 5 MB\n• Formulario: por debajo del límite que pide la web, como 1 MB o 500 KB\n• Liberar espacio: copias mucho más pequeñas que se ven como el original\n• Web: imágenes ligeras y rápidas para tu sitio o tienda\n\nFÁCIL PARA TODOS\n• Botones grandes y palabras claras\n• Funciona con el texto grande y el lector de pantalla de tu teléfono\n• Sin controles complicados. Elige un uso y listo\n\nTUS FOTOS SIGUEN SIENDO TUYAS\n• Todo ocurre en tu teléfono. Nunca se sube nada\n• Tus originales nunca se modifican ni se borran\n• Puedes quitar la ubicación antes de compartir\n• Sin cuenta, sin anuncios, sin rastreo\n\nBIEN HECHO\n• Nunca hace una foto más grande\n• Conserva la fecha en que se tomó la foto, para que tu galería siga en orden\n• Compatible con HEIC, JPEG, PNG y WebP\n• Compara el antes y el después con un deslizador\n• Disponible en English, Español, Français, Deutsch, Italiano, Português y 简体中文\n\nCompresso está creado sobre compresso.js, la biblioteca de imágenes de código abierto.",
+    "releaseNotes": "Te damos la bienvenida a Compresso. Fotos más ligeras con un toque.",
+    "screenshots": [
+      {
+        "screen": "1-home",
+        "headline": "¿Fotos demasiado pesadas?",
+        "sub": "Hazlas más ligeras con un toque."
+      },
+      {
+        "screen": "2-purpose",
+        "headline": "Di para qué son.",
+        "sub": "Compresso elige el tamaño justo."
+      },
+      {
+        "screen": "5-done",
+        "headline": "La misma foto. 95% más ligera.",
+        "sub": "Desliza para comparar el antes y el después."
+      },
+      {
+        "screen": "3-upload",
+        "headline": "Cabe en cualquier formulario.",
+        "sub": "1 MB, 500 KB o 200 KB. Tú eliges."
+      },
+      {
+        "screen": "7-private",
+        "headline": "Privada por diseño.",
+        "sub": "No se sube nada. Tus originales quedan intactos."
+      },
+      {
+        "screen": "6-settings",
+        "headline": "Habla tu idioma.",
+        "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
+      }
+    ]
+  },
+  "fr": {
+    "name": "Compresso : Compresser Photo",
+    "subtitle": "Des photos plus légères",
+    "shortDescription": "Réduisez vos photos pour les messages, les e-mails et les formulaires. Sans pub.",
+    "promotionalText": "Choisissez vos photos, dites à quoi elles servent, c'est fait. Compresso les réduit sur votre téléphone, sans rien envoyer.",
+    "keywords": "compresser,réduire,redimensionner,photo,image,taille,jpeg,heic,mo,ko,email,espace",
+    "description": "Vos photos sont trop lourdes à envoyer ? Compresso les allège en un geste, directement sur votre téléphone.\n\nChoisissez une photo ou cent. Dites à quoi elles servent. Compresso choisit la bonne taille et garde leur beauté.\n\nPENSÉ POUR CE QUE VOUS FAITES\n• Message : environ 400 Ko chacune, idéal pour les messageries et les SMS\n• E-mail : toutes vos photos ensemble sous 5 Mo\n• Formulaire : sous la limite demandée par le site, comme 1 Mo ou 500 Ko\n• Libérer de l'espace : des copies bien plus petites, fidèles à l'original\n• Web : des images légères et rapides pour votre site ou boutique\n\nSIMPLE POUR TOUT LE MONDE\n• De grands boutons et des mots clairs\n• Compatible avec le grand texte et le lecteur d'écran de votre téléphone\n• Aucun réglage compliqué. Choisissez un usage et c'est fini\n\nVOS PHOTOS RESTENT À VOUS\n• Tout se passe sur votre téléphone. Rien n'est jamais envoyé\n• Vos originaux ne sont jamais modifiés ni supprimés\n• La position peut être retirée avant de partager\n• Pas de compte, pas de pub, pas de suivi\n\nBIEN FAIT\n• Ne rend jamais une photo plus lourde\n• Garde la date de prise de vue, pour que votre galerie reste dans l'ordre\n• Fonctionne avec HEIC, JPEG, PNG et WebP\n• Comparez avant et après avec un simple curseur\n• Disponible en English, Español, Français, Deutsch, Italiano, Português et 简体中文\n\nCompresso repose sur compresso.js, la bibliothèque d'images open source.",
+    "releaseNotes": "Bienvenue dans Compresso. Des photos plus légères en un geste.",
+    "screenshots": [
+      {
+        "screen": "1-home",
+        "headline": "Photos trop lourdes ?",
+        "sub": "Allégez-les en un geste."
+      },
+      {
+        "screen": "2-purpose",
+        "headline": "Dites à quoi elles servent.",
+        "sub": "Compresso choisit la bonne taille."
+      },
+      {
+        "screen": "5-done",
+        "headline": "La même photo. 95 % plus légère.",
+        "sub": "Glissez pour comparer avant et après."
+      },
+      {
+        "screen": "3-upload",
+        "headline": "Pour tous les formulaires.",
+        "sub": "1 Mo, 500 Ko ou 200 Ko. Vous choisissez."
+      },
+      {
+        "screen": "7-private",
+        "headline": "Privée par conception.",
+        "sub": "Rien n'est envoyé. Vos originaux restent intacts."
+      },
+      {
+        "screen": "6-settings",
+        "headline": "Parle votre langue.",
+        "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
+      }
+    ]
+  },
+  "de": {
+    "name": "Compresso: Fotos verkleinern",
+    "subtitle": "Leichtere Fotos mit einem Tipp",
+    "shortDescription": "Fotos verkleinern für Nachrichten, E-Mail und Formulare. Privat, ohne Werbung.",
+    "promotionalText": "Fotos auswählen, sagen wofür, fertig. Compresso verkleinert sie auf deinem Handy und lädt nichts hoch.",
+    "keywords": "komprimieren,verkleinern,skalieren,bild,foto,größe,jpeg,heic,mb,kb,email,speicher",
+    "description": "Fotos zu groß zum Senden? Compresso macht sie mit einem Tipp kleiner, direkt auf deinem Handy.\n\nWähle ein Foto oder hundert. Sag, wofür sie sind. Compresso wählt die richtige Größe und sie sehen weiter toll aus.\n\nGEMACHT FÜR DEINEN ZWECK\n• Nachricht: etwa 400 KB pro Foto, perfekt für Messenger und SMS\n• E-Mail: alle Fotos zusammen unter 5 MB\n• Upload-Formular: unter dem Limit der Website, zum Beispiel 1 MB oder 500 KB\n• Speicher freigeben: viel kleinere Kopien, die wie das Original aussehen\n• Web: leichte, schnelle Bilder für deine Website oder deinen Shop\n\nEINFACH FÜR ALLE\n• Große, klare Tasten und verständliche Worte\n• Funktioniert mit großer Schrift und dem Bildschirmleser deines Handys\n• Keine Regler zum Raten. Zweck wählen, fertig\n\nDEINE FOTOS BLEIBEN DEINE\n• Alles passiert auf deinem Handy. Nichts wird hochgeladen\n• Deine Originale werden nie verändert oder gelöscht\n• Den Aufnahmeort kannst du vor dem Teilen entfernen\n• Kein Konto, keine Werbung, kein Tracking\n\nRICHTIG GEMACHT\n• Macht ein Foto niemals größer\n• Behält das Aufnahmedatum, damit deine Mediathek in Ordnung bleibt\n• Unterstützt HEIC, JPEG, PNG und WebP\n• Vorher und nachher mit einem Schieberegler vergleichen\n• Verfügbar auf English, Español, Français, Deutsch, Italiano, Português und 简体中文\n\nCompresso basiert auf compresso.js, der Open-Source-Bildbibliothek.",
+    "releaseNotes": "Willkommen bei Compresso. Leichtere Fotos mit einem Tipp.",
+    "screenshots": [
+      {
+        "screen": "1-home",
+        "headline": "Fotos zu groß zum Senden?",
+        "sub": "Mit einem Tipp leichter machen."
+      },
+      {
+        "screen": "2-purpose",
+        "headline": "Sag, wofür sie sind.",
+        "sub": "Compresso wählt die richtige Größe."
+      },
+      {
+        "screen": "5-done",
+        "headline": "Dasselbe Foto. 95 % leichter.",
+        "sub": "Wischen, um vorher und nachher zu vergleichen."
+      },
+      {
+        "screen": "3-upload",
+        "headline": "Passt in jedes Upload-Limit.",
+        "sub": "1 MB, 500 KB oder 200 KB. Du entscheidest."
+      },
+      {
+        "screen": "7-private",
+        "headline": "Privat von Grund auf.",
+        "sub": "Nichts wird hochgeladen. Deine Originale bleiben unverändert."
+      },
+      {
+        "screen": "6-settings",
+        "headline": "Spricht deine Sprache.",
+        "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
+      }
+    ]
+  },
+  "it": {
+    "name": "Compresso: Comprimi Foto",
+    "subtitle": "Foto più leggere con un tocco",
+    "shortDescription": "Foto più leggere per messaggi, email e moduli. Privato e senza pubblicità.",
+    "promotionalText": "Scegli le foto, di' a cosa servono, fatto. Compresso le rimpicciolisce sul telefono e non carica mai nulla.",
+    "keywords": "comprimere,ridurre,ridimensionare,foto,immagine,dimensione,jpeg,heic,mb,kb,email",
+    "description": "Foto troppo pesanti da inviare? Compresso le rende più leggere con un tocco, direttamente sul telefono.\n\nScegli una foto o cento. Di' a cosa servono. Compresso sceglie la dimensione giusta e le mantiene belle.\n\nPENSATO PER QUELLO CHE FAI\n• Messaggio: circa 400 KB l'una, perfetto per chat e SMS\n• Email: tutte le foto insieme sotto i 5 MB\n• Modulo: sotto il limite richiesto dal sito, come 1 MB o 500 KB\n• Libera spazio: copie molto più piccole che sembrano l'originale\n• Web: immagini leggere e veloci per il tuo sito o negozio\n\nSEMPLICE PER TUTTI\n• Pulsanti grandi e parole chiare\n• Funziona con il testo grande e il lettore schermo del telefono\n• Nessun cursore da indovinare. Scegli un uso e hai finito\n\nLE TUE FOTO RESTANO TUE\n• Tutto avviene sul telefono. Non viene mai caricato nulla\n• Gli originali non vengono mai modificati né eliminati\n• Puoi togliere la posizione prima di condividere\n• Nessun account, nessuna pubblicità, nessun tracciamento\n\nFATTO BENE\n• Non rende mai una foto più grande\n• Mantiene la data di scatto, così la galleria resta in ordine\n• Funziona con HEIC, JPEG, PNG e WebP\n• Confronta prima e dopo con un semplice cursore\n• Disponibile in English, Español, Français, Deutsch, Italiano, Português e 简体中文\n\nCompresso è basato su compresso.js, la libreria di immagini open source.",
+    "releaseNotes": "Benvenuto in Compresso. Foto più leggere con un tocco.",
+    "screenshots": [
+      {
+        "screen": "1-home",
+        "headline": "Foto troppo pesanti?",
+        "sub": "Alleggeriscile con un tocco."
+      },
+      {
+        "screen": "2-purpose",
+        "headline": "Di' a cosa servono.",
+        "sub": "Compresso sceglie la dimensione giusta."
+      },
+      {
+        "screen": "5-done",
+        "headline": "La stessa foto. 95% più leggera.",
+        "sub": "Scorri per confrontare prima e dopo."
+      },
+      {
+        "screen": "3-upload",
+        "headline": "Per ogni limite di caricamento.",
+        "sub": "1 MB, 500 KB o 200 KB. Scegli tu."
+      },
+      {
+        "screen": "7-private",
+        "headline": "Privata per natura.",
+        "sub": "Non si carica nulla. Gli originali restano intatti."
+      },
+      {
+        "screen": "6-settings",
+        "headline": "Parla la tua lingua.",
+        "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
+      }
+    ]
+  },
+  "pt-BR": {
+    "name": "Compresso: Comprimir Fotos",
+    "subtitle": "Fotos mais leves em um toque",
+    "shortDescription": "Fotos menores para mensagens, e-mail e formulários. Privado e sem anúncios.",
+    "promotionalText": "Escolha as fotos, diga para que são e pronto. O Compresso diminui tudo no seu celular e nunca envia nada.",
+    "keywords": "comprimir,reduzir,redimensionar,foto,imagem,tamanho,jpeg,heic,mb,kb,email,espaço",
+    "description": "Fotos grandes demais para enviar? O Compresso deixa elas menores em um toque, direto no seu celular.\n\nEscolha uma foto ou cem. Diga para que são. O Compresso escolhe o tamanho certo e mantém tudo bonito.\n\nFEITO PARA O QUE VOCÊ PRECISA\n• Mensagem: cerca de 400 KB cada, perfeito para apps de conversa e SMS\n• E-mail: todas as fotos juntas com menos de 5 MB\n• Formulário: abaixo do limite que o site pede, como 1 MB ou 500 KB\n• Liberar espaço: cópias bem menores que parecem o original\n• Web: imagens leves e rápidas para seu site ou loja\n\nFÁCIL PARA TODO MUNDO\n• Botões grandes e palavras simples\n• Funciona com o texto grande e o leitor de tela do celular\n• Nada de controles complicados. Escolha o uso e pronto\n\nSUAS FOTOS CONTINUAM SUAS\n• Tudo acontece no seu celular. Nada é enviado, nunca\n• Seus originais nunca são alterados nem apagados\n• Dá para tirar a localização antes de compartilhar\n• Sem conta, sem anúncios, sem rastreamento\n\nBEM FEITO\n• Nunca deixa uma foto maior\n• Mantém a data em que a foto foi tirada, para sua galeria continuar em ordem\n• Funciona com HEIC, JPEG, PNG e WebP\n• Compare o antes e o depois com um controle deslizante\n• Disponível em English, Español, Français, Deutsch, Italiano, Português e 简体中文\n\nO Compresso é feito com o compresso.js, a biblioteca de imagens de código aberto.",
+    "releaseNotes": "Boas-vindas ao Compresso. Fotos mais leves em um toque.",
+    "screenshots": [
+      {
+        "screen": "1-home",
+        "headline": "Fotos pesadas demais?",
+        "sub": "Deixe mais leves em um toque."
+      },
+      {
+        "screen": "2-purpose",
+        "headline": "Diga para que são.",
+        "sub": "O Compresso escolhe o tamanho certo."
+      },
+      {
+        "screen": "5-done",
+        "headline": "A mesma foto. 95% mais leve.",
+        "sub": "Deslize para comparar o antes e o depois."
+      },
+      {
+        "screen": "3-upload",
+        "headline": "Cabe em qualquer limite.",
+        "sub": "1 MB, 500 KB ou 200 KB. Você escolhe."
+      },
+      {
+        "screen": "7-private",
+        "headline": "Privado por natureza.",
+        "sub": "Nada é enviado. Seus originais continuam intactos."
+      },
+      {
+        "screen": "6-settings",
+        "headline": "Fala a sua língua.",
+        "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
+      }
+    ]
+  },
+  "zh-Hans": {
+    "name": "Compresso：照片压缩",
+    "subtitle": "一键让照片变轻",
+    "shortDescription": "为消息、邮件和表格压缩照片。在手机上完成，私密简单，无广告。",
+    "promotionalText": "选择照片，说明用途，就完成了。Compresso 在你的手机上压缩照片，从不上传任何内容。",
+    "keywords": "压缩,图片,照片,缩小,尺寸,大小,jpeg,heic,邮件,上传,存储",
+    "description": "照片太大发不出去？Compresso 一键帮你压缩，全部在手机上完成。\n\n选一张或一百张照片，说明用途，Compresso 会选出合适的大小，并保持照片好看。\n\n按用途设计\n• 消息：每张约 400 KB，适合聊天应用和短信\n• 邮件：所有照片合计小于 5 MB\n• 上传表格：低于网站要求的上限，例如 1 MB 或 500 KB\n• 释放空间：小得多的副本，看起来和原图一样\n• 网页：适合网站或网店的轻量图片\n\n人人都会用\n• 大按钮，说明简单清楚\n• 支持手机的大字体和读屏功能\n• 不用猜测滑块，选好用途就完成\n\n照片始终属于你\n• 一切都在手机上完成，从不上传\n• 原图永远不会被修改或删除\n• 分享前可以去除位置信息\n• 无需账号，没有广告，没有追踪\n\n用心打造\n• 绝不会让照片变大\n• 保留拍摄日期，相册顺序不会乱\n• 支持 HEIC、JPEG、PNG 和 WebP\n• 用滑块对比压缩前后\n• 提供 English、Español、Français、Deutsch、Italiano、Português 和简体中文\n\nCompresso 基于开源图片库 compresso.js 打造。",
+    "releaseNotes": "欢迎使用 Compresso，一键让照片变轻。",
+    "screenshots": [
+      {
+        "screen": "1-home",
+        "headline": "照片太大发不出去？",
+        "sub": "一键变轻。"
+      },
+      {
+        "screen": "2-purpose",
+        "headline": "说明用途就好。",
+        "sub": "Compresso 自动选出合适大小。"
+      },
+      {
+        "screen": "5-done",
+        "headline": "同一张照片，轻了 95%。",
+        "sub": "滑动对比压缩前后。"
+      },
+      {
+        "screen": "3-upload",
+        "headline": "满足任何上传限制。",
+        "sub": "1 MB、500 KB 或 200 KB，由你选择。"
+      },
+      {
+        "screen": "7-private",
+        "headline": "隐私至上。",
+        "sub": "不上传任何内容，原图完好无损。"
+      },
+      {
+        "screen": "6-settings",
+        "headline": "说你的语言。",
+        "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
+      }
+    ]
+  }
+}

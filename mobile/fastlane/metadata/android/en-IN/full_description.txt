@@ -1,0 +1,30 @@
+Photos too big to send? Compresso makes them smaller in one tap, right on your phone.
+
+Pick one photo or a hundred. Say what they're for. Compresso picks the right size and keeps them looking great.
+
+MADE FOR WHAT YOU'RE DOING
+• Message: about 400 KB each, perfect for chat apps and texts
+• Email: all your photos together under 5 MB
+• Upload form: under the limit a website asks for, like 1 MB or 500 KB
+• Free up space: much smaller copies that still look like the original
+• Web: light, fast images for your site or shop
+
+SIMPLE ENOUGH FOR EVERYONE
+• Big, clear buttons and plain words
+• Works with your phone's larger text size and screen reader
+• No sliders to guess at. Pick a purpose and you're done
+
+YOUR PHOTOS STAY YOURS
+• Everything happens on your phone. Nothing is uploaded, ever
+• Your originals are never changed or deleted
+• Location can be removed before you share
+• No account, no ads, no tracking
+
+DONE RIGHT
+• Never makes a photo bigger
+• Keeps the date the photo was taken, so your library stays in order
+• Works with HEIC, JPEG, PNG and WebP
+• Compare before and after with a simple slider
+• Available in English, Español, Français, Deutsch, Italiano, Português and 简体中文
+
+Compresso is built on compresso.js, the open-source image library.

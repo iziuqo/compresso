@@ -23,6 +23,8 @@ export default function PrivacyClient({ locale }) {
         <p className="mk-seo__lead">{copy.intro}</p>
         <h2 className="mk-seo__h2">{copy.imageTitle}</h2>
         <p className="mk-seo__p">{copy.imageBody}</p>
+        <h2 className="mk-seo__h2">{copy.mobileTitle}</h2>
+        <p className="mk-seo__p">{copy.mobileBody}</p>
         <h2 className="mk-seo__h2">{copy.analyticsTitle}</h2>
         <p className="mk-seo__p">{copy.analyticsBody}</p>
         <h2 className="mk-seo__h2">{copy.libraryTitle}</h2>

@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Compresso",
+    "NSPhotoLibraryAddUsageDescription": "Compresso sichert die leichteren Kopien, die du erstellst, in deiner Mediathek. Andere Fotos werden nie gelesen oder geändert."
+  }
+}

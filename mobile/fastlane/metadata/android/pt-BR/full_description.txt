@@ -1,0 +1,30 @@
+Fotos grandes demais para enviar? O Compresso deixa elas menores em um toque, direto no seu celular.
+
+Escolha uma foto ou cem. Diga para que são. O Compresso escolhe o tamanho certo e mantém tudo bonito.
+
+FEITO PARA O QUE VOCÊ PRECISA
+• Mensagem: cerca de 400 KB cada, perfeito para apps de conversa e SMS
+• E-mail: todas as fotos juntas com menos de 5 MB
+• Formulário: abaixo do limite que o site pede, como 1 MB ou 500 KB
+• Liberar espaço: cópias bem menores que parecem o original
+• Web: imagens leves e rápidas para seu site ou loja
+
+FÁCIL PARA TODO MUNDO
+• Botões grandes e palavras simples
+• Funciona com o texto grande e o leitor de tela do celular
+• Nada de controles complicados. Escolha o uso e pronto
+
+SUAS FOTOS CONTINUAM SUAS
+• Tudo acontece no seu celular. Nada é enviado, nunca
+• Seus originais nunca são alterados nem apagados
+• Dá para tirar a localização antes de compartilhar
+• Sem conta, sem anúncios, sem rastreamento
+
+BEM FEITO
+• Nunca deixa uma foto maior
+• Mantém a data em que a foto foi tirada, para sua galeria continuar em ordem
+• Funciona com HEIC, JPEG, PNG e WebP
+• Compare o antes e o depois com um controle deslizante
+• Disponível em English, Español, Français, Deutsch, Italiano, Português e 简体中文
+
+O Compresso é feito com o compresso.js, a biblioteca de imagens de código aberto.

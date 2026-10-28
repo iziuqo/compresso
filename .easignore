@@ -1,0 +1,37 @@
+# What EAS uploads for a mobile build (it archives from the repo root).
+# Replaces .gitignore for EAS, so it repeats the rules that matter and
+# leaves out everything the app build never reads.
+node_modules/
+dist/
+out/
+.expo/
+.next/
+.vercel
+.env
+.env.local
+.env*.local
+*.log
+*.tsbuildinfo
+.DS_Store
+coverage/
+_assets/
+_qa/
+*.jks
+*.p8
+*.p12
+*.key
+*.pem
+*.mobileprovision
+mobile/ios/
+mobile/android/
+mobile/.kotlin/
+
+# Not part of the app build
+_articles/
+_docs/
+benchmark/
+examples/
+website/
+packages/compresso/test/
+mobile/store/
+mobile/fastlane/
