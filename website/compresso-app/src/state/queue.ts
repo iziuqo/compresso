@@ -202,6 +202,12 @@ export function useQueue() {
   selectedRef.current = selectedId;
   autoCappedRef.current = autoCapped;
 
+  /** Stop every main-pool job still in flight. The preview worker cancels its own. */
+  const abortBatch = useCallback(() => {
+    for (const controller of controllersRef.current.values()) controller.abort();
+    controllersRef.current.clear();
+  }, []);
+
   /**
    * Lazily (re)created rather than built once at first render. React can unmount
    * and remount the same component while keeping refs — StrictMode does exactly
@@ -216,11 +222,10 @@ export function useQueue() {
     poolRef.current = null;
     previewRef.current?.destroy();
     previewRef.current = null;
-    for (const controller of controllersRef.current.values()) controller.abort();
-    controllersRef.current.clear();
+    abortBatch();
     for (const url of liveUrlsRef.current) URL.revokeObjectURL(url);
     liveUrlsRef.current = new Set();
-  }, []);
+  }, [abortBatch]);
 
   /**
    * Object URLs are reclaimed from the committed state, never from inside a
@@ -333,15 +338,14 @@ export function useQueue() {
     if (!jobsRef.current.length) return;
 
     const timer = window.setTimeout(() => {
-      for (const controller of controllersRef.current.values()) controller.abort();
-      controllersRef.current.clear();
+      abortBatch();
       const token = ++runToken.current;
       const current = jobsRef.current;
       setJobs((cur) => cur.map((j) => ({ ...j, status: 'queued', progress: 0, errorKind: null })));
       for (const job of current) void runJob(job, token);
     }, 180);
     return () => window.clearTimeout(timer);
-  }, [paramsKey, runJob]);
+  }, [paramsKey, runJob, abortBatch]);
 
   const remove = useCallback((id: string) => {
     controllersRef.current.get(id)?.abort();
@@ -356,15 +360,14 @@ export function useQueue() {
   }, []);
 
   const clear = useCallback(() => {
-    for (const controller of controllersRef.current.values()) controller.abort();
-    controllersRef.current.clear();
+    abortBatch();
     runToken.current++;
     setJobs([]);
     setSelectedId(null);
     // Starting over drops the images but not what was learned about the
     // device/session — a cap already earned stays earned.
     setParams(defaultParamsFor(autoCappedRef.current));
-  }, []);
+  }, [abortBatch]);
 
   const retry = useCallback((id: string) => {
     const job = jobsRef.current.find((j) => j.id === id);
