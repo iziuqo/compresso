@@ -29,7 +29,28 @@
         "promoText": "Pick photos, say what they're for, done. Compresso makes them smaller on your phone and never uploads a thing.",
         "marketingUrl": "https://compresso.izaias.xyz/en/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/en/ios/phone-1.png",
+            "store/out/images/en/ios/phone-2.png",
+            "store/out/images/en/ios/phone-3.png",
+            "store/out/images/en/ios/phone-4.png",
+            "store/out/images/en/ios/phone-5.png",
+            "store/out/images/en/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/en/ios/tablet-1.png",
+            "store/out/images/en/ios/tablet-2.png",
+            "store/out/images/en/ios/tablet-3.png",
+            "store/out/images/en/ios/tablet-4.png",
+            "store/out/images/en/ios/tablet-5.png",
+            "store/out/images/en/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/en/preview.mp4"
+        }
       },
       "en-GB": {
         "title": "Compresso: Photo Compressor",
@@ -54,7 +75,28 @@
         "promoText": "Pick photos, say what they're for, done. Compresso makes them smaller on your phone and never uploads a thing.",
         "marketingUrl": "https://compresso.izaias.xyz/en/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/en/ios/phone-1.png",
+            "store/out/images/en/ios/phone-2.png",
+            "store/out/images/en/ios/phone-3.png",
+            "store/out/images/en/ios/phone-4.png",
+            "store/out/images/en/ios/phone-5.png",
+            "store/out/images/en/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/en/ios/tablet-1.png",
+            "store/out/images/en/ios/tablet-2.png",
+            "store/out/images/en/ios/tablet-3.png",
+            "store/out/images/en/ios/tablet-4.png",
+            "store/out/images/en/ios/tablet-5.png",
+            "store/out/images/en/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/en/preview.mp4"
+        }
       },
       "en-AU": {
         "title": "Compresso: Photo Compressor",
@@ -79,7 +121,28 @@
         "promoText": "Pick photos, say what they're for, done. Compresso makes them smaller on your phone and never uploads a thing.",
         "marketingUrl": "https://compresso.izaias.xyz/en/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/en/ios/phone-1.png",
+            "store/out/images/en/ios/phone-2.png",
+            "store/out/images/en/ios/phone-3.png",
+            "store/out/images/en/ios/phone-4.png",
+            "store/out/images/en/ios/phone-5.png",
+            "store/out/images/en/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/en/ios/tablet-1.png",
+            "store/out/images/en/ios/tablet-2.png",
+            "store/out/images/en/ios/tablet-3.png",
+            "store/out/images/en/ios/tablet-4.png",
+            "store/out/images/en/ios/tablet-5.png",
+            "store/out/images/en/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/en/preview.mp4"
+        }
       },
       "en-CA": {
         "title": "Compresso: Photo Compressor",
@@ -104,10 +167,31 @@
         "promoText": "Pick photos, say what they're for, done. Compresso makes them smaller on your phone and never uploads a thing.",
         "marketingUrl": "https://compresso.izaias.xyz/en/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/en/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/en/ios/phone-1.png",
+            "store/out/images/en/ios/phone-2.png",
+            "store/out/images/en/ios/phone-3.png",
+            "store/out/images/en/ios/phone-4.png",
+            "store/out/images/en/ios/phone-5.png",
+            "store/out/images/en/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/en/ios/tablet-1.png",
+            "store/out/images/en/ios/tablet-2.png",
+            "store/out/images/en/ios/tablet-3.png",
+            "store/out/images/en/ios/tablet-4.png",
+            "store/out/images/en/ios/tablet-5.png",
+            "store/out/images/en/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/en/preview.mp4"
+        }
       },
       "es-ES": {
-        "title": "Compresso: Comprimir Fotos",
+        "title": "Compresso: Reducir Fotos",
         "subtitle": "Fotos más ligeras con un toque",
         "description": "¿Tus fotos pesan demasiado para enviarlas? Compresso las hace más ligeras con un toque, directamente en tu teléfono.\n\nElige una foto o cien. Di para qué son. Compresso elige el tamaño adecuado y las mantiene bonitas.\n\nPENSADO PARA LO QUE HACES\n• Mensaje: unos 400 KB cada una, ideal para apps de chat y SMS\n• Correo: todas tus fotos juntas en menos de 5 MB\n• Formulario: por debajo del límite que pide la web, como 1 MB o 500 KB\n• Liberar espacio: copias mucho más pequeñas que se ven como el original\n• Web: imágenes ligeras y rápidas para tu sitio o tienda\n\nFÁCIL PARA TODOS\n• Botones grandes y palabras claras\n• Funciona con el texto grande y el lector de pantalla de tu teléfono\n• Sin controles complicados. Elige un uso y listo\n\nTUS FOTOS SIGUEN SIENDO TUYAS\n• Todo ocurre en tu teléfono. Nunca se sube nada\n• Tus originales nunca se modifican ni se borran\n• Puedes quitar la ubicación antes de compartir\n• Sin cuenta, sin anuncios, sin rastreo\n\nBIEN HECHO\n• Nunca hace una foto más grande\n• Conserva la fecha en que se tomó la foto, para que tu galería siga en orden\n• Compatible con HEIC, JPEG, PNG y WebP\n• Compara el antes y el después con un deslizador\n• Disponible en English, Español, Français, Deutsch, Italiano, Português y 简体中文\n\nCompresso está creado sobre compresso.js, la biblioteca de imágenes de código abierto.",
         "keywords": [
@@ -128,10 +212,31 @@
         "promoText": "Elige tus fotos, di para qué son y listo. Compresso las reduce en tu teléfono y nunca sube nada.",
         "marketingUrl": "https://compresso.izaias.xyz/es/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/es/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/es/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/es/ios/phone-1.png",
+            "store/out/images/es/ios/phone-2.png",
+            "store/out/images/es/ios/phone-3.png",
+            "store/out/images/es/ios/phone-4.png",
+            "store/out/images/es/ios/phone-5.png",
+            "store/out/images/es/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/es/ios/tablet-1.png",
+            "store/out/images/es/ios/tablet-2.png",
+            "store/out/images/es/ios/tablet-3.png",
+            "store/out/images/es/ios/tablet-4.png",
+            "store/out/images/es/ios/tablet-5.png",
+            "store/out/images/es/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/es/preview.mp4"
+        }
       },
       "es-MX": {
-        "title": "Compresso: Comprimir Fotos",
+        "title": "Compresso: Reducir Fotos",
         "subtitle": "Fotos más ligeras con un toque",
         "description": "¿Tus fotos pesan demasiado para enviarlas? Compresso las hace más ligeras con un toque, directamente en tu teléfono.\n\nElige una foto o cien. Di para qué son. Compresso elige el tamaño adecuado y las mantiene bonitas.\n\nPENSADO PARA LO QUE HACES\n• Mensaje: unos 400 KB cada una, ideal para apps de chat y SMS\n• Correo: todas tus fotos juntas en menos de 5 MB\n• Formulario: por debajo del límite que pide la web, como 1 MB o 500 KB\n• Liberar espacio: copias mucho más pequeñas que se ven como el original\n• Web: imágenes ligeras y rápidas para tu sitio o tienda\n\nFÁCIL PARA TODOS\n• Botones grandes y palabras claras\n• Funciona con el texto grande y el lector de pantalla de tu teléfono\n• Sin controles complicados. Elige un uso y listo\n\nTUS FOTOS SIGUEN SIENDO TUYAS\n• Todo ocurre en tu teléfono. Nunca se sube nada\n• Tus originales nunca se modifican ni se borran\n• Puedes quitar la ubicación antes de compartir\n• Sin cuenta, sin anuncios, sin rastreo\n\nBIEN HECHO\n• Nunca hace una foto más grande\n• Conserva la fecha en que se tomó la foto, para que tu galería siga en orden\n• Compatible con HEIC, JPEG, PNG y WebP\n• Compara el antes y el después con un deslizador\n• Disponible en English, Español, Français, Deutsch, Italiano, Português y 简体中文\n\nCompresso está creado sobre compresso.js, la biblioteca de imágenes de código abierto.",
         "keywords": [
@@ -152,10 +257,31 @@
         "promoText": "Elige tus fotos, di para qué son y listo. Compresso las reduce en tu teléfono y nunca sube nada.",
         "marketingUrl": "https://compresso.izaias.xyz/es/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/es/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/es/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/es/ios/phone-1.png",
+            "store/out/images/es/ios/phone-2.png",
+            "store/out/images/es/ios/phone-3.png",
+            "store/out/images/es/ios/phone-4.png",
+            "store/out/images/es/ios/phone-5.png",
+            "store/out/images/es/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/es/ios/tablet-1.png",
+            "store/out/images/es/ios/tablet-2.png",
+            "store/out/images/es/ios/tablet-3.png",
+            "store/out/images/es/ios/tablet-4.png",
+            "store/out/images/es/ios/tablet-5.png",
+            "store/out/images/es/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/es/preview.mp4"
+        }
       },
       "fr-FR": {
-        "title": "Compresso : Compresser Photo",
+        "title": "Compresso : Réduire Photos",
         "subtitle": "Des photos plus légères",
         "description": "Vos photos sont trop lourdes à envoyer ? Compresso les allège en un geste, directement sur votre téléphone.\n\nChoisissez une photo ou cent. Dites à quoi elles servent. Compresso choisit la bonne taille et garde leur beauté.\n\nPENSÉ POUR CE QUE VOUS FAITES\n• Message : environ 400 Ko chacune, idéal pour les messageries et les SMS\n• E-mail : toutes vos photos ensemble sous 5 Mo\n• Formulaire : sous la limite demandée par le site, comme 1 Mo ou 500 Ko\n• Libérer de l'espace : des copies bien plus petites, fidèles à l'original\n• Web : des images légères et rapides pour votre site ou boutique\n\nSIMPLE POUR TOUT LE MONDE\n• De grands boutons et des mots clairs\n• Compatible avec le grand texte et le lecteur d'écran de votre téléphone\n• Aucun réglage compliqué. Choisissez un usage et c'est fini\n\nVOS PHOTOS RESTENT À VOUS\n• Tout se passe sur votre téléphone. Rien n'est jamais envoyé\n• Vos originaux ne sont jamais modifiés ni supprimés\n• La position peut être retirée avant de partager\n• Pas de compte, pas de pub, pas de suivi\n\nBIEN FAIT\n• Ne rend jamais une photo plus lourde\n• Garde la date de prise de vue, pour que votre galerie reste dans l'ordre\n• Fonctionne avec HEIC, JPEG, PNG et WebP\n• Comparez avant et après avec un simple curseur\n• Disponible en English, Español, Français, Deutsch, Italiano, Português et 简体中文\n\nCompresso repose sur compresso.js, la bibliothèque d'images open source.",
         "keywords": [
@@ -176,10 +302,31 @@
         "promoText": "Choisissez vos photos, dites à quoi elles servent, c'est fait. Compresso les réduit sur votre téléphone, sans rien envoyer.",
         "marketingUrl": "https://compresso.izaias.xyz/fr/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/fr/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/fr/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/fr/ios/phone-1.png",
+            "store/out/images/fr/ios/phone-2.png",
+            "store/out/images/fr/ios/phone-3.png",
+            "store/out/images/fr/ios/phone-4.png",
+            "store/out/images/fr/ios/phone-5.png",
+            "store/out/images/fr/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/fr/ios/tablet-1.png",
+            "store/out/images/fr/ios/tablet-2.png",
+            "store/out/images/fr/ios/tablet-3.png",
+            "store/out/images/fr/ios/tablet-4.png",
+            "store/out/images/fr/ios/tablet-5.png",
+            "store/out/images/fr/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/fr/preview.mp4"
+        }
       },
       "fr-CA": {
-        "title": "Compresso : Compresser Photo",
+        "title": "Compresso : Réduire Photos",
         "subtitle": "Des photos plus légères",
         "description": "Vos photos sont trop lourdes à envoyer ? Compresso les allège en un geste, directement sur votre téléphone.\n\nChoisissez une photo ou cent. Dites à quoi elles servent. Compresso choisit la bonne taille et garde leur beauté.\n\nPENSÉ POUR CE QUE VOUS FAITES\n• Message : environ 400 Ko chacune, idéal pour les messageries et les SMS\n• E-mail : toutes vos photos ensemble sous 5 Mo\n• Formulaire : sous la limite demandée par le site, comme 1 Mo ou 500 Ko\n• Libérer de l'espace : des copies bien plus petites, fidèles à l'original\n• Web : des images légères et rapides pour votre site ou boutique\n\nSIMPLE POUR TOUT LE MONDE\n• De grands boutons et des mots clairs\n• Compatible avec le grand texte et le lecteur d'écran de votre téléphone\n• Aucun réglage compliqué. Choisissez un usage et c'est fini\n\nVOS PHOTOS RESTENT À VOUS\n• Tout se passe sur votre téléphone. Rien n'est jamais envoyé\n• Vos originaux ne sont jamais modifiés ni supprimés\n• La position peut être retirée avant de partager\n• Pas de compte, pas de pub, pas de suivi\n\nBIEN FAIT\n• Ne rend jamais une photo plus lourde\n• Garde la date de prise de vue, pour que votre galerie reste dans l'ordre\n• Fonctionne avec HEIC, JPEG, PNG et WebP\n• Comparez avant et après avec un simple curseur\n• Disponible en English, Español, Français, Deutsch, Italiano, Português et 简体中文\n\nCompresso repose sur compresso.js, la bibliothèque d'images open source.",
         "keywords": [
@@ -200,7 +347,28 @@
         "promoText": "Choisissez vos photos, dites à quoi elles servent, c'est fait. Compresso les réduit sur votre téléphone, sans rien envoyer.",
         "marketingUrl": "https://compresso.izaias.xyz/fr/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/fr/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/fr/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/fr/ios/phone-1.png",
+            "store/out/images/fr/ios/phone-2.png",
+            "store/out/images/fr/ios/phone-3.png",
+            "store/out/images/fr/ios/phone-4.png",
+            "store/out/images/fr/ios/phone-5.png",
+            "store/out/images/fr/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/fr/ios/tablet-1.png",
+            "store/out/images/fr/ios/tablet-2.png",
+            "store/out/images/fr/ios/tablet-3.png",
+            "store/out/images/fr/ios/tablet-4.png",
+            "store/out/images/fr/ios/tablet-5.png",
+            "store/out/images/fr/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/fr/preview.mp4"
+        }
       },
       "de-DE": {
         "title": "Compresso: Fotos verkleinern",
@@ -224,10 +392,31 @@
         "promoText": "Fotos auswählen, sagen wofür, fertig. Compresso verkleinert sie auf deinem Handy und lädt nichts hoch.",
         "marketingUrl": "https://compresso.izaias.xyz/de/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/de/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/de/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/de/ios/phone-1.png",
+            "store/out/images/de/ios/phone-2.png",
+            "store/out/images/de/ios/phone-3.png",
+            "store/out/images/de/ios/phone-4.png",
+            "store/out/images/de/ios/phone-5.png",
+            "store/out/images/de/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/de/ios/tablet-1.png",
+            "store/out/images/de/ios/tablet-2.png",
+            "store/out/images/de/ios/tablet-3.png",
+            "store/out/images/de/ios/tablet-4.png",
+            "store/out/images/de/ios/tablet-5.png",
+            "store/out/images/de/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/de/preview.mp4"
+        }
       },
       "it": {
-        "title": "Compresso: Comprimi Foto",
+        "title": "Compresso: Riduci Foto",
         "subtitle": "Foto più leggere con un tocco",
         "description": "Foto troppo pesanti da inviare? Compresso le rende più leggere con un tocco, direttamente sul telefono.\n\nScegli una foto o cento. Di' a cosa servono. Compresso sceglie la dimensione giusta e le mantiene belle.\n\nPENSATO PER QUELLO CHE FAI\n• Messaggio: circa 400 KB l'una, perfetto per chat e SMS\n• Email: tutte le foto insieme sotto i 5 MB\n• Modulo: sotto il limite richiesto dal sito, come 1 MB o 500 KB\n• Libera spazio: copie molto più piccole che sembrano l'originale\n• Web: immagini leggere e veloci per il tuo sito o negozio\n\nSEMPLICE PER TUTTI\n• Pulsanti grandi e parole chiare\n• Funziona con il testo grande e il lettore schermo del telefono\n• Nessun cursore da indovinare. Scegli un uso e hai finito\n\nLE TUE FOTO RESTANO TUE\n• Tutto avviene sul telefono. Non viene mai caricato nulla\n• Gli originali non vengono mai modificati né eliminati\n• Puoi togliere la posizione prima di condividere\n• Nessun account, nessuna pubblicità, nessun tracciamento\n\nFATTO BENE\n• Non rende mai una foto più grande\n• Mantiene la data di scatto, così la galleria resta in ordine\n• Funziona con HEIC, JPEG, PNG e WebP\n• Confronta prima e dopo con un semplice cursore\n• Disponibile in English, Español, Français, Deutsch, Italiano, Português e 简体中文\n\nCompresso è basato su compresso.js, la libreria di immagini open source.",
         "keywords": [
@@ -247,10 +436,31 @@
         "promoText": "Scegli le foto, di' a cosa servono, fatto. Compresso le rimpicciolisce sul telefono e non carica mai nulla.",
         "marketingUrl": "https://compresso.izaias.xyz/it/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/it/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/it/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/it/ios/phone-1.png",
+            "store/out/images/it/ios/phone-2.png",
+            "store/out/images/it/ios/phone-3.png",
+            "store/out/images/it/ios/phone-4.png",
+            "store/out/images/it/ios/phone-5.png",
+            "store/out/images/it/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/it/ios/tablet-1.png",
+            "store/out/images/it/ios/tablet-2.png",
+            "store/out/images/it/ios/tablet-3.png",
+            "store/out/images/it/ios/tablet-4.png",
+            "store/out/images/it/ios/tablet-5.png",
+            "store/out/images/it/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/it/preview.mp4"
+        }
       },
       "pt-BR": {
-        "title": "Compresso: Comprimir Fotos",
+        "title": "Compresso: Reduzir Fotos",
         "subtitle": "Fotos mais leves em um toque",
         "description": "Fotos grandes demais para enviar? O Compresso deixa elas menores em um toque, direto no seu celular.\n\nEscolha uma foto ou cem. Diga para que são. O Compresso escolhe o tamanho certo e mantém tudo bonito.\n\nFEITO PARA O QUE VOCÊ PRECISA\n• Mensagem: cerca de 400 KB cada, perfeito para apps de conversa e SMS\n• E-mail: todas as fotos juntas com menos de 5 MB\n• Formulário: abaixo do limite que o site pede, como 1 MB ou 500 KB\n• Liberar espaço: cópias bem menores que parecem o original\n• Web: imagens leves e rápidas para seu site ou loja\n\nFÁCIL PARA TODO MUNDO\n• Botões grandes e palavras simples\n• Funciona com o texto grande e o leitor de tela do celular\n• Nada de controles complicados. Escolha o uso e pronto\n\nSUAS FOTOS CONTINUAM SUAS\n• Tudo acontece no seu celular. Nada é enviado, nunca\n• Seus originais nunca são alterados nem apagados\n• Dá para tirar a localização antes de compartilhar\n• Sem conta, sem anúncios, sem rastreamento\n\nBEM FEITO\n• Nunca deixa uma foto maior\n• Mantém a data em que a foto foi tirada, para sua galeria continuar em ordem\n• Funciona com HEIC, JPEG, PNG e WebP\n• Compare o antes e o depois com um controle deslizante\n• Disponível em English, Español, Français, Deutsch, Italiano, Português e 简体中文\n\nO Compresso é feito com o compresso.js, a biblioteca de imagens de código aberto.",
         "keywords": [
@@ -271,10 +481,31 @@
         "promoText": "Escolha as fotos, diga para que são e pronto. O Compresso diminui tudo no seu celular e nunca envia nada.",
         "marketingUrl": "https://compresso.izaias.xyz/pt-br/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/pt-br/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/pt-br/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/pt-BR/ios/phone-1.png",
+            "store/out/images/pt-BR/ios/phone-2.png",
+            "store/out/images/pt-BR/ios/phone-3.png",
+            "store/out/images/pt-BR/ios/phone-4.png",
+            "store/out/images/pt-BR/ios/phone-5.png",
+            "store/out/images/pt-BR/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/pt-BR/ios/tablet-1.png",
+            "store/out/images/pt-BR/ios/tablet-2.png",
+            "store/out/images/pt-BR/ios/tablet-3.png",
+            "store/out/images/pt-BR/ios/tablet-4.png",
+            "store/out/images/pt-BR/ios/tablet-5.png",
+            "store/out/images/pt-BR/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/pt-BR/preview.mp4"
+        }
       },
       "pt-PT": {
-        "title": "Compresso: Comprimir Fotos",
+        "title": "Compresso: Reduzir Fotos",
         "subtitle": "Fotos mais leves em um toque",
         "description": "Fotos grandes demais para enviar? O Compresso deixa elas menores em um toque, direto no seu celular.\n\nEscolha uma foto ou cem. Diga para que são. O Compresso escolhe o tamanho certo e mantém tudo bonito.\n\nFEITO PARA O QUE VOCÊ PRECISA\n• Mensagem: cerca de 400 KB cada, perfeito para apps de conversa e SMS\n• E-mail: todas as fotos juntas com menos de 5 MB\n• Formulário: abaixo do limite que o site pede, como 1 MB ou 500 KB\n• Liberar espaço: cópias bem menores que parecem o original\n• Web: imagens leves e rápidas para seu site ou loja\n\nFÁCIL PARA TODO MUNDO\n• Botões grandes e palavras simples\n• Funciona com o texto grande e o leitor de tela do celular\n• Nada de controles complicados. Escolha o uso e pronto\n\nSUAS FOTOS CONTINUAM SUAS\n• Tudo acontece no seu celular. Nada é enviado, nunca\n• Seus originais nunca são alterados nem apagados\n• Dá para tirar a localização antes de compartilhar\n• Sem conta, sem anúncios, sem rastreamento\n\nBEM FEITO\n• Nunca deixa uma foto maior\n• Mantém a data em que a foto foi tirada, para sua galeria continuar em ordem\n• Funciona com HEIC, JPEG, PNG e WebP\n• Compare o antes e o depois com um controle deslizante\n• Disponível em English, Español, Français, Deutsch, Italiano, Português e 简体中文\n\nO Compresso é feito com o compresso.js, a biblioteca de imagens de código aberto.",
         "keywords": [
@@ -295,7 +526,28 @@
         "promoText": "Escolha as fotos, diga para que são e pronto. O Compresso diminui tudo no seu celular e nunca envia nada.",
         "marketingUrl": "https://compresso.izaias.xyz/pt-br/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/pt-br/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/pt-br/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/pt-BR/ios/phone-1.png",
+            "store/out/images/pt-BR/ios/phone-2.png",
+            "store/out/images/pt-BR/ios/phone-3.png",
+            "store/out/images/pt-BR/ios/phone-4.png",
+            "store/out/images/pt-BR/ios/phone-5.png",
+            "store/out/images/pt-BR/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/pt-BR/ios/tablet-1.png",
+            "store/out/images/pt-BR/ios/tablet-2.png",
+            "store/out/images/pt-BR/ios/tablet-3.png",
+            "store/out/images/pt-BR/ios/tablet-4.png",
+            "store/out/images/pt-BR/ios/tablet-5.png",
+            "store/out/images/pt-BR/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/pt-BR/preview.mp4"
+        }
       },
       "zh-Hans": {
         "title": "Compresso：照片压缩",
@@ -318,7 +570,28 @@
         "promoText": "选择照片，说明用途，就完成了。Compresso 在你的手机上压缩照片，从不上传任何内容。",
         "marketingUrl": "https://compresso.izaias.xyz/zh-hans/",
         "supportUrl": "https://github.com/iziuqo/compresso/issues",
-        "privacyPolicyUrl": "https://compresso.izaias.xyz/zh-hans/privacy/"
+        "privacyPolicyUrl": "https://compresso.izaias.xyz/zh-hans/privacy/",
+        "screenshots": {
+          "APP_IPHONE_67": [
+            "store/out/images/zh-Hans/ios/phone-1.png",
+            "store/out/images/zh-Hans/ios/phone-2.png",
+            "store/out/images/zh-Hans/ios/phone-3.png",
+            "store/out/images/zh-Hans/ios/phone-4.png",
+            "store/out/images/zh-Hans/ios/phone-5.png",
+            "store/out/images/zh-Hans/ios/phone-6.png"
+          ],
+          "APP_IPAD_PRO_3GEN_129": [
+            "store/out/images/zh-Hans/ios/tablet-1.png",
+            "store/out/images/zh-Hans/ios/tablet-2.png",
+            "store/out/images/zh-Hans/ios/tablet-3.png",
+            "store/out/images/zh-Hans/ios/tablet-4.png",
+            "store/out/images/zh-Hans/ios/tablet-5.png",
+            "store/out/images/zh-Hans/ios/tablet-6.png"
+          ]
+        },
+        "previews": {
+          "IPHONE_67": "store/out/video/zh-Hans/preview.mp4"
+        }
       }
     },
     "advisory": {
@@ -334,9 +607,20 @@
       "violenceCartoonOrFantasy": "NONE",
       "violenceRealistic": "NONE",
       "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "gunsOrOtherWeapons": "NONE",
       "gambling": false,
       "unrestrictedWebAccess": false,
-      "seventeenPlus": false
+      "seventeenPlus": false,
+      "lootBox": false,
+      "advertising": false,
+      "ageAssurance": false,
+      "healthOrWellnessTopics": false,
+      "messagingAndChat": false,
+      "parentalControls": false,
+      "userGeneratedContent": false,
+      "kidsAgeBand": null,
+      "ageRatingOverride": "NONE",
+      "koreaAgeRatingOverride": "NONE"
     },
     "review": {
       "demoRequired": false,

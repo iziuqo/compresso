@@ -30,6 +30,13 @@
         "serviceAccountKeyPath": "./google-service-account.json",
         "track": "alpha",
         "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascAppId": "6829326032",
+        "ascApiKeyPath": "./asc-api-key.p8",
+        "ascApiKeyIssuerId": "30f4d669-f59c-47dc-a446-6348b3939a61",
+        "ascApiKeyId": "9PZ2VT3F23",
+        "metadataPath": "./store.config.js"
       }
     }
   }

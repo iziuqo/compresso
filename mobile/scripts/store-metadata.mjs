@@ -3,9 +3,17 @@
 //   store.config.json            App Store, read by `eas metadata:push`
 //   fastlane/metadata/android/*  Google Play, read by `fastlane supply` or pasted into Play Console
 //
+// `appStoreName` overrides `name` on the App Store where another app already
+// holds that name in a storefront.
+//
 // Each of the seven app languages is published to every store locale that
 // speaks it (see store-locales.mjs).
+//
+// App Store screenshots and previews are read from the store kit renders in
+// store/out (store:compose, store:reel), and the private App Review contact
+// is added at push time by store.config.js.
 // Run: node scripts/store-metadata.mjs
+import { Buffer } from 'node:buffer';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,20 +25,24 @@ const listing = JSON.parse(readFileSync(join(root, 'store/listing.json'), 'utf8'
 const site = 'https://compresso.izaias.xyz';
 const slug = { en: 'en', es: 'es', fr: 'fr', de: 'de', it: 'it', 'pt-BR': 'pt-br', 'zh-Hans': 'zh-hans' };
 
-const LIMITS = { name: 30, subtitle: 30, shortDescription: 80, promotionalText: 170, description: 4000, releaseNotes: 500 };
+const LIMITS = { name: 30, appStoreName: 30, subtitle: 30, shortDescription: 80, promotionalText: 170, description: 4000, releaseNotes: 500 };
 for (const [lang, copy] of Object.entries(listing)) {
   for (const [field, max] of Object.entries(LIMITS)) {
-    if ([...copy[field]].length > max) throw new Error(`${lang}.${field} is over ${max} characters`);
+    if ([...(copy[field] ?? '')].length > max) throw new Error(`${lang}.${field} is over ${max} characters`);
   }
   if (Buffer.byteLength(copy.keywords) > 100) throw new Error(`${lang}.keywords is over 100 bytes`);
 }
+
+const SHOTS = 6;
+const shots = (lang, device) =>
+  Array.from({ length: SHOTS }, (_, i) => `store/out/images/${lang}/ios/${device}-${i + 1}.png`);
 
 const info = {};
 for (const [lang, locales] of Object.entries(APPLE)) {
   const c = listing[lang];
   for (const locale of locales) {
     info[locale] = {
-      title: c.name,
+      title: c.appStoreName ?? c.name,
       subtitle: c.subtitle,
       description: c.description,
       keywords: c.keywords.split(','),
@@ -39,6 +51,11 @@ for (const [lang, locales] of Object.entries(APPLE)) {
       marketingUrl: `${site}/${slug[lang]}/`,
       supportUrl: 'https://github.com/iziuqo/compresso/issues',
       privacyPolicyUrl: `${site}/${slug[lang]}/privacy/`,
+      screenshots: {
+        APP_IPHONE_67: shots(lang, 'phone'),
+        APP_IPAD_PRO_3GEN_129: shots(lang, 'tablet'),
+      },
+      previews: { IPHONE_67: `store/out/video/${lang}/preview.mp4` },
     };
   }
 }
@@ -61,9 +78,20 @@ const config = {
       violenceCartoonOrFantasy: 'NONE',
       violenceRealistic: 'NONE',
       violenceRealisticProlongedGraphicOrSadistic: 'NONE',
+      gunsOrOtherWeapons: 'NONE',
       gambling: false,
       unrestrictedWebAccess: false,
       seventeenPlus: false,
+      lootBox: false,
+      advertising: false,
+      ageAssurance: false,
+      healthOrWellnessTopics: false,
+      messagingAndChat: false,
+      parentalControls: false,
+      userGeneratedContent: false,
+      kidsAgeBand: null,
+      ageRatingOverride: 'NONE',
+      koreaAgeRatingOverride: 'NONE',
     },
     review: {
       demoRequired: false,

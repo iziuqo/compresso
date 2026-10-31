@@ -6,7 +6,7 @@ import listing from './listing.json';
 const LOCALE_LIST = ['en', 'es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans'];
 
 /** Store limits, checked here so a copy edit can't fail at upload time. */
-const LIMITS = { name: 30, subtitle: 30, shortDescription: 80, promotionalText: 170, description: 4000, releaseNotes: 500 };
+const LIMITS = { name: 30, appStoreName: 30, subtitle: 30, shortDescription: 80, promotionalText: 170, description: 4000, releaseNotes: 500 };
 // Apple guideline 2.3.7: no other apps' names in metadata.
 const BANNED = /whatsapp|imessage|instagram|facebook|telegram|微信/i;
 
@@ -18,7 +18,7 @@ describe.each(LOCALE_LIST)('store listing (%s)', (locale) => {
   it('exists for every app language', () => expect(copy).toBeDefined());
 
   it.each(Object.entries(LIMITS))('%s fits its limit', (field, max) => {
-    expect([...copy[field]].length).toBeLessThanOrEqual(max);
+    expect([...(copy[field] ?? '')].length).toBeLessThanOrEqual(max);
   });
 
   it('keywords fit in 100 bytes', () => expect(new TextEncoder().encode(copy.keywords).length).toBeLessThanOrEqual(100));
