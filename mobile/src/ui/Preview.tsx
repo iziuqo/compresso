@@ -1,9 +1,9 @@
 import { useState, type ReactNode } from 'react';
-import { Modal, PixelRatio, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import { Modal, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 
 import { useI18n } from '../i18n';
 import type { Item } from '../state/app';
-import { font, space, target, type, useTheme } from '../theme';
+import { font, fontScale, space, target, type, useTheme } from '../theme';
 import { Compare, onPhoto } from './Compare';
 import { Develop } from './Develop';
 import { Close, Expand } from './icons';
@@ -27,17 +27,13 @@ export function Preview({ item, label, reduceMotion }: { item: Item; label: stri
     <View style={styles.bleed}>
       <Fit aspect={aspect} reserve={captionHeight(item)}>
         {(w) => (o
-          ? <View style={styles.stack}>
-              <View style={{ width: w }}>
-                <Compare before={item.source.uri} after={o.uri} aspect={aspect} />
-                <Pressable onPress={() => setFull(true)} accessibilityRole="button" accessibilityLabel={t('job.fullScreen')}
-                  hitSlop={space[2]} style={({ pressed }) => [styles.expand, pressed && { opacity: 0.8 }]}>
-                  <Expand color={onPhoto.ink} size={18} />
-                  <T numberOfLines={1} style={styles.expandText}>{t('job.fullScreen')}</T>
-                </Pressable>
-              </View>
-              <ItemNote item={item} />
-            </View>
+          ? <Result item={item} width={w}>
+              <Pressable onPress={() => setFull(true)} accessibilityRole="button" accessibilityLabel={t('job.fullScreen')}
+                hitSlop={space[2]} style={({ pressed }) => [styles.expand, pressed && { opacity: 0.8 }]}>
+                <Expand color={onPhoto.ink} size={18} />
+                <T numberOfLines={1} style={styles.expandText}>{t('job.fullScreen')}</T>
+              </Pressable>
+            </Result>
           : <Develop item={item} width={w} height={w / aspect} reduceMotion={reduceMotion} label={label} badge={false} />)}
       </Fit>
       {o && (
@@ -63,15 +59,26 @@ function FullScreen({ item, onClose }: { item: Item; onClose: () => void }) {
     </>}>
       <View style={styles.bleed}>
         <Fit aspect={aspect} reserve={captionHeight(item)}>
-          {(w) => (
-            <View style={styles.stack}>
-              <View style={{ width: w }}><Compare before={item.source.uri} after={item.outcome!.uri} aspect={aspect} /></View>
-              <ItemNote item={item} />
-            </View>
-          )}
+          {(w) => <Result item={item} width={w} />}
         </Fit>
       </View>
     </Screen>
+  );
+}
+
+/**
+ * A finished photo's before / after at `width`, `children` laid over it, and
+ * its caption beneath: the same block inline and full screen.
+ */
+function Result({ item, width, children }: { item: Item; width: number; children?: ReactNode }) {
+  return (
+    <View style={styles.stack}>
+      <View style={{ width }}>
+        <Compare before={item.source.uri} after={item.outcome!.uri} aspect={aspectOf(item)} />
+        {children}
+      </View>
+      <ItemNote item={item} />
+    </View>
   );
 }
 
@@ -99,7 +106,7 @@ function Fit({ aspect, reserve, children }: { aspect: number; reserve: number; c
 /** Height of ItemNote: the size line, plus two lines of note when there is one, at the system text size. */
 function captionHeight({ outcome: o }: Item) {
   if (!o) return 0;
-  const scale = Math.min(PixelRatio.getFontScale(), 2);
+  const scale = fontScale();
   return space[2] + type.label * 1.4 * scale + (o.kept || o.missedTarget ? space[1] + type.meta * 1.35 * scale * 2 : 0);
 }
 

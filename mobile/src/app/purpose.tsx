@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { useState, type ComponentType } from 'react';
 import { AccessibilityInfo, FlatList, Pressable, StyleSheet, View } from 'react-native';
 
-import { PURPOSES, type PurposeId } from '../engine/presets';
+import { PURPOSES, purposeById, type PurposeId } from '../engine/presets';
 import { useI18n, type Key } from '../i18n';
 import { useApp, type SelectionSnapshot } from '../state/app';
 import { usePicker } from '../state/pick';
@@ -16,6 +16,9 @@ const GLYPH: Record<PurposeId, ComponentType<{ color: string; size?: number }>> 
   message: Message, email: Mail, upload: Form, space: Space, web: Globe,
 };
 
+/** The upload form's size limits, largest first. */
+const LIMITS = [...purposeById('upload').limits!].sort((a, b) => b - a);
+
 export default function PurposeScreen() {
   const { t, count, bytes } = useI18n();
   const { c } = useTheme();
@@ -26,7 +29,6 @@ export default function PurposeScreen() {
   const [purpose, setPurpose] = useState<PurposeId>(prefs.lastPurpose);
   const one = selection.length === 1;
   const empty = selection.length === 0;
-  const limits = PURPOSES.find((p) => p.id === 'upload')!.limits!;
   const tweaked = Object.keys(tweaks).length > 0;
 
   // Clearing is one tap with an Undo, not an "Are you sure?": nothing is lost
@@ -148,7 +150,7 @@ export default function PurposeScreen() {
                 <View style={styles.limit}>
                   <Label>{t('purpose.upload.limit')}</Label>
                   <ChoiceRow>
-                    {[...limits].sort((a, b) => b - a).map((limit) => (
+                    {LIMITS.map((limit) => (
                       <Choice key={limit} label={bytes(limit)} selected={prefs.uploadLimit === limit}
                         onPress={() => setPrefs({ uploadLimit: limit })} />
                     ))}

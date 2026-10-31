@@ -1,4 +1,4 @@
-import type { PurposeId } from '../engine/presets';
+import { purposeById, type PurposeId } from '../engine/presets';
 import type { Locale } from '../i18n';
 
 export type Appearance = 'system' | 'dark' | 'light';
@@ -18,6 +18,6 @@ export const DEFAULT_PREFS: Prefs = {
   appearance: 'system',
   introSeen: false,
   lastPurpose: 'message',
-  uploadLimit: 1_000_000,
+  uploadLimit: purposeById('upload').limits![0],
   lastSaved: 0,
 };

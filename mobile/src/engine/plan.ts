@@ -14,11 +14,11 @@ import type { EncodeFormat, Engine, Outcome, Recipe, Source } from './types';
  * candidate for compresso.js 1.1.
  */
 
-export const MAX_QUALITY_STEPS = 10;
-export const EDGE_STEP = 0.8;
-export const MIN_LONG_EDGE = 480;
-export const MAX_EDGE_TRIES = 8;
-export const MAX_INPUT_PIXELS = 100_000_000;
+const MAX_QUALITY_STEPS = 10;
+const EDGE_STEP = 0.8;
+const MIN_LONG_EDGE = 480;
+const MAX_EDGE_TRIES = 8;
+const MAX_INPUT_PIXELS = 100_000_000;
 
 export type RunOptions = {
   name: string;

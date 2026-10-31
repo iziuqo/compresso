@@ -1,13 +1,13 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
-  AccessibilityInfo, Alert, FlatList, PixelRatio, Platform, Pressable, StyleSheet, useWindowDimensions, View,
+  AccessibilityInfo, Alert, FlatList, Platform, Pressable, StyleSheet, useWindowDimensions, View,
 } from 'react-native';
 
 import { useI18n, type Key } from '../i18n';
 import { useApp, useJob, type Item, type Job } from '../state/app';
 import { canOpenLibrary, openLibrary, saveToPhotos, share, tick } from '../state/save';
-import { font, space, type, useTheme } from '../theme';
+import { font, fontScale, space, type, useTheme } from '../theme';
 import { Develop } from '../ui/Develop';
 import { Back, Check, Download, Gallery, Share, Shield, Sliders } from '../ui/icons';
 import { Ghost, IconButton, Pill, strip, T, Title } from '../ui/primitives';
@@ -121,7 +121,7 @@ function JobView({ job }: { job: Job }) {
     : t(single ? 'job.readyOne' : 'job.ready');
 
   // Two lines of text, whichever message the line holds, at the system text size.
-  const statusHeight = type.meta * 1.35 * 2 * Math.min(PixelRatio.getFontScale(), 2);
+  const statusHeight = type.meta * 1.35 * 2 * fontScale();
   // The footer is the same height in every state, so the preview never
   // resizes when the run ends. While working: Save (waiting) and Cancel.
   // Before saving: Save, then Share / Start over. After: Open Gallery where
@@ -149,7 +149,7 @@ function JobView({ job }: { job: Job }) {
       {primary}
       <View style={styles.row}>
         {running
-          ? <Ghost compact label={t('job.cancel')} style={styles.half} onPress={() => { cancel(); startOver(); }} />
+          ? <Ghost compact label={t('job.cancel')} style={styles.half} onPress={startOver} />
           : <>
               {focus.outcome && (
                 <Ghost compact label={t('job.share')} icon={<Share color={c.ink} />} style={styles.half} onPress={() => share(focus.outcome!.uri)} />

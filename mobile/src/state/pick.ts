@@ -13,7 +13,7 @@ import { useApp } from './app';
  * the default "compatible" mode would re-encode it to JPEG first, costing time
  * and quality before we've done anything.
  */
-export async function pickPhotos(): Promise<Source[]> {
+async function pickPhotos(): Promise<Source[]> {
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ['images'],
     allowsMultipleSelection: true,
