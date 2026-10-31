@@ -23,6 +23,7 @@ export const Trash = (p: Props) => (
   <Icon {...p}><Path d="M2.8 4.4h10.4M6.4 4.4V2.8h3.2v1.6M4.2 4.4l.7 8.6a1 1 0 001 .9h4.2a1 1 0 001-.9l.7-8.6M6.8 7v4.4M9.2 7v4.4" /></Icon>
 );
 export const Plus = (p: Props) => <Icon {...p}><Path d="M8 3.6v8.8M3.6 8h8.8" /></Icon>;
+export const Expand = (p: Props) => <Icon {...p}><Path d="M2.6 6V2.6H6M10 2.6h3.4V6M13.4 10v3.4H10M6 13.4H2.6V10" /></Icon>;
 export const Drag = (p: Props) => <Icon {...p}><Path d="M6.3 5.2L3.6 8l2.7 2.8M9.7 5.2L12.4 8l-2.7 2.8" /></Icon>;
 export const Share = (p: Props) => (
   <Icon {...p}>

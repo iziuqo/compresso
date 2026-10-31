@@ -13,7 +13,8 @@ import { Label } from './primitives';
  * Each label lives on its own photo: "Before" inside the clipped left layer,
  * "After" on the layer beneath, so the seam slides over them and each label
  * is only ever shown on the side it names. The seam and knob sit above both.
- * "Drag to compare" fades out after the first drag.
+ * "Drag to compare" sits under the knob it explains and fades out after the
+ * first drag, leaving the bottom corners free for the screen's own controls.
  *
  * The seam follows the drag distance from where the finger went down, not
  * the touch's position inside the view: once a finger leaves the photo,
@@ -60,6 +61,9 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
     setSplit(splitRef.current);
   };
 
+  // Each label keeps to its own half, so on a narrow photo they can't overlap.
+  // In points, not %, because "Before" sits in the clipped layer, not the frame.
+  const half = width / 2 - space[3];
   const onLayout = (e: LayoutChangeEvent) => {
     widthRef.current = e.nativeEvent.layout.width;
     x.setValue(splitRef.current * e.nativeEvent.layout.width);
@@ -76,14 +80,14 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
       {/* Nothing inside takes touches, so the whole frame is one drag target. */}
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
         <Image source={{ uri: after }} contentFit="contain" style={StyleSheet.absoluteFill} />
-        <Chip label={t('job.after')} style={[styles.corner, { right: space[2] }]} />
+        <Chip label={t('job.after')} style={[styles.corner, { right: space[2], maxWidth: half }]} />
       </View>
       <Animated.View pointerEvents="none" style={[styles.clip, { width: x }]}>
         <Image source={{ uri: before }} contentFit="contain" style={{ width, height: '100%' }} />
-        <Chip label={t('job.before')} style={[styles.corner, { left: space[2] }]} />
+        <Chip label={t('job.before')} style={[styles.corner, { left: space[2], maxWidth: half }]} />
       </Animated.View>
       <Animated.View pointerEvents="none" style={[styles.hint, { opacity: hint }]}>
-        <Chip label={t('job.compare')} style={{ maxWidth: '90%' }} />
+        <Chip label={t('job.compare')} lines={2} style={{ maxWidth: '90%' }} />
       </Animated.View>
       <Animated.View pointerEvents="none" style={[styles.seam, { transform: [{ translateX: x }] }]} />
       <Animated.View pointerEvents="none" style={[styles.knob, { transform: [{ translateX: x }] }]}>
@@ -93,11 +97,14 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
   );
 }
 
-/** A label over the photo: white on a dark scrim in both themes, so it reads on any picture. */
-function Chip({ label, style }: { label: string; style?: StyleProp<ViewStyle> }) {
+/** Controls drawn over a photo: white on a dark scrim in both themes, so they read on any picture. */
+export const onPhoto = { ink: '#FFFFFF', scrim: 'rgba(0,0,0,0.55)' } as const;
+
+/** A label over the photo. */
+function Chip({ label, lines = 1, style }: { label: string; lines?: number; style?: StyleProp<ViewStyle> }) {
   return (
     <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={[styles.chip, style]}>
-      <Label numberOfLines={1} style={{ color: '#FFFFFF' }}>{label}</Label>
+      <Label numberOfLines={lines} style={{ color: onPhoto.ink, textAlign: 'center' }}>{label}</Label>
     </View>
   );
 }
@@ -112,10 +119,10 @@ const styles = StyleSheet.create({
     position: 'absolute', top: '50%', left: -22, marginTop: -22, width: 44, height: 44, borderRadius: 22,
     backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center',
   },
-  hint: { position: 'absolute', left: 0, right: 0, bottom: space[2], alignItems: 'center' },
+  hint: { position: 'absolute', left: 0, right: 0, top: '50%', marginTop: 22 + space[2], alignItems: 'center' },
   corner: { position: 'absolute', top: space[2] },
   chip: {
     paddingHorizontal: space[2], paddingVertical: 2, borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: onPhoto.scrim,
   },
 });
