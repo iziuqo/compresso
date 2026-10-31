@@ -41,18 +41,20 @@ function baseName(fileName?: string | null): string | null {
 }
 
 /**
- * Open the picker and make the result the selection. `busy` covers the time
- * the picker is open; `then` runs only when something was picked.
+ * Open the picker and make the result the selection, or with `append` add it
+ * to the end of the selection. `busy` covers the time the picker is open;
+ * `then` runs only when something was picked.
  */
-export function usePicker(then?: () => void): { pick: () => Promise<void>; busy: boolean } {
-  const { setSelection } = useApp();
+export function usePicker(then?: () => void, { append = false } = {}): { pick: () => Promise<void>; busy: boolean } {
+  const { setSelection, add } = useApp();
   const [busy, setBusy] = useState(false);
   const pick = async () => {
     setBusy(true);
     try {
       const picked = await pickPhotos();
       if (picked.length > 0) {
-        setSelection(picked);
+        if (append) add(picked);
+        else setSelection(picked);
         then?.();
       }
     } finally {

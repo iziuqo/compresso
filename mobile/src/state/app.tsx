@@ -9,6 +9,7 @@ import { recipesFor, type Tweaks } from '../engine/recipes';
 import type { Outcome, Recipe, Source } from '../engine/types';
 import { loadPrefs, savePrefs } from './prefs';
 import { DEFAULT_PREFS, type Prefs } from './prefs.types';
+import { appendSources } from './selection';
 
 /**
  * The job state machine, ported from the web app's queue (state/queue.ts) and
@@ -54,13 +55,22 @@ function reducer(job: Job | null, action: Action): Job | null {
   }
 }
 
+/** The photos and their own settings, as they were before the list was cleared. */
+export type SelectionSnapshot = { selection: Source[]; own: Record<string, Tweaks> };
+
 type AppCtx = {
   prefs: Prefs;
   setPrefs: (patch: Partial<Prefs>) => void;
   selection: Source[];
   setSelection: (sources: Source[]) => void;
+  /** Put more photos at the end of the selection, skipping ones already in it. */
+  add: (sources: Source[]) => void;
   /** Take one photo out of the selection, with its own settings. */
   remove: (uri: string) => void;
+  /** Take every photo out of the selection, with their own settings. The shared settings stay. */
+  clearSelection: () => void;
+  /** Put back what `clearSelection` took. */
+  restoreSelection: (snapshot: SelectionSnapshot) => void;
   /** Settings for every photo. */
   tweaks: Tweaks;
   setTweaks: (tweaks: Tweaks) => void;
@@ -160,6 +170,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setOwn(uri, null);
   }, [setOwn]);
 
+  const add = useCallback((sources: Source[]) => {
+    setSelection((list) => appendSources(list, sources));
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelection([]);
+    setOwnState({});
+  }, []);
+
+  const restoreSelection = useCallback((snapshot: SelectionSnapshot) => {
+    setSelection(snapshot.selection);
+    setOwnState(snapshot.own);
+  }, []);
+
   const cancel = useCallback(() => {
     abort.current?.abort();
     dispatch({ type: 'finish', status: 'cancelled' });
@@ -182,8 +206,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AppCtx>(() => ({
-    prefs, setPrefs, selection, setSelection, remove, tweaks, setTweaks, own, setOwn, start, cancel, retry, clear,
-  }), [prefs, setPrefs, selection, remove, tweaks, own, setOwn, start, cancel, retry, clear]);
+    prefs, setPrefs, selection, setSelection, add, remove, clearSelection, restoreSelection,
+    tweaks, setTweaks, own, setOwn, start, cancel, retry, clear,
+  }), [prefs, setPrefs, selection, add, remove, clearSelection, restoreSelection, tweaks, own, setOwn, start, cancel, retry, clear]);
 
   return (
     <AppContext.Provider value={value}>

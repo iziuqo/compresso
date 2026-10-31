@@ -1,15 +1,15 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState, type ComponentType } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, FlatList, Pressable, StyleSheet, View } from 'react-native';
 
 import { PURPOSES, type PurposeId } from '../engine/presets';
 import { useI18n, type Key } from '../i18n';
-import { useApp } from '../state/app';
+import { useApp, type SelectionSnapshot } from '../state/app';
 import { usePicker } from '../state/pick';
-import { font, space, type, useTheme } from '../theme';
-import { Back, Close, Form, Globe, Mail, Message, Plus, Sliders, Space } from '../ui/icons';
-import { Choice, ChoiceRow, IconButton, Label, Pill, strip, T, Title } from '../ui/primitives';
+import { font, space, target, type, useTheme } from '../theme';
+import { Back, Close, Form, Globe, Mail, Message, Plus, Sliders, Space, Trash } from '../ui/icons';
+import { Choice, ChoiceRow, Ghost, IconButton, Label, Pill, strip, T, Title } from '../ui/primitives';
 import { Screen } from '../ui/Screen';
 
 const GLYPH: Record<PurposeId, ComponentType<{ color: string; size?: number }>> = {
@@ -19,12 +19,29 @@ const GLYPH: Record<PurposeId, ComponentType<{ color: string; size?: number }>> 
 export default function PurposeScreen() {
   const { t, count, bytes } = useI18n();
   const { c } = useTheme();
-  const { selection, prefs, setPrefs, start, tweaks, own, remove } = useApp();
-  const { pick: change } = usePicker();
+  const { selection, prefs, setPrefs, start, tweaks, own, remove, clearSelection, restoreSelection } = useApp();
+  // What Clear took, kept until the list has photos again, so Undo can put it back.
+  const [cleared, setCleared] = useState<SelectionSnapshot | null>(null);
+  const { pick: add, busy: adding } = usePicker(() => setCleared(null), { append: true });
   const [purpose, setPurpose] = useState<PurposeId>(prefs.lastPurpose);
   const one = selection.length === 1;
+  const empty = selection.length === 0;
   const limits = PURPOSES.find((p) => p.id === 'upload')!.limits!;
   const tweaked = Object.keys(tweaks).length > 0;
+
+  // Clearing is one tap with an Undo, not an "Are you sure?": nothing is lost
+  // (the originals stay in the library), and a confirm on every clear trains
+  // people to tap through it. The Undo stays until photos are added or the
+  // screen is left, never on a timer, so nobody has to race it.
+  const clearAll = () => {
+    setCleared({ selection, own });
+    clearSelection();
+    AccessibilityInfo.announceForAccessibility(t('purpose.cleared'));
+  };
+  const undo = () => {
+    if (cleared) restoreSelection(cleared);
+    setCleared(null);
+  };
 
   const go = () => {
     start(purpose);
@@ -39,18 +56,37 @@ export default function PurposeScreen() {
         <IconButton label={t('purpose.fineTune') + (tweaked ? ' •' : '')} icon={<Sliders color={c.ink} />}
           onPress={() => router.push('/fine-tune')} />
       </>}
-      footer={<Pill label={t(one ? 'purpose.goOne' : 'purpose.go')} onPress={go} />}
+      footer={<Pill label={t(one ? 'purpose.goOne' : 'purpose.go')} onPress={go} disabled={empty} />}
     >
-      <Label>{one ? t('purpose.countOne') : t('purpose.count', { n: count(selection.length) })}</Label>
-      <T muted style={{ fontSize: type.meta, marginTop: space[1] }}>{t('purpose.tapPhoto')}</T>
+      <View style={styles.countRow}>
+        <View accessibilityLiveRegion="polite" style={{ flex: 1 }}>
+          <Label>{empty ? t('purpose.countNone') : one ? t('purpose.countOne') : t('purpose.count', { n: count(selection.length) })}</Label>
+        </View>
+        {!empty && (
+          <Pressable onPress={clearAll} hitSlop={8} accessibilityRole="button" accessibilityLabel={t('purpose.clearAll')}
+            style={({ pressed }) => [styles.clear, pressed && { backgroundColor: c.surface2 }]}>
+            <Trash color={c.ink} size={18} />
+            <T style={{ fontFamily: font.medium, fontSize: type.meta }}>{t('purpose.clear')}</T>
+          </Pressable>
+        )}
+      </View>
+      {empty && cleared ? (
+        <View style={[styles.undo, { borderColor: c.line2, backgroundColor: c.surface }]}>
+          <T style={{ flex: 1, fontSize: type.meta, lineHeight: type.meta * 1.35 }}>{t('purpose.cleared')}</T>
+          <Ghost compact label={t('purpose.undo')} onPress={undo} />
+        </View>
+      ) : (
+        <T muted style={{ fontSize: type.meta }}>{t(empty ? 'purpose.emptyHint' : 'purpose.tapPhoto')}</T>
+      )}
       <FlatList
         horizontal data={selection} keyExtractor={(s) => s.uri} showsHorizontalScrollIndicator={false}
         contentContainerStyle={strip.content} style={[strip.list, { marginTop: space[2] }]}
         ListHeaderComponent={
-          <Pressable onPress={change} accessibilityRole="button" accessibilityLabel={t('purpose.change')}
-            style={({ pressed }) => [styles.film, styles.change, { borderColor: c.line2, backgroundColor: pressed ? c.surface2 : c.surface }]}>
+          <Pressable onPress={add} disabled={adding} accessibilityRole="button" accessibilityLabel={t('purpose.addMore')}
+            accessibilityState={{ busy: adding }}
+            style={({ pressed }) => [styles.add, { borderColor: c.line2, backgroundColor: pressed ? c.surface2 : c.surface }]}>
             <Plus color={c.ink} size={20} />
-            <T style={{ fontFamily: font.medium, fontSize: type.label }} numberOfLines={1}>{t('purpose.change')}</T>
+            <T style={{ fontFamily: font.medium, fontSize: type.label }} numberOfLines={1}>{t('purpose.add')}</T>
           </Pressable>
         }
         renderItem={({ item, index }) => {
@@ -132,7 +168,17 @@ const styles = StyleSheet.create({
   badge: { position: 'absolute', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   remove: { top: 4, right: 4, borderWidth: StyleSheet.hairlineWidth },
   custom: { bottom: 4, left: 4 },
-  change: { borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 2, borderRadius: 8 },
+  // As tall as a photo, but as wide as the word needs ("Hinzufügen" is long).
+  add: { height: 72, minWidth: 72, paddingHorizontal: space[3], borderWidth: 1, alignItems: 'center', justifyContent: 'center', gap: 2, borderRadius: 8 },
+  countRow: { flexDirection: 'row', alignItems: 'center', gap: space[2], minHeight: target.min },
+  clear: {
+    minHeight: target.min, paddingHorizontal: space[3], borderRadius: 999, marginRight: -space[3],
+    flexDirection: 'row', alignItems: 'center', gap: space[2],
+  },
+  undo: {
+    flexDirection: 'row', alignItems: 'center', gap: space[3], borderWidth: 1, borderRadius: 12,
+    paddingLeft: space[4], paddingRight: space[2], paddingVertical: space[2],
+  },
   card: { borderRadius: 16, overflow: 'hidden' },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3], paddingHorizontal: space[4], paddingVertical: space[3], minHeight: 68 },
   limit: { gap: space[2], paddingHorizontal: space[4], paddingBottom: space[4] },
