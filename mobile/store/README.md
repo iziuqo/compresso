@@ -11,7 +11,7 @@ itself so it never drifts from what ships.
 | Store images | `compose.mjs` | `npm run store:compose` |
 | Flow recording | `record.mjs` | `npm run store:record` |
 | Reel + App Store preview | `reel.mjs` | `npm run store:reel` |
-| Push the Play listing (text + images, 17 locales) | `scripts/play-publish.mjs` | `npm run store:play -- --dry-run` to check, then without it. Needs `GOOGLE_SERVICE_ACCOUNT_KEY` (service account JSON). Nothing goes to review unless `--review` is passed |
+| Push the Play listing (text + images, 17 locales) | `scripts/play-publish.mjs` | `npm run store:play -- --dry-run` to check, then without it. Needs `GOOGLE_SERVICE_ACCOUNT_KEY` (service account JSON). `--release alpha` also rolls out the draft closed-test release |
 
 Capture, compose, record and reel drive the web build, so first run
 `npx expo export --platform web` and serve `dist/` on port 8765. They need

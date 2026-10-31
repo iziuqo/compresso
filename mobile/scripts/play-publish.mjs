@@ -1,15 +1,16 @@
 // Pushes the Google Play listing (text and images, every Play locale) through
 // the Play Developer API, in one edit that either lands whole or not at all.
 //
-//   node scripts/play-publish.mjs <images dir> [--dry-run] [--review]
+//   node scripts/play-publish.mjs <images dir> [--dry-run] [--release <track>]
 //
 // <images dir> holds one folder per app language, each with a play/ folder of
 // phone-N.png, tablet-N.png and feature.png (the output of store:compose).
 // The key is the service account JSON, read from GOOGLE_SERVICE_ACCOUNT_KEY.
 //
-// By default the edit is committed with changesNotSentForReview, so nothing
-// goes to Google's review until someone sends it from Play Console. --review
-// sends it straight away. --dry-run checks every file and prints the plan.
+// --release <track> also rolls out the draft release saved on that track
+// (alpha = closed testing), with release notes in every locale. Unless the
+// app uses managed publishing, Google sends the commit for review on its own.
+// --dry-run checks every file and prints the plan.
 import { createSign } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -26,8 +27,8 @@ const UPLOAD = `https://androidpublisher.googleapis.com/upload/androidpublisher/
 const args = process.argv.slice(2);
 const images = args.find((a) => !a.startsWith('--'));
 const dryRun = args.includes('--dry-run');
-const review = args.includes('--review');
-if (!images) throw new Error('Usage: node scripts/play-publish.mjs <images dir> [--dry-run] [--review]');
+const track = args.includes('--release') ? args[args.indexOf('--release') + 1] : null;
+if (!images || track === undefined) throw new Error('Usage: node scripts/play-publish.mjs <images dir> [--dry-run] [--release <track>]');
 
 /** Play image type → the files that fill it, for one app language. */
 function imagesFor(lang) {
@@ -51,7 +52,7 @@ const plan = Object.entries(PLAY).flatMap(([lang, locales]) => {
   const copy = listing[lang];
   const text = { title: copy.name, shortDescription: copy.shortDescription, fullDescription: copy.description };
   const set = imagesFor(lang);
-  return locales.map((language) => ({ language, text, set }));
+  return locales.map((language) => ({ language, text, set, notes: copy.releaseNotes }));
 });
 for (const { language, set } of plan) {
   console.log(`${language}: ${Object.entries(set).map(([type, f]) => `${f.length} ${type}`).join(', ')}`);
@@ -82,8 +83,16 @@ try {
     }
     console.log(`✓ ${language}`);
   }
-  await call('POST', `${edit}:commit${review ? '' : '?changesNotSentForReview=true'}`);
-  console.log(review ? 'Committed and sent for review.' : 'Committed. Send it for review from Play Console when ready.');
+  if (track) {
+    const { releases = [] } = await call('GET', `${edit}/tracks/${track}`);
+    const draft = releases.find((r) => r.status === 'draft');
+    if (!draft) throw new Error(`No draft release on the ${track} track`);
+    const releaseNotes = plan.map(({ language, notes }) => ({ language, text: notes }));
+    await call('PUT', `${edit}/tracks/${track}`, { track, releases: [{ ...draft, status: 'completed', releaseNotes }] });
+    console.log(`✓ ${draft.name} rolls out on ${track}`);
+  }
+  await call('POST', `${edit}:commit`);
+  console.log('Committed.');
 } catch (error) {
   await call('DELETE', edit).catch(() => {});
   throw error;
