@@ -23,17 +23,17 @@ export function mimeToExtension(mime) {
   return EXTENSIONS[mime] || 'jpg';
 }
 
+/** The format a URL or file name's extension names, if it is one we know. */
+function formatFromName(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  return MIME_TYPES[ext] ? ext : null;
+}
+
+/** Source format from a URL string, a Blob's MIME type, or a File's name, in that order. */
 export function detectFormat(file) {
-  if (typeof file === 'string') {
-    const ext = file.split('.').pop().toLowerCase();
-    return MIME_TYPES[ext] ? ext : null;
-  }
+  if (typeof file === 'string') return formatFromName(file);
   if (file.type) return EXTENSIONS[file.type] || null;
-  if (file.name) {
-    const ext = file.name.split('.').pop().toLowerCase();
-    return MIME_TYPES[ext] ? ext : null;
-  }
-  return null;
+  return file.name ? formatFromName(file.name) : null;
 }
 
 export function generateFileName(source, format) {
