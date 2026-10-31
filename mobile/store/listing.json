@@ -38,7 +38,8 @@
         "headline": "Speaks your language.",
         "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
       }
-    ]
+    ],
+    "video": "https://www.youtube.com/watch?v=qkgMV1_MQWE"
   },
   "es": {
     "name": "Compresso: Comprimir Fotos",
@@ -79,7 +80,8 @@
         "headline": "Habla tu idioma.",
         "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
       }
-    ]
+    ],
+    "video": "https://www.youtube.com/watch?v=-gEBingzuQE"
   },
   "fr": {
     "name": "Compresso : Compresser Photo",
@@ -120,7 +122,8 @@
         "headline": "Parle votre langue.",
         "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
       }
-    ]
+    ],
+    "video": "https://www.youtube.com/watch?v=99vn_ZddTkY"
   },
   "de": {
     "name": "Compresso: Fotos verkleinern",
@@ -161,7 +164,8 @@
         "headline": "Spricht deine Sprache.",
         "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
       }
-    ]
+    ],
+    "video": "https://www.youtube.com/watch?v=u4ErmXLwjsY"
   },
   "it": {
     "name": "Compresso: Comprimi Foto",
@@ -202,7 +206,8 @@
         "headline": "Parla la tua lingua.",
         "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
       }
-    ]
+    ],
+    "video": "https://www.youtube.com/watch?v=zLe2QGfjUdQ"
   },
   "pt-BR": {
     "name": "Compresso: Comprimir Fotos",
@@ -243,7 +248,8 @@
         "headline": "Fala a sua língua.",
         "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
       }
-    ]
+    ],
+    "video": "https://www.youtube.com/watch?v=p3KM8b7XzIQ"
   },
   "zh-Hans": {
     "name": "Compresso：照片压缩",
@@ -284,6 +290,7 @@
         "headline": "说你的语言。",
         "sub": "English · Español · Français · Deutsch · Italiano · Português · 简体中文"
       }
-    ]
+    ],
+    "video": "https://www.youtube.com/watch?v=xA-TEB_L3no"
   }
 }
