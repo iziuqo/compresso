@@ -42,3 +42,4 @@ yarn-error.*
 
 # store kit renders (see store/README.md)
 store/out/
+google-service-account.json

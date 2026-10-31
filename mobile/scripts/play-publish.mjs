@@ -7,6 +7,9 @@
 // phone-N.png, tablet-N.png and feature.png (the output of store:compose).
 // The key is the service account JSON, read from GOOGLE_SERVICE_ACCOUNT_KEY.
 //
+// A language's promo video is the YouTube link in its listing.json `video`
+// field (Play takes no video files).
+//
 // --release <track> also rolls out the draft release saved on that track
 // (alpha = closed testing), with release notes in every locale. Unless the
 // app uses managed publishing, Google sends the commit for review on its own.
@@ -50,7 +53,7 @@ function imagesFor(lang) {
 // Check everything before touching the store.
 const plan = Object.entries(PLAY).flatMap(([lang, locales]) => {
   const copy = listing[lang];
-  const text = { title: copy.name, shortDescription: copy.shortDescription, fullDescription: copy.description };
+  const text = { title: copy.name, shortDescription: copy.shortDescription, fullDescription: copy.description, video: copy.video };
   const set = imagesFor(lang);
   return locales.map((language) => ({ language, text, set, notes: copy.releaseNotes }));
 });
