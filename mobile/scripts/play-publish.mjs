@@ -13,6 +13,7 @@
 // --release <track> also rolls out the draft release saved on that track
 // (alpha = closed testing), with release notes in every locale. Unless the
 // app uses managed publishing, Google sends the commit for review on its own.
+// --no-listing skips the text and images (for a release alone).
 // --dry-run checks every file and prints the plan.
 import { createSign } from 'node:crypto';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -22,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 import { PLAY } from './store-locales.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const app = JSON.parse(readFileSync(join(root, 'app.json'), 'utf8')).expo.android.package;
+const { version, android: { package: app } } = JSON.parse(readFileSync(join(root, 'app.json'), 'utf8')).expo;
 const listing = JSON.parse(readFileSync(join(root, 'store/listing.json'), 'utf8'));
 const API = `https://androidpublisher.googleapis.com/androidpublisher/v3/applications/${app}`;
 const UPLOAD = `https://androidpublisher.googleapis.com/upload/androidpublisher/v3/applications/${app}`;
@@ -30,6 +31,7 @@ const UPLOAD = `https://androidpublisher.googleapis.com/upload/androidpublisher/
 const args = process.argv.slice(2);
 const images = args.find((a) => !a.startsWith('--'));
 const dryRun = args.includes('--dry-run');
+const listingToo = !args.includes('--no-listing');
 const track = args.includes('--release') ? args[args.indexOf('--release') + 1] : null;
 if (!images || track === undefined) throw new Error('Usage: node scripts/play-publish.mjs <images dir> [--dry-run] [--release <track>]');
 
@@ -76,7 +78,7 @@ const call = async (method, url, body, type = 'application/json') => {
 const { id } = await call('POST', `${API}/edits`);
 const edit = `${API}/edits/${id}`;
 try {
-  for (const { language, text, set } of plan) {
+  for (const { language, text, set } of listingToo ? plan : []) {
     await call('PUT', `${edit}/listings/${language}`, { language, ...text });
     for (const [type, files] of Object.entries(set)) {
       await call('DELETE', `${edit}/listings/${language}/${type}`);
@@ -91,7 +93,7 @@ try {
     const draft = releases.find((r) => r.status === 'draft');
     if (!draft) throw new Error(`No draft release on the ${track} track`);
     const releaseNotes = plan.map(({ language, notes }) => ({ language, text: notes }));
-    await call('PUT', `${edit}/tracks/${track}`, { track, releases: [{ ...draft, status: 'completed', releaseNotes }] });
+    await call('PUT', `${edit}/tracks/${track}`, { track, releases: [{ ...draft, name: `${draft.versionCodes.join(', ')} (${version})`, status: 'completed', releaseNotes }] });
     console.log(`✓ ${draft.name} rolls out on ${track}`);
   }
   await call('POST', `${edit}:commit`);
