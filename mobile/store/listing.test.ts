@@ -24,8 +24,8 @@ describe.each(LOCALE_LIST)('store listing (%s)', (locale) => {
   it('keywords fit in 100 bytes', () => expect(new TextEncoder().encode(copy.keywords).length).toBeLessThanOrEqual(100));
 
   it('names no other apps', () => {
-    for (const field of ['name', 'subtitle', 'keywords', 'description', 'shortDescription', 'promotionalText']) {
-      expect(copy[field]).not.toMatch(BANNED);
+    for (const field of ['name', 'appStoreName', 'subtitle', 'keywords', 'description', 'shortDescription', 'promotionalText']) {
+      expect(copy[field] ?? '').not.toMatch(BANNED);
     }
   });
 
