@@ -26,8 +26,8 @@ const scheme = process.env.SCHEME ?? 'dark';
 const TARGETS = [
   { store: 'ios', id: 'phone', w: 1290, h: 2796, src: 'phone', status: true },
   { store: 'ios', id: 'tablet', w: 2064, h: 2752, src: 'tablet', status: true },
-  { store: 'play', id: 'phone', w: 1242, h: 2208, src: 'phone', status: true },
-  { store: 'play', id: 'tablet', w: 2064, h: 2752, src: 'tablet', status: true },
+  { store: 'play', id: 'phone', w: 1242, h: 2208, src: 'phone', status: true, android: true },
+  { store: 'play', id: 'tablet', w: 2064, h: 2752, src: 'tablet', status: true, android: true },
 ];
 
 const INK = scheme === 'dark'
@@ -42,19 +42,37 @@ const base = `
   body { font-family: G, 'Noto Sans SC', sans-serif; background: ${INK.bg}; color: ${INK.ink}; overflow: hidden; }
 `;
 
-/** One store image: headline block on top, the phone or tablet below. */
-function shot({ w, h, status }, img, headline, sub, lang) {
+/** One store image: headline block on top, the phone or tablet below.
+ *  Play images get an Android device: thinner bezel, punch-hole camera,
+ *  Android status bar and the gesture handle under the app. */
+function shot({ w, h, status, android }, img, headline, sub, lang) {
   const tablet = w / h > 0.6;
   const pad = Math.round(w * 0.075);
   const head = Math.round(w * (tablet ? 0.05 : 0.082));
   const capH = Math.round(h * (tablet ? 0.19 : 0.205));
   // The whole screen must show, footer and all: size the device to the space left.
-  const [b, r, st, aspect] = tablet ? [0.018, 0.045, 0.03, 1376 / 1032] : [0.03, 0.13, 0.12, 932 / 430];
+  const [b, r, st, aspect] = android
+    ? (tablet ? [0.014, 0.03, 0.03, 1376 / 1032] : [0.022, 0.085, 0.085, 932 / 430])
+    : (tablet ? [0.018, 0.045, 0.03, 1376 / 1032] : [0.03, 0.13, 0.12, 932 / 430]);
+  const nv = android ? (tablet ? 0.022 : 0.05) : 0;
   const top = capH + Math.round(h * 0.012);
-  const frameW = Math.min(w * (tablet ? 0.8 : 0.84), (h - top - h * 0.03) / ((1 - 2 * b) * aspect + st + 2 * b));
+  const frameW = Math.min(w * (tablet ? 0.8 : 0.84), (h - top - h * 0.03) / ((1 - 2 * b) * aspect + st + nv + 2 * b));
   const bezel = Math.round(frameW * b);
   const radius = Math.round(frameW * r);
   const statusH = Math.round(frameW * st);
+  const navH = Math.round(frameW * nv);
+  const fg = scheme === 'dark' ? '#fff' : '#000';
+  const iosBar = `<div class="status"><span>9:41</span><div class="island"></div>
+        <span class="icons"><span class="bars"><b style="height:35%"></b><b style="height:55%"></b><b style="height:75%"></b><b style="height:100%"></b></span>
+        <span class="bat"><i></i></span></span></div>`;
+  // Material status bar: time on the left, wifi, signal and an upright battery on the right.
+  const a = statusH * (tablet ? 0.42 : 0.36);
+  const androidBar = `<div class="status android"><span>9:30</span><div class="hole"></div>
+        <span class="icons">
+          <svg width="${a}" height="${a}" viewBox="0 0 24 24"><path fill="${fg}" d="M12 21 1 9.5C4 6.8 7.8 5 12 5s8 1.8 11 4.5L12 21z"/></svg>
+          <svg width="${a}" height="${a}" viewBox="0 0 24 24"><path fill="${fg}" d="M2 22 22 2v20H2z"/></svg>
+          <svg width="${a * 0.6}" height="${a}" viewBox="0 0 14 24"><rect x="4" y="0" width="6" height="3" rx="1" fill="${fg}"/><rect x="0" y="2.5" width="14" height="21.5" rx="2.5" fill="${fg}"/></svg>
+        </span></div>`;
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><style>${base}
     .cap { position: absolute; top: 0; left: 0; right: 0; height: ${capH}px; padding: 0 ${pad}px;
       display: flex; flex-direction: column; justify-content: flex-end; gap: ${Math.round(head * 0.32)}px; padding-bottom: ${Math.round(h * 0.03)}px; }
@@ -74,13 +92,17 @@ function shot({ w, h, status }, img, headline, sub, lang) {
     .bars { display: flex; gap: ${statusH * 0.03}px; align-items: flex-end; height: ${statusH * 0.19}px; }
     .bars b { width: ${statusH * 0.045}px; background: currentColor; border-radius: 1px; }
     .screen img { display: block; width: 100%; }
+    .status.android { padding: 0 ${statusH * (tablet ? 0.9 : 0.5)}px; font-weight: 500; font-size: ${statusH * (tablet ? 0.42 : 0.36)}px; }
+    .hole { position: absolute; top: ${statusH * 0.24}px; left: 50%; transform: translateX(-50%); width: ${statusH * 0.5}px;
+      height: ${statusH * 0.5}px; border-radius: 50%; background: #000; box-shadow: 0 0 0 2px #111; display: ${tablet ? 'none' : 'block'}; }
+    .nav { height: ${navH}px; display: flex; align-items: center; justify-content: center; background: ${scheme === 'dark' ? '#000' : '#fff'}; }
+    .nav i { width: ${frameW * (tablet ? 0.1 : 0.3)}px; height: ${Math.max(4, navH * 0.14)}px; border-radius: 999px; background: ${fg}; opacity: .85; }
   </style></head><body style="width:${w}px;height:${h}px">
     <div class="cap"><h1>${headline}</h1><p>${sub}</p></div>
     <div class="dev"><div class="screen">
-      ${status ? `<div class="status"><span>9:41</span><div class="island"></div>
-        <span class="icons"><span class="bars"><b style="height:35%"></b><b style="height:55%"></b><b style="height:75%"></b><b style="height:100%"></b></span>
-        <span class="bat"><i></i></span></span></div>` : ''}
+      ${status ? (android ? androidBar : iosBar) : ''}
       <img src="${img}">
+      ${android ? '<div class="nav"><i></i></div>' : ''}
     </div></div>
   </body></html>`;
 }
