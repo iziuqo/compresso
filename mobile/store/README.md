@@ -11,6 +11,7 @@ itself so it never drifts from what ships.
 | Store images | `compose.mjs` | `npm run store:compose` |
 | Flow recording | `record.mjs` | `npm run store:record` |
 | Reel + App Store preview | `reel.mjs` | `npm run store:reel` |
+| Push the App Store listing (text, age rating, screenshots, previews, 13 locales) | `store.config.js` | Put the renders in `store/out/images` and `store/out/video` and the App Store Connect key at `asc-api-key.p8`, then `npx eas-cli metadata:push --profile production`. Set `APPLE_REVIEW_CONTACT` to also push the App Review contact |
 | Push the Play listing (text + images, 17 locales) | `scripts/play-publish.mjs` | `npm run store:play -- --dry-run` to check, then without it. Needs `GOOGLE_SERVICE_ACCOUNT_KEY` (service account JSON). `--release alpha` also rolls out the draft closed-test release |
 
 Capture, compose, record and reel drive the web build, so first run

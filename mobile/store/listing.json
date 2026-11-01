@@ -43,6 +43,7 @@
   },
   "es": {
     "name": "Compresso: Comprimir Fotos",
+    "appStoreName": "Compresso: Reducir Fotos",
     "subtitle": "Fotos más ligeras con un toque",
     "shortDescription": "Reduce el tamaño de tus fotos para mensajes, correo y formularios. Sin anuncios.",
     "promotionalText": "Elige tus fotos, di para qué son y listo. Compresso las reduce en tu teléfono y nunca sube nada.",
@@ -85,6 +86,7 @@
   },
   "fr": {
     "name": "Compresso : Compresser Photo",
+    "appStoreName": "Compresso : Réduire Photos",
     "subtitle": "Des photos plus légères",
     "shortDescription": "Réduisez vos photos pour les messages, les e-mails et les formulaires. Sans pub.",
     "promotionalText": "Choisissez vos photos, dites à quoi elles servent, c'est fait. Compresso les réduit sur votre téléphone, sans rien envoyer.",
@@ -169,6 +171,7 @@
   },
   "it": {
     "name": "Compresso: Comprimi Foto",
+    "appStoreName": "Compresso: Riduci Foto",
     "subtitle": "Foto più leggere con un tocco",
     "shortDescription": "Foto più leggere per messaggi, email e moduli. Privato e senza pubblicità.",
     "promotionalText": "Scegli le foto, di' a cosa servono, fatto. Compresso le rimpicciolisce sul telefono e non carica mai nulla.",
@@ -211,6 +214,7 @@
   },
   "pt-BR": {
     "name": "Compresso: Comprimir Fotos",
+    "appStoreName": "Compresso: Reduzir Fotos",
     "subtitle": "Fotos mais leves em um toque",
     "shortDescription": "Fotos menores para mensagens, e-mail e formulários. Privado e sem anúncios.",
     "promotionalText": "Escolha as fotos, diga para que são e pronto. O Compresso diminui tudo no seu celular e nunca envia nada.",
