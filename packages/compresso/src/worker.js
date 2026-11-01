@@ -45,22 +45,9 @@ self.onmessage = async (event) => {
     // `url` is a main-thread object URL, meaningless off-thread; `file` and
     // `blob` are the same bytes — send the blob once and let the pool wrap
     // it back into a `CompressResult` on the main thread.
-    post({
-      type: 'done',
-      id,
-      result: {
-        blob: result.blob,
-        width: result.width,
-        height: result.height,
-        originalWidth: result.originalWidth,
-        originalHeight: result.originalHeight,
-        originalSize: result.originalSize,
-        compressedSize: result.compressedSize,
-        savings: result.savings,
-        format: result.format,
-        mimeType: result.mimeType,
-      },
-    });
+    const { url, file: _file, ...rest } = result;
+    URL.revokeObjectURL(url);
+    post({ type: 'done', id, result: rest });
   } catch (err) {
     // The pool already settled its side of the promise locally the moment it
     // called cancel() — see pool.js's `cancel`. Nothing to report back.

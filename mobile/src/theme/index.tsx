@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, type ReactNode } from 'react';
-import { useColorScheme } from 'react-native';
+import { PixelRatio, useColorScheme } from 'react-native';
 
 import type { Appearance } from '../state/prefs.types';
 
@@ -27,7 +27,6 @@ const dark = {
   alert: '#FF6369',
   pill: '#FFFFFF',
   pillInk: '#000000',
-  scrim: 'rgba(0,0,0,0.6)',
 };
 
 const light: typeof dark = {
@@ -41,10 +40,9 @@ const light: typeof dark = {
   alert: '#C4262C',
   pill: '#000000',
   pillInk: '#FFFFFF',
-  scrim: 'rgba(0,0,0,0.4)',
 };
 
-export type Colors = typeof dark;
+type Colors = typeof dark;
 
 export const font = {
   regular: 'Geist-Regular',
@@ -63,6 +61,14 @@ export const type = {
 };
 
 export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32, 7: 48, 8: 64 };
+
+/**
+ * Text grows with the system text size up to this multiple, so a single word
+ * can't outgrow the screen. Layouts that reserve room for text before it is
+ * drawn use `fontScale()`, so they reserve exactly what the text will take.
+ */
+export const MAX_FONT_SCALE = 2;
+export const fontScale = () => Math.min(PixelRatio.getFontScale(), MAX_FONT_SCALE);
 
 /** Primary actions are 56pt tall, everything tappable at least 48. */
 export const target = { min: 48, primary: 56 };

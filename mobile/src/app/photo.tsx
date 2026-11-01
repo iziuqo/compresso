@@ -24,6 +24,7 @@ export default function PhotoScreen() {
   if (!photo) return null;
 
   const mine = own[uri];
+  const name = t('a11y.thumb', { n: count(index + 1), total: count(selection.length) });
   const drop = () => {
     remove(uri);
     // The last photo gone means there is nothing left to choose a purpose for.
@@ -34,9 +35,7 @@ export default function PhotoScreen() {
   return (
     <Screen
       header={<>
-        <Title style={{ fontSize: type.lead * 1.2 }}>
-          {t('a11y.thumb', { n: count(index + 1), total: count(selection.length) })}
-        </Title>
+        <Title style={{ fontSize: type.lead * 1.2 }}>{name}</Title>
         <IconButton label={t('settings.close')} icon={<Close color={c.ink} />} onPress={() => router.back()} />
       </>}
       footer={<>
@@ -45,8 +44,7 @@ export default function PhotoScreen() {
       </>}
     >
       <View style={[styles.frame, { backgroundColor: c.surface, aspectRatio: photo.width > 0 && photo.height > 0 ? photo.width / photo.height : 4 / 3 }]}>
-        <Image source={{ uri }} contentFit="contain" style={StyleSheet.absoluteFill}
-          accessibilityLabel={t('a11y.thumb', { n: count(index + 1), total: count(selection.length) })} />
+        <Image source={{ uri }} contentFit="contain" style={StyleSheet.absoluteFill} accessibilityLabel={name} />
       </View>
 
       <View style={{ gap: space[3], marginTop: space[5] }}>

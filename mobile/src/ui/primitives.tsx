@@ -4,16 +4,16 @@ import {
 } from 'react-native';
 
 import { useI18n } from '../i18n';
-import { font, space, target, type, useTheme } from '../theme';
+import { font, MAX_FONT_SCALE, space, target, type, useTheme } from '../theme';
 
 /**
- * Text that scales with the system text size, capped at 2× so a single word
- * can't outgrow the screen. Layouts around it must grow, never clip.
+ * Text that scales with the system text size, up to MAX_FONT_SCALE. Layouts
+ * around it must grow, never clip.
  */
 export function T({ style, muted, ...rest }: TextProps & { muted?: boolean }) {
   const { c } = useTheme();
   return (
-    <Text maxFontSizeMultiplier={2} {...rest}
+    <Text maxFontSizeMultiplier={MAX_FONT_SCALE} {...rest}
       style={[{ color: muted ? c.ink2 : c.ink, fontFamily: font.regular, fontSize: type.body, lineHeight: type.body * 1.35 }, style]} />
   );
 }

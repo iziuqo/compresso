@@ -6,6 +6,12 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+### Fixed
+- **Worker memory.** Each pool worker made an object URL for every result and
+  never revoked it, so a long-lived worker kept every image it had produced
+  alive until it was terminated. The worker now frees it before posting the
+  result; the pool still creates the `url` callers receive.
+
 ## [1.0.2] — 2026-08-04
 
 ### Fixed

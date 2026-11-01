@@ -193,11 +193,20 @@ export function useQueue() {
   const selectedRef = useRef<string | null>(null);
   const autoCappedRef = useRef(autoCapped);
   const runToken = useRef(0);
+  // Every object URL the committed state referenced at the last commit — the
+  // basis for reclaiming the ones it no longer does. See the effect below.
+  const liveUrlsRef = useRef<Set<string>>(new Set());
 
   jobsRef.current = jobs;
   paramsRef.current = params;
   selectedRef.current = selectedId;
   autoCappedRef.current = autoCapped;
+
+  /** Stop every main-pool job still in flight. The preview worker cancels its own. */
+  const abortBatch = useCallback(() => {
+    for (const controller of controllersRef.current.values()) controller.abort();
+    controllersRef.current.clear();
+  }, []);
 
   /**
    * Lazily (re)created rather than built once at first render. React can unmount
@@ -213,13 +222,37 @@ export function useQueue() {
     poolRef.current = null;
     previewRef.current?.destroy();
     previewRef.current = null;
-    for (const controller of controllersRef.current.values()) controller.abort();
-    controllersRef.current.clear();
-    for (const j of jobsRef.current) {
-      if (j.previewUrl) URL.revokeObjectURL(j.previewUrl);
-      if (j.out) URL.revokeObjectURL(j.out.url);
+    abortBatch();
+    for (const url of liveUrlsRef.current) URL.revokeObjectURL(url);
+    liveUrlsRef.current = new Set();
+  }, [abortBatch]);
+
+  /**
+   * Object URLs are reclaimed from the committed state, never from inside a
+   * state updater.
+   *
+   * React may run an updater speculatively and discard the result — re-running
+   * it against newer state, or double-invoking it under StrictMode, which is
+   * measurably what happened here: twenty jobs across three parameter changes
+   * revoked 120 URLs where 60 were owed. Double-revoking is a no-op, so nothing
+   * broke; the danger is the other direction. A revoke cannot be taken back, so
+   * one issued from an updater whose result React then throws away frees a URL
+   * the surviving state still points at, and that tile renders broken.
+   *
+   * Diffing what this commit references against what the last one did keeps
+   * every updater pure and reclaims exactly the URLs nothing points at any more.
+   */
+  useEffect(() => {
+    const referenced = new Set<string>();
+    for (const j of jobs) {
+      if (j.previewUrl) referenced.add(j.previewUrl);
+      if (j.out) referenced.add(j.out.url);
     }
-  }, []);
+    for (const url of liveUrlsRef.current) {
+      if (!referenced.has(url)) URL.revokeObjectURL(url);
+    }
+    liveUrlsRef.current = referenced;
+  }, [jobs]);
 
   const patch = useCallback((id: string, next: Partial<Job>) => {
     setJobs((cur) => cur.map((j) => (j.id === id ? { ...j, ...next } : j)));
@@ -262,11 +295,9 @@ export function useQueue() {
         return;
       }
 
-      setJobs((cur) => cur.map((j) => {
-        if (j.id !== job.id) return j;
-        if (j.out) URL.revokeObjectURL(j.out.url);
-        return { ...j, status: 'done', progress: 1, out, errorKind: null };
-      }));
+      setJobs((cur) => cur.map((j) => (
+        j.id === job.id ? { ...j, status: 'done', progress: 1, out, errorKind: null } : j
+      )));
     } catch (err) {
       if (token !== runToken.current) return;
       const kind = (err as { kind?: string }).kind;
@@ -307,45 +338,36 @@ export function useQueue() {
     if (!jobsRef.current.length) return;
 
     const timer = window.setTimeout(() => {
-      for (const controller of controllersRef.current.values()) controller.abort();
-      controllersRef.current.clear();
+      abortBatch();
       const token = ++runToken.current;
       const current = jobsRef.current;
       setJobs((cur) => cur.map((j) => ({ ...j, status: 'queued', progress: 0, errorKind: null })));
       for (const job of current) void runJob(job, token);
     }, 180);
     return () => window.clearTimeout(timer);
-  }, [paramsKey, runJob]);
+  }, [paramsKey, runJob, abortBatch]);
 
   const remove = useCallback((id: string) => {
     controllersRef.current.get(id)?.abort();
     controllersRef.current.delete(id);
-    setJobs((cur) => {
-      const target = cur.find((j) => j.id === id);
-      if (target?.previewUrl) URL.revokeObjectURL(target.previewUrl);
-      if (target?.out) URL.revokeObjectURL(target.out.url);
-      const next = cur.filter((j) => j.id !== id);
-      setSelectedId((sel) => (sel === id ? next[0]?.id ?? null : sel));
-      return next;
+    setJobs((cur) => cur.filter((j) => j.id !== id));
+    // Choosing what to show next is its own decision, not part of computing the
+    // next job list — so it is made here rather than from inside that updater.
+    setSelectedId((sel) => {
+      if (sel !== id) return sel;
+      return jobsRef.current.find((j) => j.id !== id)?.id ?? null;
     });
   }, []);
 
   const clear = useCallback(() => {
-    for (const controller of controllersRef.current.values()) controller.abort();
-    controllersRef.current.clear();
+    abortBatch();
     runToken.current++;
-    setJobs((cur) => {
-      for (const j of cur) {
-        if (j.previewUrl) URL.revokeObjectURL(j.previewUrl);
-        if (j.out) URL.revokeObjectURL(j.out.url);
-      }
-      return [];
-    });
+    setJobs([]);
     setSelectedId(null);
     // Starting over drops the images but not what was learned about the
     // device/session — a cap already earned stays earned.
     setParams(defaultParamsFor(autoCappedRef.current));
-  }, []);
+  }, [abortBatch]);
 
   const retry = useCallback((id: string) => {
     const job = jobsRef.current.find((j) => j.id === id);

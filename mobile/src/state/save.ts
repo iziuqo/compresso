@@ -43,8 +43,8 @@ export function openLibrary(): boolean {
   return canOpenLibrary && first !== null && CompressoEngine.openInGallery(first);
 }
 
-export async function share(uri: string, mimeType?: string): Promise<void> {
-  if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri, { mimeType });
+export async function share(uri: string): Promise<void> {
+  if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri);
 }
 
 export const tick = () => Haptics.selectionAsync();
