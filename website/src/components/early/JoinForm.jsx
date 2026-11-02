@@ -54,6 +54,8 @@ export default function JoinForm({ e, locale, id }) {
     setError(null);
     setStatus('sending');
     try {
+      // baked in at build time: a missing variable means Vercel needs a redeploy
+      if (!EARLY_ACCESS_URL) throw new Error('NEXT_PUBLIC_EARLY_ACCESS_URL is not set');
       const res = await fetch(EARLY_ACCESS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
