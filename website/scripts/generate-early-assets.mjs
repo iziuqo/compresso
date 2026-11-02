@@ -15,6 +15,11 @@ import { sentences } from '../src/lib/text.js';
  * Naming locales redoes only those; the AVIF encode is slow, about a minute
  * per screen, so a copy fix need not wait for all seven.
  *
+ *   node scripts/generate-early-assets.mjs --previews [en pt-BR …]
+ *
+ * redraws only og.jpg from the screens already in public/early/, for when the
+ * headline changed and the screens did not (no store kit needed).
+ *
  * Per locale, into public/early/<slug>/:
  *   <screen>.avif / .webp  the device frame from each App Store shot, without
  *                          the headline above it (the page sets its own type)
@@ -30,7 +35,8 @@ import { sentences } from '../src/lib/text.js';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'public/early');
 const [kit, ...only] = process.argv.slice(2);
-if (!kit) throw new Error('usage: generate-early-assets.mjs <store-kit dir> [locale…]');
+if (!kit) throw new Error('usage: generate-early-assets.mjs <store-kit dir | --previews> [locale…]');
+const previewsOnly = kit === '--previews';
 
 /** Which App Store shot carries which screen. */
 const SCREENS = { home: 1, purpose: 2, compare: 3, private: 5 };
@@ -145,7 +151,7 @@ for (const [locale, slug] of Object.entries(LOCALE_SLUGS)) {
   if (only.length && !only.includes(locale)) continue;
   const dir = join(OUT, slug);
   mkdirSync(dir, { recursive: true });
-  await cutScreens(locale, dir);
+  if (!previewsOnly) await cutScreens(locale, dir);
   const { early } = JSON.parse(readFileSync(join(ROOT, 'src/i18n', `${locale}.json`), 'utf8'));
   const t = { early, lang: locale };
   await render(page, ogHtml(t, pathToFileURL(dir).href), join(dir, 'og.jpg'), { width: 1200, height: 630 });

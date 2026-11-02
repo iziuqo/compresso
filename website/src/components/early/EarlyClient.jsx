@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import useLocaleRoute from '../../hooks/useLocaleRoute';
 import { localeSlug } from '../../lib/locale-routes';
 import { sentences } from '../../lib/text';
@@ -21,6 +22,14 @@ export default function EarlyClient({ locale }) {
   const { t, basePath, swapping, changeLocale } = useLocaleRoute(locale);
   const e = t.early;
   const slug = localeSlug(locale);
+
+  // the inline script in page.jsx covers a first load; this covers arriving
+  // by client navigation, and lets the rest of the site offer install again
+  useEffect(() => {
+    const block = window.__eaBlockInstall || ((event) => event.preventDefault());
+    window.addEventListener('beforeinstallprompt', block);
+    return () => window.removeEventListener('beforeinstallprompt', block);
+  }, []);
 
   const perks = [1, 2, 3].map((n) => ({ title: e[`perk${n}Title`], body: e[`perk${n}Body`] }));
   const steps = [1, 2, 3].map((n) => ({ title: e[`step${n}Title`], body: e[`step${n}Body`] }));
