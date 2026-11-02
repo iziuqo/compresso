@@ -95,12 +95,7 @@ const config = {
     },
     review: {
       demoRequired: false,
-      notes: [
-        'Compresso needs no account or sign-in.',
-        'To test: tap Choose photos, pick any photos, choose a purpose such as Message, then tap Make them lighter. Save all to Photos adds the smaller copies to the library.',
-        'Photos are chosen with the system photo picker, so the app never asks for library read access. Saving asks for add-only access (NSPhotoLibraryAddUsageDescription).',
-        'All processing happens on the device. The app makes no network requests and collects no data.',
-      ].join('\n\n'),
+      notes: readFileSync(join(root, 'store/review-notes.txt'), 'utf8').trim(),
     },
   },
 };
