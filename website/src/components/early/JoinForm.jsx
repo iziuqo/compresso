@@ -54,6 +54,8 @@ export default function JoinForm({ e, locale, id }) {
     setError(null);
     setStatus('sending');
     try {
+      // baked in at build time: a missing variable means Vercel needs a redeploy
+      if (!EARLY_ACCESS_URL) throw new Error('NEXT_PUBLIC_EARLY_ACCESS_URL is not set');
       const res = await fetch(EARLY_ACCESS_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -63,7 +65,10 @@ export default function JoinForm({ e, locale, id }) {
           platform,
           locale,
           source: readSource(),
-          website: event.currentTarget.website.value, // honeypot: people leave it empty
+          // Honeypot: people never see it, so it stays empty. Named so that no
+          // browser or password manager recognises it: a field called "website"
+          // got autofilled on Android, and real signups were taken for bots.
+          trap: event.currentTarget.ea_trap.value,
         }),
       });
       const out = await res.json();
@@ -148,7 +153,7 @@ export default function JoinForm({ e, locale, id }) {
       </fieldset>
 
       {/* off-screen, not display:none, so form-filling bots still find it */}
-      <input className="ea-hp" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
+      <input className="ea-hp" name="ea_trap" tabIndex={-1} autoComplete="new-password" aria-hidden="true" />
 
       <button className="mk-pill mk-pill--lg ea-submit" type="submit" disabled={sending} aria-busy={sending}>
         {sending ? e.sending : e.submit}
