@@ -40,10 +40,6 @@ function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return reply({ ok: false, error: 'bad-request' }); }
 
-  // The page's hidden field. A person never fills it; answering "ok" tells a
-  // bot nothing it could learn from.
-  if (body.website) return reply({ ok: true });
-
   const email = clean(body.email, 254).toLowerCase();
   if (!EMAIL.test(email)) return reply({ ok: false, error: 'email' });
 
@@ -55,13 +51,20 @@ function doPost(e) {
     source: clean(body.source, 40) || 'direct',
   };
 
+  // The page's hidden field (`trap`). A person never sees it, so it arrives
+  // empty; a form-filling bot fills it. Such a signup is saved as "blocked"
+  // and gets no email, rather than being dropped: if autofill ever catches a
+  // real person, set the row back to "pending" and the next sendPending()
+  // delivers it. The reply is the same "ok" either way, so a bot learns nothing.
+  const blocked = Boolean(body.trap);
+
   // One writer at a time, so two quick signups cannot land on the same row.
   // The row is saved whatever the email does: a signup is never lost to a
   // mail problem, and sendPending() retries any invite that did not go out.
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
-    save(signup, deliver(signup));
+    save(signup, blocked ? 'blocked' : deliver(signup));
   } finally {
     lock.releaseLock();
   }
@@ -139,7 +142,8 @@ function deliver(signup) {
 }
 
 /**
- * Sends every invite that has not gone out yet (pending or failed). Run it by
+ * Sends every invite that has not gone out yet (pending or failed; blocked
+ * rows are skipped until you change them to pending). Run it by
  * hand, or add a daily time-driven trigger for it (Triggers > Add trigger >
  * sendPending).
  */
@@ -147,10 +151,10 @@ function sendPending() {
   const s = sheet();
   const rows = s.getDataRange().getValues().slice(1);
   rows.forEach((r, i) => {
-    if (r[COL.Status - 1] === 'sent') return;
+    const status = r[COL.Status - 1];
+    if (status === 'sent' || status === 'blocked') return;
     const signup = { name: String(r[COL.Name - 1]), email: r[COL.Email - 1], platform: r[COL.Phone - 1], locale: r[COL.Language - 1] };
-    const status = deliver(signup);
-    s.getRange(i + 2, COL.Status).setValue(status);
+    s.getRange(i + 2, COL.Status).setValue(deliver(signup));
   });
 }
 
