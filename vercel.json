@@ -8,7 +8,14 @@
       "source": "/",
       "destination": "/en/",
       "permanent": true
-    }
+    },
+    { "source": "/early", "has": [{ "type": "header", "key": "accept-language", "value": "(?:pt|PT).*" }], "destination": "/pt-br/early/", "permanent": false },
+    { "source": "/early", "has": [{ "type": "header", "key": "accept-language", "value": "(?:es|ES).*" }], "destination": "/es/early/", "permanent": false },
+    { "source": "/early", "has": [{ "type": "header", "key": "accept-language", "value": "(?:fr|FR).*" }], "destination": "/fr/early/", "permanent": false },
+    { "source": "/early", "has": [{ "type": "header", "key": "accept-language", "value": "(?:de|DE).*" }], "destination": "/de/early/", "permanent": false },
+    { "source": "/early", "has": [{ "type": "header", "key": "accept-language", "value": "(?:it|IT).*" }], "destination": "/it/early/", "permanent": false },
+    { "source": "/early", "has": [{ "type": "header", "key": "accept-language", "value": "(?:zh|ZH).*" }], "destination": "/zh-hans/early/", "permanent": false },
+    { "source": "/early", "destination": "/en/early/", "permanent": false }
   ],
   "headers": [
     {

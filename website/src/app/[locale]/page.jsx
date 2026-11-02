@@ -8,5 +8,5 @@ export function generateStaticParams() {
 export default async function LocaleHomePage({ params }) {
   const { locale: slug } = await params;
   const locale = resolveLocaleFromSlug(slug);
-  return <HomeClient initialLocale={locale} localeSlug={slug} />;
+  return <HomeClient initialLocale={locale} />;
 }

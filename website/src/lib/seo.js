@@ -54,7 +54,16 @@ export function buildLanguageAlternates(pathTail = '') {
   return languages;
 }
 
-export function buildPageMetadata(locale, { pathTail = '', title, description, ogTitle, ogDescription } = {}) {
+const DEFAULT_OG_IMAGE = {
+  url: '/og-image.jpg',
+  alt: 'Compresso — compress images in the browser. 3.6 KB gzipped, 0 dependencies, 100% client-side.',
+};
+
+/** `image` ({ url, alt }, 1200×630) replaces the site-wide link preview. */
+export function buildPageMetadata(
+  locale,
+  { pathTail = '', title, description, ogTitle, ogDescription, image = DEFAULT_OG_IMAGE } = {},
+) {
   const t = getTranslations(locale);
   const canonical = absoluteUrl(localePath(locale, pathTail));
   const languages = buildLanguageAlternates(pathTail);
@@ -72,20 +81,13 @@ export function buildPageMetadata(locale, { pathTail = '', title, description, o
       url: canonical,
       siteName: 'Compresso',
       type: 'website',
-      images: [
-        {
-          url: '/og-image.jpg',
-          width: 1200,
-          height: 630,
-          alt: 'Compresso — compress images in the browser. 3.6 KB gzipped, 0 dependencies, 100% client-side.',
-        },
-      ],
+      images: [{ ...image, width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
       title: ogTitle || title || t.meta.ogTitle,
       description: ogDescription || description || t.meta.ogDescription,
-      images: ['/og-image.jpg'],
+      images: [image.url],
     },
   };
 }
