@@ -26,7 +26,19 @@ export async function generateMetadata({ params }) {
   });
 }
 
+/** The site's manifest makes Chrome offer to install the web tool here, which
+    a visitor would take for the phone app this page is about. Set inline so it
+    is listening before the service worker makes the page installable. */
+const BLOCK_INSTALL =
+  'window.__eaBlockInstall=function(e){e.preventDefault()};' +
+  "addEventListener('beforeinstallprompt',window.__eaBlockInstall)";
+
 export default async function EarlyPage({ params }) {
   const { locale: slug } = await params;
-  return <EarlyClient locale={resolveLocaleFromSlug(slug)} />;
+  return (
+    <>
+      <script dangerouslySetInnerHTML={{ __html: BLOCK_INSTALL }} />
+      <EarlyClient locale={resolveLocaleFromSlug(slug)} />
+    </>
+  );
 }
