@@ -1,0 +1,30 @@
+Hello, and thank you for reviewing Compresso. Here is the information you asked for. A screen recording from a physical iPhone running the latest iOS is attached to our reply in App Store Connect.
+
+1. Screen recording
+Attached to our reply. It starts at app launch and shows the whole typical flow: the first-run intro, choosing photos with the system photo picker, choosing a purpose (Message), compressing, comparing before and after, saving the copies to Photos and sharing. Compresso has no account registration, login, user-generated content or paid content, so there are no flows of that kind to show.
+
+2. Purpose and target audience
+Compresso makes photos smaller so they can be sent or uploaded. Phone photos are often 3 to 10 MB, which is too large for many email attachments, website upload forms (for example, a 1 MB limit on a government or job application form) and slow connections. The user picks photos, says what they are for (Message, Email, Upload form, Save space or Website), and Compresso produces lighter copies sized for that purpose. The originals are never changed.
+It is for everyday people, including older and non-technical users, so it uses large buttons, plain words, Dynamic Type and VoiceOver, and has no sliders to guess at. It is free, with no ads, no account, no tracking and no in-app purchases.
+
+3. How to use it
+No login or setup is needed, and no sample files are required: any photos on the test device work.
+- Open the app. On first launch, tap through the three-screen intro (or tap Skip).
+- Tap "Choose photos" and pick one or more photos in the system photo picker. The app never asks for read access to the photo library.
+- On "What are they for?", choose a purpose, for example Message, and tap "Make them lighter".
+- The result screen shows each photo's size before and after. Drag the slider to compare before and after.
+- Tap "Save all to Photos" to add the smaller copies. iOS asks for add-only access the first time. "Share" opens the system share sheet.
+- Optional: "Fine-tune" on the purpose screen sets a size limit, maximum dimensions, quality, format and metadata (for example, remove location). Settings has language and appearance.
+Sample photos, if useful: https://github.com/iziuqo/compresso/tree/main/mobile/store/photos
+
+4. External services
+None. All decoding, resizing and compression run on the device, using Apple's ImageIO framework through the app's own native module. The app makes no network requests, has no server or backend, and uses no third-party SDKs, analytics, advertising, authentication, payment or AI services. It works fully offline. The app is open source: https://github.com/iziuqo/compresso
+
+5. Regional differences
+None. The app works the same in every region. Its interface and App Store listing are localized into English, Spanish, French, German, Italian, Portuguese (Brazil) and Simplified Chinese, and the content is identical in each.
+
+6. Regulated industry or protected third-party material
+Not applicable. Compresso is not in a regulated industry and contains no third-party protected material. It only processes photos the user chooses from their own library.
+
+Thank you.
+Izaias Cavalcanti
