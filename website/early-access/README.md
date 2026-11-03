@@ -34,6 +34,13 @@ sends them the next day.
 7. Optional: **Triggers > Add trigger**, function `sendPending`, time-driven,
    daily, so a busy day's overflow goes out on its own.
 
+## Privacy (GDPR, LGPD)
+
+The page and the privacy policy promise that the sheet is used only for the
+invite. Keep that promise: when someone replies "delete" (in any language),
+delete their row within 15 days, and delete every row once the app is public
+in the stores. Until then, delete any row older than six months.
+
 The Android steps only work if anyone can join
 [compresso-testers](https://groups.google.com/g/compresso-testers): in the
 group's settings, **Who can join group** must be **Anyone on the web can join**.

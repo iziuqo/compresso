@@ -245,6 +245,8 @@
     "step3Body": "在 Android 上保留 14 天，Google 才能把它发布给所有人。在 iPhone 上，TestFlight 会负责更新。",
     "closeTitle": "大家以后都会有，你现在就能用上。",
     "closeCta": "获取我的邀请",
-    "closeNote": "免费。无需账号。照片从不离开你的手机。"
+    "closeNote": "免费。无需账号。照片从不离开你的手机。",
+    "consent": "仅用于发送本次邀请，正式上架后删除。",
+    "consentLink": "隐私"
   }
 }

@@ -289,7 +289,7 @@ const COPY = {
     iosNote: 'TestFlight keeps Compresso up to date for you. It needs iOS 16.4 or later.',
     thanks: 'Thank you for being first. If something feels off, or just right, reply to this email. It goes straight to the person who built Compresso.',
     share: 'Know someone who’d want in too? Pass this on:',
-    footer: 'You asked for this invite at compresso.izaias.xyz. It’s the only email you’ll get.',
+    footer: 'You asked for this invite at compresso.izaias.xyz. It’s the only email you’ll get. To have your details deleted, reply “delete”.',
   },
   'pt-BR': {
     subject: 'Seu convite do Compresso chegou',
@@ -308,7 +308,7 @@ const COPY = {
     iosNote: 'O TestFlight mantém o Compresso atualizado para você. Precisa do iOS 16.4 ou mais recente.',
     thanks: 'Obrigado por chegar primeiro. Se algo parecer estranho, ou muito bom, é só responder este e-mail. Ele vai direto para quem fez o Compresso.',
     share: 'Conhece alguém que ia querer também? Repasse este link:',
-    footer: 'Você pediu este convite em compresso.izaias.xyz. É o único e-mail que você vai receber.',
+    footer: 'Você pediu este convite em compresso.izaias.xyz. É o único e-mail que você vai receber. Para apagar seus dados, responda “apagar”.',
   },
   es: {
     subject: 'Ya tienes tu invitación a Compresso',
@@ -327,7 +327,7 @@ const COPY = {
     iosNote: 'TestFlight mantiene Compresso al día por ti. Necesita iOS 16.4 o posterior.',
     thanks: 'Gracias por llegar primero. Si algo no te convence, o te encanta, responde a este correo. Le llega directo a quien hizo Compresso.',
     share: '¿Conoces a alguien que también la querría? Pásale este enlace:',
-    footer: 'Pediste esta invitación en compresso.izaias.xyz. Es el único correo que recibirás.',
+    footer: 'Pediste esta invitación en compresso.izaias.xyz. Es el único correo que recibirás. Para borrar tus datos, responde «borrar».',
   },
   fr: {
     subject: 'Votre invitation Compresso est arrivée',
@@ -346,7 +346,7 @@ const COPY = {
     iosNote: 'TestFlight tient Compresso à jour pour vous. Nécessite iOS 16.4 ou plus récent.',
     thanks: 'Merci d’être là en premier. Si quelque chose cloche, ou vous plaît, répondez à cet e-mail. Il arrive directement à la personne qui a créé Compresso.',
     share: 'Quelqu’un aimerait en être aussi ? Transmettez-lui ce lien :',
-    footer: 'Vous avez demandé cette invitation sur compresso.izaias.xyz. C’est le seul e-mail que vous recevrez.',
+    footer: 'Vous avez demandé cette invitation sur compresso.izaias.xyz. C’est le seul e-mail que vous recevrez. Pour effacer vos données, répondez « supprimer ».',
   },
   de: {
     subject: 'Deine Einladung zu Compresso ist da',
@@ -365,7 +365,7 @@ const COPY = {
     iosNote: 'TestFlight hält Compresso für dich aktuell. Braucht iOS 16.4 oder neuer.',
     thanks: 'Danke, dass du so früh dabei bist. Wenn sich etwas falsch anfühlt, oder genau richtig, antworte einfach auf diese E-Mail. Sie geht direkt an die Person, die Compresso gebaut hat.',
     share: 'Kennst du jemanden, der auch dabei sein will? Schick diesen Link weiter:',
-    footer: 'Du hast diese Einladung auf compresso.izaias.xyz angefordert. Es ist die einzige E-Mail, die du bekommst.',
+    footer: 'Du hast diese Einladung auf compresso.izaias.xyz angefordert. Es ist die einzige E-Mail, die du bekommst. Um deine Daten löschen zu lassen, antworte mit „löschen“.',
   },
   it: {
     subject: 'Il tuo invito a Compresso è arrivato',
@@ -384,7 +384,7 @@ const COPY = {
     iosNote: 'TestFlight tiene Compresso aggiornata per te. Serve iOS 16.4 o successivo.',
     thanks: 'Grazie per essere qui prima di tutti. Se qualcosa non ti torna, o ti piace molto, rispondi a questa email. Arriva dritta a chi ha creato Compresso.',
     share: 'Conosci qualcuno a cui piacerebbe averla? Inoltra questo link:',
-    footer: 'Hai chiesto questo invito su compresso.izaias.xyz. È l’unica email che riceverai.',
+    footer: 'Hai chiesto questo invito su compresso.izaias.xyz. È l’unica email che riceverai. Per cancellare i tuoi dati, rispondi “cancella”.',
   },
   'zh-Hans': {
     subject: '你的 Compresso 邀请到了',
@@ -403,6 +403,6 @@ const COPY = {
     iosNote: 'TestFlight 会帮你自动更新 Compresso。需要 iOS 16.4 或更高版本。',
     thanks: '感谢你抢先加入。如果有什么不对劲，或者让你满意，回复这封邮件即可，它会送到 Compresso 的开发者手中。',
     share: '认识也想加入的人吗？把这个链接发给他们：',
-    footer: '你在 compresso.izaias.xyz 申请了这份邀请。这是你会收到的唯一一封邮件。',
+    footer: '你在 compresso.izaias.xyz 申请了这份邀请。这是你会收到的唯一一封邮件。如需删除你的信息，请回复“删除”。',
   },
 };

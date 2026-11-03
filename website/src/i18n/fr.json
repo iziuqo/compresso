@@ -245,6 +245,8 @@
     "step3Body": "Sur Android, la garder 14 jours permet à Google de la publier pour tous. Sur iPhone, TestFlight s’occupe des mises à jour.",
     "closeTitle": "Tout le monde l’aura plus tard. Vous pouvez l’avoir maintenant.",
     "closeCta": "Demander mon invitation",
-    "closeNote": "Gratuite. Sans compte. Vos photos ne quittent jamais votre téléphone."
+    "closeNote": "Gratuite. Sans compte. Vos photos ne quittent jamais votre téléphone.",
+    "consent": "Utilisé uniquement pour cette invitation, puis supprimé après le lancement.",
+    "consentLink": "Confidentialité"
   }
 }

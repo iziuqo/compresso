@@ -169,6 +169,7 @@
 
 .ea-fine { font-size: 0.75rem; line-height: 1.5; color: var(--ink-3); text-align: center; text-wrap: balance; }
 .ea-fine.is-error { color: var(--ink); }
+.ea-fine a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
 /* --------------------------------------------------------------- receipt */
 

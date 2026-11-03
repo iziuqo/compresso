@@ -245,6 +245,8 @@
     "step3Body": "Auf Android braucht Google 14 Tage mit der App auf deinem Handy, bevor sie für alle erscheinen kann. Auf dem iPhone kümmert sich TestFlight um die Updates.",
     "closeTitle": "Alle bekommen sie später. Du kannst sie jetzt haben.",
     "closeCta": "Einladung anfordern",
-    "closeNote": "Kostenlos. Kein Konto. Deine Fotos verlassen nie dein Handy."
+    "closeNote": "Kostenlos. Kein Konto. Deine Fotos verlassen nie dein Handy.",
+    "consent": "Nur für diese Einladung genutzt und nach dem Start gelöscht.",
+    "consentLink": "Datenschutz"
   }
 }
