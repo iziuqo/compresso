@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getTranslations, defaultLocale, detectLocale, storeLocale } from '../../i18n';
-import CompressorApp from '../../components/tool/CompressorApp';
+import { getTranslations, defaultLocale, detectLocale, storeLocale } from '../../../i18n';
+import CompressorApp from '../../../components/tool/CompressorApp';
 
 export default function ToolPage() {
   const [locale, setLocale] = useState(defaultLocale);
