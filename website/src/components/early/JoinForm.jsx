@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Logo from '../Logo';
 import { EARLY_ACCESS_URL } from '../marketing/links';
+import { localePath } from '../../lib/locale-routes';
 
 const PLATFORMS = [
   { id: 'android', label: 'Android', hint: 'androidHint' },
@@ -159,6 +160,8 @@ export default function JoinForm({ e, locale, id }) {
         {sending ? e.sending : e.submit}
       </button>
       <p className={`ea-fine ${error ? 'is-error' : ''}`} aria-live="polite">{error || e.privacy}</p>
+      {/* the notice consent rests on (GDPR art. 13, LGPD art. 9): purpose, retention, and where the rest is */}
+      <p className="ea-fine">{e.consent} <a href={`${localePath(locale, 'privacy')}#early-access`}>{e.consentLink}</a></p>
     </form>
   );
 }

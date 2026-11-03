@@ -83,7 +83,13 @@ export default function RootLayout({ children }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Compresso" />
-        <script src="https://t.contentsquare.net/uxa/17eb42fc937fb.js" defer />
+        {/* Contentsquare sets cookies. The early-access page asks for nothing
+            but its signup consent, so it never loads there (GDPR, LGPD). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "if(!/\\/early\\//.test(location.pathname)){var s=document.createElement('script');s.src='https://t.contentsquare.net/uxa/17eb42fc937fb.js';s.defer=true;document.head.appendChild(s)}",
+          }}
+        />
         <JsonLd data={SITE_SCHEMA} />
       </head>
       <body className="font-sans antialiased">

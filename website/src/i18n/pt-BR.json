@@ -363,6 +363,8 @@
     "step3Body": "No Android, manter o app por 14 dias é o que permite ao Google liberar para todo mundo. No iPhone, o TestFlight cuida das atualizações.",
     "closeTitle": "Todo mundo vai ter depois. Você pode ter agora.",
     "closeCta": "Quero meu convite",
-    "closeNote": "Grátis. Sem conta. Suas fotos nunca saem do celular."
+    "closeNote": "Grátis. Sem conta. Suas fotos nunca saem do celular.",
+    "consent": "Usado só para enviar este convite e apagado após o lançamento.",
+    "consentLink": "Privacidade"
   }
 }

@@ -363,6 +363,8 @@
     "step3Body": "On Android, keeping it for 14 days is what lets Google release it to everyone. On iPhone, TestFlight handles updates for you.",
     "closeTitle": "Everyone gets it later. You can have it now.",
     "closeCta": "Request my invite",
-    "closeNote": "Free. No account. Your photos never leave your phone."
+    "closeNote": "Free. No account. Your photos never leave your phone.",
+    "consent": "Used only to send this invite, and deleted after launch.",
+    "consentLink": "Privacy"
   }
 }

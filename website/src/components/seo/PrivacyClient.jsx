@@ -29,6 +29,8 @@ export default function PrivacyClient({ locale }) {
         <p className="mk-seo__p">{copy.analyticsBody}</p>
         <h2 className="mk-seo__h2">{copy.libraryTitle}</h2>
         <p className="mk-seo__p">{copy.libraryBody}</p>
+        <h2 className="mk-seo__h2" id="early-access">{copy.earlyTitle}</h2>
+        <p className="mk-seo__p">{copy.earlyBody}</p>
         <p className="mk-seo__foot">
           {copy.contact}{' '}
           <a href={`${GITHUB_URL}/issues`} target="_blank" rel="noopener noreferrer">GitHub Issues</a>
