@@ -1,22 +1,10 @@
-import './globals.css';
-import './marketing.css';
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
-import { Plus_Jakarta_Sans } from 'next/font/google';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import ServiceWorker from '../components/ServiceWorker';
-import JsonLd from '../components/seo/JsonLd';
-import { SITE_SCHEMA } from '../lib/seo';
-
-const display = Plus_Jakarta_Sans({
-  subsets: ['latin'],
-  variable: '--font-display',
-  weight: ['500', '600', '700', '800'],
-  display: 'swap',
-});
-
-export const metadata = {
+/**
+ * Site-wide metadata. The site has two root layouts, `(site)` for the
+ * unlocalised pages and `[locale]` for the localised ones, so both start
+ * from this. Page metadata is merged over it shallowly, the same way Next
+ * merges a child segment's metadata over its parent's.
+ */
+export const SITE_METADATA = {
   title: 'Compresso: Free Image Compressor That Runs In Your Browser',
   description:
     'Compress, resize, and convert images without uploading them anywhere. Free app that works offline, plus a 3.6 KB zero dependency JavaScript library with HEIC input and parallel Web Worker batching. Fully client side, no server needed.',
@@ -71,33 +59,3 @@ export const metadata = {
      Per-locale routes would be the fix; announcing routes we do not serve is
      worse than announcing none. */
 };
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en" className={`scroll-smooth ${GeistSans.variable} ${GeistMono.variable} ${display.variable}`}>
-      <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Compresso" />
-        {/* Contentsquare sets cookies. The early-access page asks for nothing
-            but its signup consent, so it never loads there (GDPR, LGPD). */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "if(!/\\/early\\//.test(location.pathname)){var s=document.createElement('script');s.src='https://t.contentsquare.net/uxa/17eb42fc937fb.js';s.defer=true;document.head.appendChild(s)}",
-          }}
-        />
-        <JsonLd data={SITE_SCHEMA} />
-      </head>
-      <body className="font-sans antialiased">
-        <ServiceWorker />
-        {children}
-        <Analytics />
-        <SpeedInsights />
-      </body>
-    </html>
-  );
-}

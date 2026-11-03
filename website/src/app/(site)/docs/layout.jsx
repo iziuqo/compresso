@@ -1,5 +1,5 @@
-import JsonLd from '../../components/seo/JsonLd';
-import { SITE_URL } from '../../lib/seo';
+import JsonLd from '../../../components/seo/JsonLd';
+import { SITE_URL } from '../../../lib/seo';
 
 export const metadata = {
   title: 'compresso.js Documentation: Client Side Image Compression API',

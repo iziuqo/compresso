@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getTranslations, defaultLocale, detectLocale, storeLocale, locales, getLocaleLabel } from '../../i18n';
-import Logo from '../../components/Logo';
+import { getTranslations, defaultLocale, detectLocale, storeLocale, locales, getLocaleLabel } from '../../../i18n';
+import Logo from '../../../components/Logo';
 
 function detectBasePath() {
   if (typeof window === "undefined") return "";
