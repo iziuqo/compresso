@@ -8,8 +8,8 @@ timings from its `motion.ts`, sizes printed by the app's formatter
 
 | Short | Length | Cuts |
 |---|---|---|
-| `the-press`: the icon presses a heavy photo; the bytes go, the photo stays | 12 s loop | one wordless master |
-| `can-you-tell`: original or Compresso? Guess, then the reveal | 10 s loop | one wordless master |
+| `the-press-<n>`: the icon presses a heavy photo; the bytes go, the photo stays | 12 s loop | one wordless master per episode |
+| `can-you-tell-<n>`: original or Compresso? Guess, then the reveal | 10 s loop | one wordless master per episode |
 | `file-too-large-<lang>`: the limits pile up, one tap ends them | 13 s loop | one per language in `locales/` |
 
 ## Rules every frame follows
@@ -25,6 +25,9 @@ timings from its `motion.ts`, sizes printed by the app's formatter
 ## Make them
 
 Needs Node, ffmpeg, Playwright's Chromium, and Python 3 with numpy and scipy.
+For the zh-Hans cut, install Noto Sans SC (the CJK face Android ships) and
+make it the only Chinese font fontconfig offers, so the app recording and the
+Short both set Chinese as a phone does.
 
 ```sh
 npm ci
@@ -33,7 +36,8 @@ npm run photos                    # checks the originals against Commons' SHA-1
 npm run measure                   # real sizes and screens from the app
 npm run sound                     # the press, from sound/src
 npm run stills                    # key frames to out/stills
-npm run render                    # 4K masters at -16 LUFS to out/; `npm run render 0.5 the-press` for a quick look
+npm run render                    # 4K masters at -14 LUFS to out/; `npm run render 0.5 the-press-1` for a quick look
+npm run youtube                   # every title and description, in each language, to out/youtube.json
 npm run studio                    # preview and scrub
 ```
 

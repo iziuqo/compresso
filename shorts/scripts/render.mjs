@@ -2,10 +2,11 @@
 //
 //   node scripts/render.mjs [scale] [id ...]     scale 1 = the 2160×3840 master
 //
-// Remotion mixes the cues; this then sets the mix to -16 LUFS with a
-// -1.5 dBTP ceiling. The limiter's 2 ms attack keeps the press's transient,
-// and the level stays under YouTube's -14 LUFS, which only ever turns down.
-// Set REMOTION_BROWSER to an installed Chrome headless shell to skip the download.
+// Remotion mixes the cues; this then sets the mix to the plan's -14 LUFS,
+// the level YouTube plays at, under a limiter whose 2 ms attack keeps the
+// press's transient. Each master is measured again after encoding and must
+// stay at or below -1 dBTP. Set REMOTION_BROWSER to an installed Chrome
+// headless shell to skip the download.
 import { bundle } from '@remotion/bundler';
 import { getCompositions, renderMedia } from '@remotion/renderer';
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -13,8 +14,16 @@ import { mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { root } from './shared.mjs';
 
-const LUFS = -16;
-const CEILING = 10 ** (-1.5 / 20);
+const LUFS = -14;
+const LIMIT = 10 ** (-1.5 / 20); // sample peaks; AAC adds a little, the check below holds -1 dBTP
+const MAX_TRUE_PEAK = -1;
+
+/** Integrated loudness and true peak, from ffmpeg's ebur128 summary (on stderr). */
+function loudness(file) {
+  const { stderr } = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', file, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' });
+  const summary = stderr.split('Summary:')[1];
+  return { lufs: Number(/I:\s+(-?[\d.]+) LUFS/.exec(summary)[1]), peak: Number(/Peak:\s+(-?[\d.]+) dBFS/.exec(summary)[1]) };
+}
 
 const [scaleArg = '1', ...ids] = process.argv.slice(2);
 const scale = Number(scaleArg);
@@ -31,12 +40,12 @@ for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) 
     ...options, composition, codec: 'h264', outputLocation: mix, scale,
     crf: scale === 1 ? 14 : 20, audioCodec: 'aac', audioBitrate: '320k', pixelFormat: 'yuv420p',
   });
-  // ebur128 reports on stderr; its summary's I: is the integrated loudness.
-  const { stderr } = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', mix, '-af', 'ebur128', '-f', 'null', '-'], { encoding: 'utf8' });
-  const measured = Number(/I:\s+(-?[\d.]+) LUFS/.exec(stderr.split('Summary:')[1])[1]);
+  const before = loudness(mix);
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', mix, '-c:v', 'copy',
-    '-af', `volume=${(LUFS - measured).toFixed(2)}dB,alimiter=limit=${CEILING.toFixed(3)}:attack=2:release=80:level=false`,
+    '-af', `volume=${(LUFS - before.lufs).toFixed(2)}dB,alimiter=limit=${LIMIT.toFixed(3)}:attack=2:release=80:level=false`,
     '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', file]);
   rmSync(mix);
-  console.log(file, `${measured.toFixed(1)} → ${LUFS} LUFS`);
+  const after = loudness(file);
+  console.log(file, `${before.lufs.toFixed(1)} → ${after.lufs.toFixed(1)} LUFS, ${after.peak.toFixed(1)} dBTP`);
+  if (after.peak > MAX_TRUE_PEAK) throw new Error(`${composition.id}: true peak ${after.peak} dBTP is over ${MAX_TRUE_PEAK}`);
 }

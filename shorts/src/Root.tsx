@@ -1,23 +1,46 @@
 import { Composition } from 'remotion';
+import de from '../locales/de.json';
 import en from '../locales/en.json';
+import es from '../locales/es.json';
+import fr from '../locales/fr.json';
+import it from '../locales/it.json';
+import ptBR from '../locales/pt-BR.json';
+import zhHans from '../locales/zh-Hans.json';
 import { CanYouTell, TELL } from './shorts/CanYouTell';
 import { FileTooLarge, TOO_LARGE } from './shorts/FileTooLarge';
 import { PRESS, ThePress } from './shorts/ThePress';
 import { FPS, H, W } from './system';
 
 const frame = { fps: FPS, width: W, height: H };
+// The site's seven languages; scripts/measure.mjs films the app in each.
+const LOCALES = { en, 'pt-BR': ptBR, es, fr, de, it, 'zh-Hans': zhHans };
+
+// The episodes, by their results in photos.json.
+const PRESSES = [['press-lake', 'press-milky-way'], ['press-jagged', 'press-reflect']] as const;
+const TELLS = [
+  { shot: 'tell-cat', focus: '50% 47%' },
+  { shot: 'tell-couscous', focus: '33% 43%' },
+  { shot: 'tell-edie', focus: '28% 56%' },
+] as const;
 
 /**
- * The first wave. The Press and Can you tell? are wordless, one master for
- * every market. File too large. gets one cut per language, from locales/.
+ * The first wave. The Press and Can you tell? are wordless series, one
+ * master per episode for every market. File too large. gets one cut per
+ * language, from locales/.
  */
 export function Root() {
   return (
     <>
-      <Composition id="the-press" component={ThePress} durationInFrames={PRESS.duration} {...frame} />
-      <Composition id="can-you-tell" component={CanYouTell} durationInFrames={TELL.duration} {...frame} />
-      <Composition id="file-too-large-en" component={FileTooLarge} durationInFrames={TOO_LARGE.duration} {...frame}
-        defaultProps={{ copy: en.tooLarge, locale: 'en' }} />
+      {PRESSES.map((shots, i) => (
+        <Composition key={i} id={`the-press-${i + 1}`} component={ThePress} durationInFrames={PRESS.duration} {...frame} defaultProps={{ shots }} />
+      ))}
+      {TELLS.map((episode, i) => (
+        <Composition key={i} id={`can-you-tell-${i + 1}`} component={CanYouTell} durationInFrames={TELL.duration} {...frame} defaultProps={episode} />
+      ))}
+      {Object.entries(LOCALES).map(([locale, { tooLarge }]) => (
+        <Composition key={locale} id={`file-too-large-${locale}`} component={FileTooLarge} durationInFrames={TOO_LARGE.duration} {...frame}
+          defaultProps={{ copy: tooLarge, locale }} />
+      ))}
     </>
   );
 }

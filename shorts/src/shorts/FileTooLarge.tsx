@@ -20,16 +20,14 @@ export const TOO_LARGE = { duration: sec(13) };
 export type Copy = {
   ok: string;
   dialogs: { title: string; body: string; limit?: number }[];
+  /** The one line; a \n sets the break where the language's own wrapping would split a phrase. */
   keep: string;
 };
 
 // Each rejection lands on the beat, a little sooner than the last.
 const LANDS = [0, 4, 6, 7, 8, 9].map(beats);
 const SILENCE = sec(5); // the groove stops dead
-const APP = sec(5.5); //   the tap on "Upload form, under 1 MB", in the real app
-const app = measured['too-large'];
-// The result lands as the app shows it, four beats after the tap (scripts/measure.mjs).
-const DONE = APP + sec(app.at.done - app.at.tap); // the only major chord
+const APP = sec(5.5); //   the tap on "Upload form, under 1 MB", in the real app, in this language
 const KEEP = sec(9); //    the one line
 const ENTER = sec(11);
 const CLAMP = sec(12); //  a second of the name, then the loop's cut lands the first no again
@@ -64,9 +62,14 @@ function withLimit(text: string, limit: number | undefined, locale: string) {
 
 export function FileTooLarge({ copy, locale }: { copy: Copy; locale: string }) {
   const f = useCurrentFrame();
+  const app = measured['too-large'].flows[locale as keyof typeof measured['too-large']['flows']];
+  // The result lands as the app shows it, about four beats after the tap (scripts/measure.mjs).
+  const done = APP + sec(app.at.done - app.at.tap);
+  // Tight tracking and leading are Latin devices; Chinese keeps its own.
+  const zh = locale.startsWith('zh');
 
   return (
-    <Ground>
+    <Ground lang={locale}>
       {f < SILENCE && (
         <div style={{ position: 'absolute', inset: 0 }}>
           {copy.dialogs.map((d, i) => f >= LANDS[i] && (
@@ -85,7 +88,7 @@ export function FileTooLarge({ copy, locale }: { copy: Copy; locale: string }) {
         <AbsoluteFill style={{ justifyContent: 'center', padding: `0 ${safe.side}px`, paddingBottom: px(240) }}>
           {/* Gone before the plates cross it: white on white would smear. */}
           <div style={{
-            fontSize: px(84), fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.025em',
+            fontSize: px(84), fontWeight: 500, lineHeight: zh ? 1.3 : 1.08, letterSpacing: zh ? 0 : '-0.025em', whiteSpace: 'pre-line',
             opacity: tween(f, KEEP, frames('entrance'), ease.entrance) - tween(f, ENTER, frames('standard'), ease.exit),
           }}>
             {copy.keep}
@@ -94,7 +97,7 @@ export function FileTooLarge({ copy, locale }: { copy: Copy; locale: string }) {
       )}
       {f >= ENTER && <Plates gap={pressGap(f - ENTER, CLAMP - ENTER)} />}
       {f >= CLAMP && <Name />}
-      <Score />
+      <Score done={done} />
     </Ground>
   );
 }
@@ -105,15 +108,15 @@ export function FileTooLarge({ copy, locale }: { copy: Copy; locale: string }) {
  * silence, one shutter click on the tap, and the knock rises into the only
  * major chord when the photo fits. Then the press.
  */
-function Score() {
+function Score({ done }: { done: number }) {
   const fill = Array.from({ length: (SILENCE - beats(6)) / beats(0.5) }, (_, i) => beats(6) + i * beats(0.5));
   return (
     <>
       {LANDS.map((f, i) => <Cue key={f} sound="knock" at={f} volume={0.8} pitch={semitones(i)} />)}
       {fill.map((f, i) => <Cue key={f} sound={i % 2 ? 'shutter' : 'knock'} at={f} volume={i % 2 ? 0.18 : 0.3} pitch={i % 2 ? 1 : semitones(-12)} />)}
       <Cue sound="shutter" at={APP} volume={0.6} />
-      {[0, 4, 7].map((n) => <Cue key={n} sound="knock" at={DONE} volume={0.35} pitch={semitones(n + 5)} />)}
-      {[0, 4, 7].map((n) => <Cue key={`g${n}`} sound="glass-tick" at={DONE} volume={0.3} pitch={semitones(n)} />)}
+      {[0, 4, 7].map((n) => <Cue key={n} sound="knock" at={done} volume={0.35} pitch={semitones(n + 5)} />)}
+      {[0, 4, 7].map((n) => <Cue key={`g${n}`} sound="glass-tick" at={done} volume={0.3} pitch={semitones(n)} />)}
       <Cue sound="press-logo" at={CLAMP - sec(2)} />
     </>
   );

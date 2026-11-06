@@ -1,8 +1,9 @@
 // Runs every result in photos.json through the real app, its web build: the
 // photo, a tap on the purpose, "Make it lighter", "Save". Keeps what the app
-// saved (public/out/<id>.<ext>), a screen recording of the taps and the result
-// (public/out/<id>-flow.mp4), and the sizes and the recording's moments in
-// src/measured.json. So every number and app screen in a Short is real.
+// saved (public/out/<id>.<ext>) and the sizes in src/measured.json. A result
+// marked `recording` is also filmed in every language in locales/
+// (public/out/<id>-<lang>.mp4), with the moments of its taps. So every number
+// and app screen in a Short is real.
 //
 //   (cd ../mobile && npx expo export --platform web)   then serve mobile/dist on 8765
 //   node scripts/measure.mjs
@@ -11,18 +12,18 @@
 // phones (mobile/src/engine/presets.ts). Frames come from the DevTools
 // screencast at full device resolution, as in mobile/store/record.mjs.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { extname, join } from 'node:path';
+import { basename, extname, join } from 'node:path';
 import { results, root } from './shared.mjs';
 
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
-const t = require('../../mobile/src/i18n/locales/en.json');
 const URL = process.env.APP_URL ?? 'http://localhost:8765/';
 const PHONE = { width: 430, height: 932, scale: 3 }; // the store kit's phone
 const out = join(root, 'public/out');
+const locales = readdirSync(join(root, 'locales')).map((f) => basename(f, '.json'));
 mkdirSync(out, { recursive: true });
 
 /** Records the page until stop(); frames arrive only on change, so each is held until the next. */
@@ -56,18 +57,20 @@ async function screencast(ctx, page) {
 const TAP_TO_DONE = 2;
 
 /**
- * One pass through the app: tap the purpose, wait `gap` s, tap "Make it
- * lighter", wait for the result, save it as `id` in public/out. With `flow`,
- * records the screen from just before the tap to after the result.
+ * One pass through the app in `locale`: tap the purpose, wait `gap` s, tap
+ * "Make it lighter", wait for the result. With `save`, keeps the app's file as
+ * public/out/<save>.<ext>; with `flow`, records the screen from just before
+ * the tap to after the result.
  */
-async function run(id, photo, purpose, gap, flow) {
+async function run({ photo, purpose, locale, gap, save, flow }) {
+  const t = require(`../../mobile/src/i18n/locales/${locale}.json`);
   const ctx = await browser.newContext({
     viewport: { width: PHONE.width, height: PHONE.height }, deviceScaleFactor: PHONE.scale, colorScheme: 'dark', hasTouch: true,
   });
   // Message is the app's default, so the tap on any other purpose shows on camera.
-  await ctx.addInitScript(() => localStorage.setItem('compresso.prefs', JSON.stringify({
-    locale: 'en', appearance: 'dark', introSeen: true, lastPurpose: 'message', uploadLimit: 1000000, lastSaved: 0,
-  })));
+  await ctx.addInitScript((locale) => localStorage.setItem('compresso.prefs', JSON.stringify({
+    locale, appearance: 'dark', introSeen: true, lastPurpose: 'message', uploadLimit: 1000000, lastSaved: 0,
+  })), locale);
   const page = await ctx.newPage();
   await page.goto(URL);
   const chooser = page.waitForEvent('filechooser');
@@ -90,11 +93,14 @@ async function run(id, photo, purpose, gap, flow) {
   await page.waitForTimeout(2500);
   const start = stop ? await stop(join(root, 'public', flow)) : moment.tap;
 
-  const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: t['job.save'] }).click();
-  const saved = await download;
-  const file = `out/${id}${extname(saved.suggestedFilename()) || '.jpg'}`;
-  await saved.saveAs(join(root, 'public', file));
+  let file;
+  if (save) {
+    const download = page.waitForEvent('download');
+    await page.getByRole('button', { name: t['job.save'] }).click();
+    const saved = await download;
+    file = `out/${save}${extname(saved.suggestedFilename()) || '.jpg'}`;
+    await saved.saveAs(join(root, 'public', file));
+  }
   await ctx.close();
   const at = Object.fromEntries(Object.entries(moment).map(([k, v]) => [k, Number((v - start).toFixed(3))]));
   return { file, at, work: moment.done - moment.go };
@@ -102,13 +108,19 @@ async function run(id, photo, purpose, gap, flow) {
 
 const browser = await chromium.launch();
 const measured = {};
-for (const [id, { photo, purpose }] of Object.entries(results)) {
-  const first = await run(id, photo, purpose, 0.9);
-  const flow = `out/${id}-flow.mp4`;
-  const { file, at } = await run(id, photo, purpose, Math.max(0.6, TAP_TO_DONE - first.work), flow);
-  const original = join(root, 'public/photos', `${photo}.jpg`);
-  measured[id] = { photo, purpose, from: statSync(original).size, to: statSync(join(root, 'public', file)).size, file, flow, at };
-  console.log(id, measured[id]);
+for (const [id, { photo, purpose, recording }] of Object.entries(results)) {
+  const { file, work } = await run({ photo, purpose, locale: 'en', gap: 0.9, save: id });
+  const result = { photo, purpose, from: statSync(join(root, 'public/photos', `${photo}.jpg`)).size, to: statSync(join(root, 'public', file)).size, file };
+  if (recording) {
+    result.flows = {};
+    for (const locale of locales) {
+      const flow = `out/${id}-${locale}.mp4`;
+      const { at } = await run({ photo, purpose, locale, gap: Math.max(0.6, TAP_TO_DONE - work), flow });
+      result.flows[locale] = { flow, at };
+    }
+  }
+  measured[id] = result;
+  console.log(id, JSON.stringify(result));
 }
 await browser.close();
 writeFileSync(join(root, 'src/measured.json'), `${JSON.stringify(measured, null, 2)}\n`);

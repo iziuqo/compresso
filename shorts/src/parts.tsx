@@ -16,7 +16,7 @@ export function Mono({ size, children, style }: { size: number; children: ReactN
   );
 }
 
-/** The ground everything sits on: true black, white ink. */
-export function Ground({ children }: { children: ReactNode }) {
-  return <AbsoluteFill style={{ background: 'var(--void)', color: 'var(--ink)', fontFamily: ui }}>{children}</AbsoluteFill>;
+/** The ground everything sits on: true black, white ink. `lang` picks the app's type for that language. */
+export function Ground({ children, lang = 'en' }: { children: ReactNode; lang?: string }) {
+  return <AbsoluteFill lang={lang} style={{ background: 'var(--void)', color: 'var(--ink)', fontFamily: ui }}>{children}</AbsoluteFill>;
 }

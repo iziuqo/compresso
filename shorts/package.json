@@ -10,6 +10,7 @@
     "sound": "python3 sound/build.py",
     "stills": "node scripts/stills.mjs",
     "render": "node scripts/render.mjs",
+    "youtube": "node scripts/youtube.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

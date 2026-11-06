@@ -1,0 +1,24 @@
+{
+  "tooLarge": {
+    "ok": "Aceptar",
+    "dialogs": [
+      { "title": "Archivo demasiado grande", "body": "El tamaño máximo es de {limit}.", "limit": 1000000 },
+      { "title": "Foto no aceptada", "body": "Tu foto debe pesar menos de {limit}.", "limit": 200000 },
+      { "title": "No se puede adjuntar", "body": "Los archivos adjuntos no pueden superar {limit}.", "limit": 25000000 },
+      { "title": "Error al subir", "body": "Tamaño máximo de archivo: {limit}.", "limit": 2000000 },
+      { "title": "Imagen demasiado grande", "body": "Elige un archivo de menos de {limit}.", "limit": 500000 },
+      { "title": "Almacenamiento casi lleno", "body": "Libera espacio para seguir sacando fotos." }
+    ],
+    "keep": "Tenla a mano para la próxima vez que un formulario te diga que no."
+  },
+  "youtube": {
+    "tooLarge": "Archivo demasiado grande.",
+    "press": "{from} → {to}. La misma foto.",
+    "tell": "¿Notas la diferencia? Una de ellas pesa un {pct} menos.",
+    "stores": "En el App Store y Google Play: busca «Compresso».",
+    "web": "Pruébala en tu navegador: compresso.izaias.xyz/compresso",
+    "credit": "Foto: {list}, vía Wikimedia Commons.",
+    "credits": "Fotos: {list}, vía Wikimedia Commons.",
+    "by": "«{title}», de {author} ({licence})"
+  }
+}

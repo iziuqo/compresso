@@ -11,16 +11,14 @@ import { beats, ease, formatBytes, formatPercent, frames, H, px, sec, tween, W }
  * the bytes get crushed and the photo comes out the same. Wordless, so one
  * master plays in every market.
  *
- * Two presses of 6 s. The loop starts half a second into the first, so
- * frame 0 already has the plates moving and the last frame cuts into it.
+ * Each episode is two presses of 6 s, the second photo heavier; the name
+ * shows on the first clamp only. The loop starts half a second into the
+ * first, so frame 0 already has the plates moving and the last frame cuts
+ * into it.
  */
 export const PRESS = { duration: sec(12), lead: sec(0.5), length: sec(6) };
 
-type Shot = keyof typeof measured;
-const SHOTS: { shot: Shot; wordmark: boolean }[] = [
-  { shot: 'press-lake', wordmark: true },
-  { shot: 'press-milky-way', wordmark: false },
-];
+export type Shot = keyof typeof measured;
 
 // One press, from its photo's cut. Every cut lands on the 120 BPM grid.
 const CLAMP = sec(2); //     closed icon on black; the press sounds
@@ -50,7 +48,9 @@ function Press({ shot, wordmark, t }: { shot: Shot; wordmark: boolean; t: number
               <div style={{ position: 'absolute', top: H * 0.7, left: px(1) - px(26), width: px(52), height: px(52), borderRadius: '50%', background: 'var(--ink)' }} />
             </div>
           )}
-          <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center' }}>
+          {/* A soft shade where the size sits, so white type reads on snow and sky alike. */}
+          <AbsoluteFill style={{ background: 'radial-gradient(ellipse 80% 16% at 50% 52%, rgb(0 0 0 / 0.42), transparent)' }} />
+          <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', textShadow: `0 0 ${px(40)}px rgb(0 0 0 / 0.4)` }}>
             <Counter bytes={sizeAt(shot, t)} size={W / 6} turning={t < RELEASE ? 0 : 1 - tween(t, LAND - frames('standard'), frames('standard'))} />
             {t >= LAND && (
               <Mono size={px(40)} style={{ position: 'absolute', top: H / 2 + px(130), opacity: tween(t, LAND, frames('entrance'), ease.entrance) }}>
@@ -87,15 +87,16 @@ function PressScore({ shot, s }: { shot: Shot; s: number }) {
   );
 }
 
-export function ThePress() {
+/** One episode: `shots` are its two results in photos.json, lighter first. */
+export function ThePress({ shots }: { shots: readonly Shot[] }) {
   const t = (useCurrentFrame() + PRESS.lead) % PRESS.duration;
   const i = Math.floor(t / PRESS.length);
   // Each press starts on its photo's cut; the first one again at the end, so the sound loops too.
-  const starts = [...SHOTS.map((_, k) => k * PRESS.length), PRESS.duration].map((s) => s - PRESS.lead);
+  const starts = [...shots.map((_, k) => k * PRESS.length), PRESS.duration].map((s) => s - PRESS.lead);
   return (
     <>
-      <Press {...SHOTS[i]} t={t - i * PRESS.length} />
-      {starts.map((s, k) => <PressScore key={s} shot={SHOTS[k % SHOTS.length].shot} s={s} />)}
+      <Press shot={shots[i]} wordmark={i === 0} t={t - i * PRESS.length} />
+      {starts.map((s, k) => <PressScore key={s} shot={shots[k % shots.length]} s={s} />)}
     </>
   );
 }
