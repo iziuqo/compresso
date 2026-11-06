@@ -10,7 +10,7 @@ timings from its `motion.ts`, sizes printed by the app's formatter
 |---|---|---|
 | `the-press`: the icon presses a heavy photo; the bytes go, the photo stays | 12 s loop | one wordless master |
 | `can-you-tell`: original or Compresso? Guess, then the reveal | 10 s loop | one wordless master |
-| `file-too-large-<lang>`: the limits pile up, one tap ends them | 14 s loop | one per language in `locales/` |
+| `file-too-large-<lang>`: the limits pile up, one tap ends them | 13 s loop | one per language in `locales/` |
 
 ## Rules every frame follows
 
@@ -28,14 +28,18 @@ Needs Node, ffmpeg, Playwright's Chromium, and Python 3 with numpy and scipy.
 
 ```sh
 npm ci
-npm run photos                    # the originals, checked against Commons' SHA-1
+npm run photos                    # checks the originals against Commons' SHA-1
 (cd ../mobile && npx expo export --platform web && python3 -m http.server 8765 -d dist) &
 npm run measure                   # real sizes and screens from the app
 npm run sound                     # the press, from sound/src
 npm run stills                    # key frames to out/stills
-npx remotion render the-press out/the-press.mp4
+npm run render                    # 4K masters at -16 LUFS to out/; `npm run render 0.5 the-press` for a quick look
 npm run studio                    # preview and scrub
 ```
+
+The originals live in `public/photos`, committed, because Commons rate-limits
+shared cloud addresses. When `photos.json` changes, the Shorts photos workflow
+fetches the new ones on a GitHub runner, checks them and commits them.
 
 Set `REMOTION_BROWSER` to an installed Chrome headless shell to skip
 Remotion's download.

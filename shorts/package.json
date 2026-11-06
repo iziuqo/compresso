@@ -9,6 +9,7 @@
     "measure": "node scripts/measure.mjs",
     "sound": "python3 sound/build.py",
     "stills": "node scripts/stills.mjs",
+    "render": "node scripts/render.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

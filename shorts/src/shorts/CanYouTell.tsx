@@ -2,12 +2,14 @@ import { AbsoluteFill, useCurrentFrame } from 'remotion';
 import measured from '../measured.json';
 import { Ground, Mono, Photo } from '../parts';
 import { Name, Plates, pressGap } from '../Plates';
-import { ease, formatBytes, frames, px, safe, sec, tween, W } from '../system';
+import { Cue, semitones } from '../sound';
+import { ease, formatBytes, formatPercent, frames, px, safe, sec, tween, W } from '../system';
 
 /**
  * Can you tell?, 10 s, loops. The same photo twice: one is the original, one
  * is what the app made of it. People guess in the comments; the reveal sends
- * them back to look again. Wordless: two sizes, two letters and a "?".
+ * them back to look again. Wordless: two sizes, two letters, a "?" and
+ * what the app took off.
  *
  * Honest by construction: both halves are real files at the size a phone
  * shows them, under one shared push-in, so the only difference is the number.
@@ -34,23 +36,26 @@ export function CanYouTell() {
   // start after the clamp, so the last second matches frame 0.
   const zoom = t >= CLAMP ? 1 : 1 + 0.14 * tween(t, 0, ASK, ease.glide);
   const flip = tween(t, REVEAL, frames('ceremony'), ease.standard);
+  // A split-flap turn: the old face folds away, the new one folds in.
+  const fold = { display: 'inline-block', transform: `scaleY(${Math.abs(1 - 2 * flip)})` };
+  const asking = t >= ASK && t < CLAMP;
 
   return (
     <Ground>
       {shown && (
         <>
           <AbsoluteFill style={{ alignItems: 'center', top: safe.top, height: PANE.top - safe.top, justifyContent: 'center' }}>
-            <Mono size={px(56)}>{t < ASK || t >= CLAMP ? `${formatBytes('en', m.from)} · ${formatBytes('en', m.to)}` : '?'}</Mono>
+            <Mono size={px(56)}>
+              {!asking ? `${formatBytes('en', m.from)} · ${formatBytes('en', m.to)}`
+                : <span style={fold}>{flip < 0.5 ? '?' : `−${formatPercent('en', 1 - m.to / m.from)}`}</span>}
+            </Mono>
           </AbsoluteFill>
           {PANES.map((p, i) => (
             <div key={p.label} style={{ position: 'absolute', left: 0, top: PANE.top + i * (PANE.h + PANE.gap), width: PANE.w, height: PANE.h, overflow: 'hidden' }}>
               <Photo src={p.src} style={{ transform: `scale(${zoom})`, transformOrigin: '62% 42%' }} />
               {/* Labelled like the app's Before / After: a dark pill, so it reads on any photo. */}
               <Mono size={px(48)} style={{ position: 'absolute', left: safe.side, top: px(32), padding: `${px(12)}px ${px(22)}px`, borderRadius: 'var(--r-pill)', background: 'rgb(0 0 0 / 0.55)' }}>
-                {/* A split-flap turn: the letter folds away, the size folds in. */}
-                <span style={{ display: 'inline-block', transform: `scaleY(${Math.abs(1 - 2 * flip)})` }}>
-                  {flip < 0.5 || t >= CLAMP ? p.label : formatBytes('en', p.size)}
-                </span>
+                <span style={asking ? fold : undefined}>{flip < 0.5 || !asking ? p.label : formatBytes('en', p.size)}</span>
               </Mono>
             </div>
           ))}
@@ -58,6 +63,23 @@ export function CanYouTell() {
       )}
       {t >= ENTER && t < CLAMP + sec(1) && <Plates gap={pressGap(t - ENTER, CLAMP - ENTER)} />}
       {!shown && <Name />}
+      <Score />
     </Ground>
+  );
+}
+
+/**
+ * A soft shutter click each second, a semitone higher each time, like a clock
+ * that isn't one. Then silence for the guess, the glass tick on the reveal
+ * with the flap's clack, and the press on the clamp.
+ */
+function Score() {
+  return (
+    <>
+      {[0, 1, 2, 3, 4].map((n) => <Cue key={n} sound="shutter" at={sec(n)} volume={0.55} pitch={semitones(n)} />)}
+      <Cue sound="glass-tick" at={REVEAL} volume={0.7} />
+      <Cue sound="shutter" at={REVEAL + frames('ceremony') / 2} volume={0.3} pitch={semitones(-7)} />
+      <Cue sound="press-hit" at={CLAMP} />
+    </>
   );
 }

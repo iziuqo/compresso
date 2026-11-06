@@ -6,7 +6,9 @@ one-shots in sound/src (ElevenLabs sound effects, never used as they came out).
 The shape: a rubbed-glass hum rising for 1.5 s, half a second of air, then the
 press (a layered hit) and a glass tick. Every step is deterministic, so the
 logo is identical in every Short. Writes public/sound/press-logo.wav and
-press-hit.wav (the hit alone, for the clamp), mastered for phone speakers.
+press-hit.wav (the hit alone, for the clamp), mastered for phone speakers,
+and the cleaned one-shots the Shorts place on their timelines: the glass
+tick, a leaf shutter, a muted wood block and one tick of a mechanical counter.
 """
 import subprocess
 from pathlib import Path
@@ -91,13 +93,22 @@ def hum(length=1.5):
     return bus
 
 
-def write(name, x):
-    """Peak at -1 dBFS, then 4 dB more through a limiter slow enough (2 ms) to keep the transient."""
-    raw = OUT / f'{name}.raw.wav'
-    wavfile.write(raw, SR, (x / np.abs(x).max() * 10 ** (-1 / 20) * 32767).astype(np.int16))
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', raw, '-af', 'volume=4dB,alimiter=limit=0.89:attack=2:release=80:level=false',
-                    '-ar', str(SR), OUT / f'{name}.wav'], check=True)
-    raw.unlink()
+def save(name, x, louder=False):
+    """16-bit WAV peaking at -1 dBFS. `louder` adds 4 dB through a limiter slow
+    enough (2 ms) to keep the transient, for the press on phone speakers."""
+    path = OUT / f'{name}.wav'
+    wavfile.write(path, SR, (x / np.abs(x).max() * 10 ** (-1 / 20) * 32767).astype(np.int16))
+    if louder:
+        raw = path.rename(OUT / f'{name}.raw.wav')
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', raw, '-af', 'volume=4dB,alimiter=limit=0.89:attack=2:release=80:level=false',
+                        '-ar', str(SR), path], check=True)
+        raw.unlink()
+
+
+def one_shot(name, length, highpass=None, db=-24):
+    """One hit from a source, from 3 ms before it starts (see trim), faded over its last 40%."""
+    x = trim(load(name), db)[:int(SR * length)]
+    return fade(filt(x, 'highpass', highpass, 2) if highpass else x, b=length * .4)
 
 
 OUT.mkdir(parents=True, exist_ok=True)
@@ -105,6 +116,11 @@ h = hit()
 logo = np.zeros(int(SR * 2.75))
 place(logo, hum(), 0)
 place(logo, h, 2.0)
-write('press-logo', logo)
-write('press-hit', h)
+save('press-logo', logo, louder=True)
+save('press-hit', h, louder=True)
+# The one-shots each Short places on its own timeline.
+save('glass-tick', one_shot('glass-tick', .6))
+save('shutter', one_shot('shutter', .14, highpass=300, db=-8))  # skip the faint pre-click
+save('knock', one_shot('wood-block', .22, highpass=80))
+save('counter-tick', one_shot('counter', .045, highpass=400))
 print('wrote', OUT)
