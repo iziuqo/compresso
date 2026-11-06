@@ -1,0 +1,30 @@
+{
+  "press-lake": {
+    "photo": "lake",
+    "purpose": "space",
+    "from": 1172892,
+    "to": 511814,
+    "file": "out/press-lake.jpeg"
+  },
+  "press-milky-way": {
+    "photo": "milky-way",
+    "purpose": "space",
+    "from": 1433868,
+    "to": 597049,
+    "file": "out/press-milky-way.jpeg"
+  },
+  "tell-cat": {
+    "photo": "cat",
+    "purpose": "message",
+    "from": 1307302,
+    "to": 380842,
+    "file": "out/tell-cat.jpeg"
+  },
+  "too-large": {
+    "photo": "lake",
+    "purpose": "upload",
+    "from": 1172892,
+    "to": 664735,
+    "file": "out/too-large.jpeg"
+  }
+}

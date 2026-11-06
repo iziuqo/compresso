@@ -1,0 +1,13 @@
+{
+  "photos": {
+    "lake": { "commons": "Clear lake in the mountains (Unsplash).jpg", "licence": "CC0", "author": "Tony Reid" },
+    "cat": { "commons": "Sweet-animal-cute-pet-fur-red.jpg", "licence": "CC0", "author": "Alexas_Fotos" },
+    "milky-way": { "commons": "Milky Way Lake Mountains (Unsplash).jpg", "licence": "CC0", "author": "Andrew Coelho" }
+  },
+  "results": {
+    "press-lake": { "photo": "lake", "purpose": "space" },
+    "press-milky-way": { "photo": "milky-way", "purpose": "space" },
+    "tell-cat": { "photo": "cat", "purpose": "message" },
+    "too-large": { "photo": "lake", "purpose": "upload" }
+  }
+}

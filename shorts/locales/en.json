@@ -1,0 +1,14 @@
+{
+  "tooLarge": {
+    "ok": "OK",
+    "dialogs": [
+      { "title": "File too large", "body": "The maximum size is {limit}.", "limit": 1000000 },
+      { "title": "Photo not accepted", "body": "Your photo must be under {limit}.", "limit": 200000 },
+      { "title": "Can't attach", "body": "Attachments can't be over {limit}.", "limit": 25000000 },
+      { "title": "Upload failed", "body": "Maximum file size: {limit}.", "limit": 2000000 },
+      { "title": "Image too big", "body": "Please choose a file under {limit}.", "limit": 500000 },
+      { "title": "Storage almost full", "body": "Free up space to keep taking photos." }
+    ],
+    "keep": "Keep it for the next time a form says no."
+  }
+}
