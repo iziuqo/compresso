@@ -36,7 +36,7 @@ npm run photos                    # checks the originals against Commons' SHA-1
 npm run measure                   # real sizes and screens from the app
 npm run sound                     # the press, from sound/src
 npm run stills                    # key frames to out/stills
-npm run render                    # 4K masters at -14 LUFS to out/; `npm run render 0.5 the-press-1` for a quick look
+npm run render                    # 4K masters to out/, loud as the press allows; `npm run render 0.5 the-press-1` for a quick look
 npm run youtube                   # every title and description, in each language, to out/youtube.json
 npm run studio                    # preview and scrub
 ```

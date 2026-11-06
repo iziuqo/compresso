@@ -2,11 +2,14 @@
 //
 //   node scripts/render.mjs [scale] [id ...]     scale 1 = the 2160×3840 master
 //
-// Remotion mixes the cues; this then sets the mix to the plan's -14 LUFS,
-// the level YouTube plays at, under a limiter whose 2 ms attack keeps the
-// press's transient. Each master is measured again after encoding and must
-// stay at or below -1 dBTP. Set REMOTION_BROWSER to an installed Chrome
-// headless shell to skip the download.
+// Remotion mixes the cues; this then raises the mix by what would put it at
+// -14 LUFS, the level YouTube plays at, into a limiter whose 2 ms attack keeps
+// the press's transient. The Shorts are mostly silence and one hit, and the
+// hit is the loudness, so the limiter takes some back and they land between
+// -16 and -17.5 LUFS: flattening the press to reach -14 would cost the sound
+// its point. Each master is measured again after encoding and must stay at or
+// below -1 dBTP. Set REMOTION_BROWSER to an installed Chrome headless shell to
+// skip the download.
 import { bundle } from '@remotion/bundler';
 import { getCompositions, renderMedia } from '@remotion/renderer';
 import { execFileSync, spawnSync } from 'node:child_process';
