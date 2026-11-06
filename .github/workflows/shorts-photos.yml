@@ -1,0 +1,39 @@
+name: Shorts photos
+
+# Wikimedia Commons rate-limits shared cloud addresses, so the Shorts'
+# originals are fetched here, checked against Commons' SHA-1 by
+# shorts/scripts/photos.mjs, and committed next to photos.json.
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - 'shorts/photos.json'
+      - 'shorts/scripts/photos.mjs'
+      - '.github/workflows/shorts-photos.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: shorts-photos-${{ github.ref }}
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node shorts/scripts/photos.mjs
+      - name: Commit new originals
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          git add shorts/public/photos
+          git diff --cached --quiet && exit 0
+          git -c user.name='github-actions[bot]' -c user.email='41898299+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'Fetch the Shorts photos from Wikimedia Commons'
+          git push origin "HEAD:$BRANCH"
