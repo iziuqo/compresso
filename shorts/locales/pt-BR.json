@@ -9,16 +9,16 @@
       { "title": "Imagem muito grande", "body": "Escolha um arquivo com menos de {limit}.", "limit": 500000 },
       { "title": "Armazenamento quase cheio", "body": "Libere espaço para continuar tirando fotos." }
     ],
-    "keep": "Deixe no celular para a próxima vez que um formulário disser não."
+    "keep": "Deixe instalado para quando um formulário recusar sua foto."
   },
   "youtube": {
     "tooLarge": "Arquivo muito grande.",
     "press": "{from} → {to}. A mesma foto.",
-    "tell": "Dá pra perceber? Uma delas é {pct} mais leve.",
+    "tell": "Dá pra notar? Uma delas ficou {pct} mais leve.",
     "stores": "Na App Store e no Google Play: procure “Compresso”.",
     "web": "Experimente no navegador: compresso.izaias.xyz/compresso",
-    "credit": "Foto: {list}, via Wikimedia Commons.",
-    "credits": "Fotos: {list}, via Wikimedia Commons.",
+    "credit": "Foto: {list}, do Wikimedia Commons.",
+    "credits": "Fotos: {list}, do Wikimedia Commons.",
     "by": "“{title}”, de {author} ({licence})"
   }
 }

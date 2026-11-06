@@ -2,23 +2,23 @@
   "tooLarge": {
     "ok": "确定",
     "dialogs": [
-      { "title": "文件过大", "body": "文件大小不能超过 {limit}。", "limit": 1000000 },
-      { "title": "照片不符合要求", "body": "照片须小于 {limit}。", "limit": 200000 },
-      { "title": "无法添加附件", "body": "附件不能超过 {limit}。", "limit": 25000000 },
+      { "title": "文件太大", "body": "文件大小不能超过 {limit}。", "limit": 1000000 },
+      { "title": "照片大小不符合要求", "body": "照片须小于 {limit}。", "limit": 200000 },
+      { "title": "无法上传附件", "body": "附件不能超过 {limit}。", "limit": 25000000 },
       { "title": "上传失败", "body": "文件大小上限：{limit}。", "limit": 2000000 },
       { "title": "图片太大", "body": "请选择小于 {limit} 的文件。", "limit": 500000 },
-      { "title": "存储空间不足", "body": "请清理空间，以便继续拍照。" }
+      { "title": "存储空间即将用尽", "body": "请清理空间，以便继续拍照。" }
     ],
-    "keep": "留着它。\n总会有表单嫌照片太大。"
+    "keep": "把它留在手机里。\n下次表单嫌照片太大，\n就用得上。"
   },
   "youtube": {
-    "tooLarge": "文件过大。",
+    "tooLarge": "文件太大。",
     "press": "{from} → {to}，照片还是那张。",
-    "tell": "看得出来吗？其中一张轻了 {pct}。",
+    "tell": "看得出来吗？其中一张的文件大小减少了 {pct}。",
     "stores": "在 App Store 和 Google Play 搜索“Compresso”。",
     "web": "在浏览器中试用：compresso.izaias.xyz/compresso",
-    "credit": "照片：{list}，来自 Wikimedia Commons。",
-    "credits": "照片：{list}，来自 Wikimedia Commons。",
+    "credit": "图片来源：{list}，Wikimedia Commons。",
+    "credits": "图片来源：{list}，Wikimedia Commons。",
     "by": "“{title}”，作者 {author}（{licence}）"
   }
 }

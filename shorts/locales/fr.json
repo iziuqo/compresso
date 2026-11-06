@@ -4,21 +4,21 @@
     "dialogs": [
       { "title": "Fichier trop volumineux", "body": "La taille maximale est de {limit}.", "limit": 1000000 },
       { "title": "Photo refusée", "body": "Votre photo doit faire moins de {limit}.", "limit": 200000 },
-      { "title": "Impossible de joindre le fichier", "body": "Pièces jointes limitées à {limit}.", "limit": 25000000 },
+      { "title": "Impossible de joindre le fichier", "body": "Taille maximale des pièces jointes : {limit}.", "limit": 25000000 },
       { "title": "Échec de l’envoi", "body": "Taille maximale du fichier : {limit}.", "limit": 2000000 },
       { "title": "Image trop lourde", "body": "Choisissez un fichier de moins de {limit}.", "limit": 500000 },
-      { "title": "Stockage presque plein", "body": "Libérez de l’espace pour continuer à prendre des photos." }
+      { "title": "Stockage presque saturé", "body": "Libérez de l’espace pour continuer à prendre des photos." }
     ],
-    "keep": "Gardez-la pour la prochaine fois qu’un formulaire vous dira non."
+    "keep": "Gardez-la pour le prochain formulaire qui refusera votre photo."
   },
   "youtube": {
     "tooLarge": "Fichier trop volumineux.",
     "press": "{from} → {to}. La même photo.",
-    "tell": "Vous voyez la différence ? L’une des deux est {pct} plus légère.",
+    "tell": "Vous voyez la différence ? L’une des deux pèse {pct} de moins.",
     "stores": "Sur l’App Store et Google Play : cherchez « Compresso ».",
     "web": "Essayez-la dans votre navigateur : compresso.izaias.xyz/compresso",
     "credit": "Photo : {list}, via Wikimedia Commons.",
     "credits": "Photos : {list}, via Wikimedia Commons.",
-    "by": "« {title} » par {author} ({licence})"
+    "by": "« {title} » de {author} ({licence})"
   }
 }

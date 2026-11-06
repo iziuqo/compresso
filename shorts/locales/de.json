@@ -4,17 +4,17 @@
     "dialogs": [
       { "title": "Datei zu groß", "body": "Die maximale Größe beträgt {limit}.", "limit": 1000000 },
       { "title": "Foto nicht akzeptiert", "body": "Dein Foto muss kleiner als {limit} sein.", "limit": 200000 },
-      { "title": "Anhängen nicht möglich", "body": "Anhänge dürfen höchstens {limit} groß sein.", "limit": 25000000 },
+      { "title": "Datei kann nicht angehängt werden", "body": "Anhänge dürfen höchstens {limit} groß sein.", "limit": 25000000 },
       { "title": "Upload fehlgeschlagen", "body": "Maximale Dateigröße: {limit}.", "limit": 2000000 },
       { "title": "Bild zu groß", "body": "Bitte wähle eine Datei unter {limit}.", "limit": 500000 },
-      { "title": "Speicher fast voll", "body": "Gib Speicher frei, um weiter Fotos zu machen." }
+      { "title": "Speicher fast voll", "body": "Gib Speicherplatz frei, um weiter Fotos aufzunehmen." }
     ],
-    "keep": "Behalte sie für das nächste Mal, wenn ein Formular Nein sagt."
+    "keep": "Lass die App drauf. Für das nächste Formular, das dein Foto ablehnt."
   },
   "youtube": {
     "tooLarge": "Datei zu groß.",
     "press": "{from} → {to}. Dasselbe Foto.",
-    "tell": "Siehst du den Unterschied? Eins davon ist {pct} leichter.",
+    "tell": "Siehst du den Unterschied? Eins davon ist {pct} kleiner.",
     "stores": "Im App Store und bei Google Play: such nach „Compresso“.",
     "web": "Probier es im Browser: compresso.izaias.xyz/compresso",
     "credit": "Foto: {list}, via Wikimedia Commons.",

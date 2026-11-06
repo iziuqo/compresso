@@ -3,18 +3,18 @@
     "ok": "OK",
     "dialogs": [
       { "title": "File troppo grande", "body": "La dimensione massima è {limit}.", "limit": 1000000 },
-      { "title": "Foto non accettata", "body": "La foto deve pesare meno di {limit}.", "limit": 200000 },
-      { "title": "Impossibile allegare", "body": "Gli allegati non possono superare {limit}.", "limit": 25000000 },
+      { "title": "Foto rifiutata", "body": "La foto deve pesare meno di {limit}.", "limit": 200000 },
+      { "title": "Impossibile allegare il file", "body": "Gli allegati non possono superare {limit}.", "limit": 25000000 },
       { "title": "Caricamento non riuscito", "body": "Dimensione massima del file: {limit}.", "limit": 2000000 },
       { "title": "Immagine troppo grande", "body": "Scegli un file più piccolo di {limit}.", "limit": 500000 },
-      { "title": "Memoria quasi piena", "body": "Libera spazio per continuare a scattare foto." }
+      { "title": "Spazio di archiviazione quasi esaurito", "body": "Libera spazio per continuare a scattare foto." }
     ],
-    "keep": "Tienila per la prossima volta che un modulo ti dirà di no."
+    "keep": "Tieni l’app sul telefono per quando un modulo rifiuterà la tua foto."
   },
   "youtube": {
     "tooLarge": "File troppo grande.",
     "press": "{from} → {to}. La stessa foto.",
-    "tell": "Noti la differenza? Una delle due è più leggera del {pct}.",
+    "tell": "Noti la differenza? Una delle due pesa il {pct} in meno.",
     "stores": "Su App Store e Google Play: cerca «Compresso».",
     "web": "Provala nel browser: compresso.izaias.xyz/compresso",
     "credit": "Foto: {list}, via Wikimedia Commons.",
