@@ -37,9 +37,10 @@ npm run render                    # 4K masters at -16 LUFS to out/; `npm run ren
 npm run studio                    # preview and scrub
 ```
 
-The originals live in `public/photos`, committed, because Commons rate-limits
-shared cloud addresses. When `photos.json` changes, the Shorts photos workflow
-fetches the new ones on a GitHub runner, checks them and commits them.
+Commons answers 429 to busy shared addresses, cloud machines included, and
+`npm run photos` then waits it out. If it never gets through, run it on
+another network (a GitHub Actions runner works) and copy the files into
+`public/photos`: it skips any file whose SHA-1 already matches.
 
 Set `REMOTION_BROWSER` to an installed Chrome headless shell to skip
 Remotion's download.

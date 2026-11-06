@@ -1,4 +1,5 @@
-# The app's outputs, the sounds and renders: rebuilt by the npm scripts.
+# Downloaded photos, the app's outputs, the sounds and renders: rebuilt by the npm scripts.
+public/photos/
 public/out/
 out/
 public/sound/
