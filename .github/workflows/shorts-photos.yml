@@ -1,0 +1,28 @@
+name: Shorts photos
+
+# Wikimedia Commons answers 429 to the shared addresses cloud sessions use,
+# so the Shorts' originals are fetched here, checked against Commons' SHA-1
+# by shorts/scripts/photos.mjs, and handed over as a run artifact.
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - 'shorts/photos.json'
+      - '.github/workflows/shorts-photos.yml'
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node shorts/scripts/photos.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shorts-photos
+          path: shorts/public/photos/
+          retention-days: 3
+          compression-level: 0
