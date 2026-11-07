@@ -6,13 +6,13 @@
 // and app screen in a Short is real.
 //
 //   (cd ../mobile && npx expo export --platform web)   then serve mobile/dist on 8765
-//   node scripts/measure.mjs
+//   node scripts/measure.mjs [id ...]     only these results; the rest of measured.json stays
 //
 // The web build encodes with the browser's canvas, on the same recipes as the
 // phones (mobile/src/engine/presets.ts). Frames come from the DevTools
 // screencast at full device resolution, as in mobile/store/record.mjs.
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { basename, extname, join } from 'node:path';
@@ -106,9 +106,11 @@ async function run({ photo, purpose, locale, gap, save, flow }) {
   return { file, at, work: moment.done - moment.go };
 }
 
+const ids = process.argv.slice(2);
+const measuredPath = join(root, 'src/measured.json');
+const measured = ids.length ? JSON.parse(readFileSync(measuredPath, 'utf8')) : {};
 const browser = await chromium.launch();
-const measured = {};
-for (const [id, { photo, purpose, recording }] of Object.entries(results)) {
+for (const [id, { photo, purpose, recording }] of Object.entries(results).filter(([id]) => !ids.length || ids.includes(id))) {
   const { file, work } = await run({ photo, purpose, locale: 'en', gap: 0.9, save: id });
   const result = { photo, purpose, from: statSync(join(root, 'public/photos', `${photo}.jpg`)).size, to: statSync(join(root, 'public', file)).size, file };
   if (recording) {
@@ -123,4 +125,4 @@ for (const [id, { photo, purpose, recording }] of Object.entries(results)) {
   console.log(id, JSON.stringify(result));
 }
 await browser.close();
-writeFileSync(join(root, 'src/measured.json'), `${JSON.stringify(measured, null, 2)}\n`);
+writeFileSync(measuredPath, `${JSON.stringify(measured, null, 2)}\n`);

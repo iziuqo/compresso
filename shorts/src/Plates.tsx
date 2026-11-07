@@ -26,12 +26,15 @@ export function pressGap(t: number, at: number, release = Infinity) {
   return approach - (NEAR - CLOSED) * tween(t, at - frames('micro'), frames('micro'), ease.exit);
 }
 
-/** The plates at a given gap. The default scale makes the icon's 512 box the frame width. */
-export function Plates({ gap, scale = W / 512 }: { gap: number; scale?: number }) {
+/**
+ * The plates at a given gap, closing on height `y` (the frame's middle by
+ * default). The default scale makes the icon's 512 box the frame width.
+ */
+export function Plates({ gap, scale = W / 512, y = H / 2 }: { gap: number; scale?: number; y?: number }) {
   const shift = (gap - CLOSED) / 2;
   return (
     <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{ position: 'absolute', inset: 0 }}>
-      <g transform={`translate(${W / 2} ${H / 2}) scale(${scale}) translate(-256 -256)`} fill="var(--ink)">
+      <g transform={`translate(${W / 2} ${y}) scale(${scale}) translate(-256 -256)`} fill="var(--ink)">
         <path d={TOP} transform={`translate(0 ${-shift})`} />
         <path d={BOTTOM} transform={`translate(0 ${shift})`} />
       </g>
@@ -39,13 +42,16 @@ export function Plates({ gap, scale = W / 512 }: { gap: number; scale?: number }
   );
 }
 
+/** Where the closed icon's lower plate ends, for an icon at the default scale closed on `y`. */
+export const below = (y = H / 2) => y + 128 * (W / 512);
+
 /**
  * The name, once, under the closed icon, set as the app sets its wordmark:
  * Geist SemiBold, a hair tight (mobile/src/app/index.tsx).
  */
-export function Name() {
+export function Name({ y = H / 2 }: { y?: number }) {
   return (
-    <div style={{ position: 'absolute', width: '100%', textAlign: 'center', top: H / 2 + 128 * (W / 512) + px(56),
+    <div style={{ position: 'absolute', width: '100%', textAlign: 'center', top: below(y) + px(56),
       fontFamily: ui, fontWeight: 600, fontSize: px(52), letterSpacing: '-0.012em' }}>
       Compresso
     </div>

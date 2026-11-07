@@ -11,8 +11,14 @@
     ],
     "keep": "Keep it for the next time a form says no."
   },
+  "appStore": {
+    "devices": "for iPhone and iPad",
+    "legal": "Apple, the Apple logo, iPhone and iPad are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc., registered in the U.S. and other countries."
+  },
   "youtube": {
     "tooLarge": "File too large.",
+    "appStore": "Compresso is on the App Store.",
+    "appStoreGet": "Compresso for iPhone and iPad, free on the App Store: search “Compresso: Photo Compressor”, or go to apps.apple.com/app/id6829326032",
     "press": "{from} → {to}. Same photo.",
     "tell": "Can you tell? One of these is {pct} lighter.",
     "stores": "On the App Store and Google Play: search “Compresso”.",
