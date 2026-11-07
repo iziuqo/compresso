@@ -1,0 +1,116 @@
+{
+  "press-lake": {
+    "photo": "lake",
+    "purpose": "space",
+    "from": 14142277,
+    "to": 1237572,
+    "file": "out/press-lake.jpeg"
+  },
+  "press-milky-way": {
+    "photo": "milky-way",
+    "purpose": "space",
+    "from": 34145966,
+    "to": 1511098,
+    "file": "out/press-milky-way.jpeg"
+  },
+  "press-jagged": {
+    "photo": "jagged",
+    "purpose": "space",
+    "from": 13774353,
+    "to": 1465968,
+    "file": "out/press-jagged.jpeg"
+  },
+  "press-reflect": {
+    "photo": "reflect",
+    "purpose": "space",
+    "from": 17418384,
+    "to": 1787562,
+    "file": "out/press-reflect.jpeg"
+  },
+  "tell-cat": {
+    "photo": "cat",
+    "purpose": "message",
+    "from": 9253734,
+    "to": 294532,
+    "file": "out/tell-cat.jpeg"
+  },
+  "tell-couscous": {
+    "photo": "couscous",
+    "purpose": "message",
+    "from": 4159755,
+    "to": 203501,
+    "file": "out/tell-couscous.jpeg"
+  },
+  "tell-edie": {
+    "photo": "edie",
+    "purpose": "message",
+    "from": 4830248,
+    "to": 393682,
+    "file": "out/tell-edie.jpeg"
+  },
+  "too-large": {
+    "photo": "lake",
+    "purpose": "upload",
+    "from": 14142277,
+    "to": 692099,
+    "file": "out/too-large.jpeg",
+    "flows": {
+      "de": {
+        "flow": "out/too-large-de.mp4",
+        "at": {
+          "tap": 0.698,
+          "go": 1.873,
+          "done": 2.761
+        }
+      },
+      "en": {
+        "flow": "out/too-large-en.mp4",
+        "at": {
+          "tap": 0.699,
+          "go": 1.884,
+          "done": 2.774
+        }
+      },
+      "es": {
+        "flow": "out/too-large-es.mp4",
+        "at": {
+          "tap": 0.696,
+          "go": 1.888,
+          "done": 2.761
+        }
+      },
+      "fr": {
+        "flow": "out/too-large-fr.mp4",
+        "at": {
+          "tap": 0.697,
+          "go": 1.872,
+          "done": 2.729
+        }
+      },
+      "it": {
+        "flow": "out/too-large-it.mp4",
+        "at": {
+          "tap": 0.698,
+          "go": 1.876,
+          "done": 2.749
+        }
+      },
+      "pt-BR": {
+        "flow": "out/too-large-pt-BR.mp4",
+        "at": {
+          "tap": 0.699,
+          "go": 1.877,
+          "done": 2.737
+        }
+      },
+      "zh-Hans": {
+        "flow": "out/too-large-zh-Hans.mp4",
+        "at": {
+          "tap": 0.697,
+          "go": 1.881,
+          "done": 2.795
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "photos": {
+    "lake": { "commons": "Clear lake in the mountains (Unsplash).jpg", "licence": "CC0", "author": "Tony Reid" },
+    "cat": { "commons": "Sweet-animal-cute-pet-fur-red.jpg", "licence": "CC0", "author": "Alexas_Fotos" },
+    "milky-way": { "commons": "Milky Way Lake Mountains (Unsplash).jpg", "licence": "CC0", "author": "Andrew Coelho" },
+    "jagged": { "commons": "Lake along jagged mountains (Unsplash).jpg", "licence": "CC0", "author": "Cam Adams" },
+    "reflect": { "commons": "Mountains reflect in lake (Unsplash).jpg", "licence": "CC0", "author": "Pierre Bouillot" },
+    "couscous": { "commons": "A cat named Couscous.jpg", "licence": "CC0", "author": "MarshyBoardwalk" },
+    "edie": { "commons": "Edie's fur brown in the sun.jpg", "licence": "CC0", "author": "Mattkiska" }
+  },
+  "results": {
+    "press-lake": { "photo": "lake", "purpose": "space" },
+    "press-milky-way": { "photo": "milky-way", "purpose": "space" },
+    "press-jagged": { "photo": "jagged", "purpose": "space" },
+    "press-reflect": { "photo": "reflect", "purpose": "space" },
+    "tell-cat": { "photo": "cat", "purpose": "message" },
+    "tell-couscous": { "photo": "couscous", "purpose": "message" },
+    "tell-edie": { "photo": "edie", "purpose": "message" },
+    "too-large": { "photo": "lake", "purpose": "upload", "recording": true }
+  }
+}
