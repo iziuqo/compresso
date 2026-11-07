@@ -12,6 +12,8 @@ Tiny, zero-dependency image optimizer that runs entirely in the browser. Compres
 
 [Website](https://compresso.izaias.xyz) · [Live demo](https://compresso.izaias.xyz/compresso) · [Documentation](https://compresso.izaias.xyz/docs) · [FAQ](https://compresso.izaias.xyz/en/faq/) · [Compare](https://compresso.izaias.xyz/en/compare/) · [GitHub](https://github.com/iziuqo/compresso)
 
+[![Six photos shrink by 59–82% in the Compresso web app, with a before/after slider](https://raw.githubusercontent.com/iziuqo/compresso/main/.github/assets/demo.gif)](https://compresso.izaias.xyz/compresso)
+
 ## Why Compresso
 
 - **Smallest in its class** — 3.6 KB gzipped, zero required dependencies. 4–5× smaller than [browser-image-compression](https://www.npmjs.com/package/browser-image-compression) and [pica](https://www.npmjs.com/package/pica), still leaner than [compressorjs](https://www.npmjs.com/package/compressorjs) ([full comparison](https://github.com/iziuqo/compresso#comparison)). Pure Canvas API — no WASM, no codecs bundled into the core.
@@ -44,6 +46,14 @@ Or via CDN:
 
 ```html
 <script src="https://unpkg.com/compresso.js/dist/compresso.umd.js"></script>
+```
+
+Or as an ES module, straight from jsDelivr (it rewrites the optional HEIC decoder's import for you):
+
+```html
+<script type="module">
+  import { compress } from 'https://cdn.jsdelivr.net/npm/compresso.js@1/+esm';
+</script>
 ```
 
 ## Usage
