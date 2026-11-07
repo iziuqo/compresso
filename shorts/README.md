@@ -48,3 +48,12 @@ another network (a GitHub Actions runner works) and copy the files into
 
 Set `REMOTION_BROWSER` to an installed Chrome headless shell to skip
 Remotion's download.
+
+## Upload
+
+Each master goes to the channel as private, with the title, description and
+video language from `out/youtube.json`; the other languages go under Studio's
+Languages, as title and description translations. Upload the 4K masters:
+YouTube makes 2160p60 VP9 and AV1 from them, so phones get those codecs at
+1080p too, and it measures the masters at their real loudness (about −17 LUFS)
+and doesn't raise them.
