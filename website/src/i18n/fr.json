@@ -79,6 +79,9 @@
     "cta": "Ouvrir l’app",
     "note": "Gratuit et open source, sous licence MIT."
   },
+  "stores": {
+    "appStore": "Télécharger dans l’App Store"
+  },
   "footer": {
     "tagline": "Fait avec soin pour celles et ceux qui se battent avec les envois de fichiers.",
     "lib": "Bibliothèque",
@@ -197,7 +200,7 @@
     "metaTitle": "Compresso sur Android et iPhone, avant tout le monde",
     "label": "Accès anticipé · Android et iPhone",
     "title": "Vous d’abord. Les autres, ensuite.",
-    "lede": "Compresso allège vos photos, à la bonne taille et au bon format, sans qu’elles quittent votre téléphone. Avant son arrivée sur Google Play et l’App Store, un petit groupe l’utilise en premier. Voici votre invitation.",
+    "lede": "Compresso allège vos photos, à la bonne taille et au bon format, sans qu’elles quittent votre téléphone. Avant son arrivée sur Google Play, un petit groupe l’utilise en premier. Voici votre invitation.",
     "roundLabel": "Premier tour",
     "roundDate": "Novembre 2026",
     "nameLabel": "Prénom",
@@ -207,7 +210,7 @@
     "emailPlaceholder": "vous@exemple.com",
     "phoneLabel": "Votre téléphone",
     "androidHint": "Pour rejoindre le groupe, utilisez le compte Google de votre téléphone. C’est le seul que Google Play laissera entrer.",
-    "iphoneHint": "Nécessite iOS 16.4 ou plus récent. L’installation passe par TestFlight, l’app d’Apple.",
+    "iphoneHint": "Elle est déjà sur l’App Store : pas besoin d’attendre une invitation. Nécessite iOS 16.4 ou plus récent.",
     "submit": "Demander mon invitation",
     "sending": "Envoi",
     "privacy": "Un seul e-mail, avec votre invitation. Rien d’autre.",
@@ -242,7 +245,7 @@
     "step2Title": "Ouvrez votre invitation",
     "step2Body": "Elle arrive en quelques minutes, dans cette langue, avec un lien par étape.",
     "step3Title": "Installez-la et gardez-la",
-    "step3Body": "Sur Android, la garder 14 jours permet à Google de la publier pour tous. Sur iPhone, TestFlight s’occupe des mises à jour.",
+    "step3Body": "Sur Android, la garder 14 jours permet à Google de la publier pour tous.",
     "closeTitle": "Tout le monde l’aura plus tard. Vous pouvez l’avoir maintenant.",
     "closeCta": "Demander mon invitation",
     "closeNote": "Gratuite. Sans compte. Vos photos ne quittent jamais votre téléphone.",

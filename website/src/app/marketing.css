@@ -298,6 +298,22 @@
 }
 .mk-actions--inline > * { width: auto; max-width: none; }
 
+/* Store badges sit on their own row under the actions, so the row can grow to
+   two badges without crowding the buttons. 12px gap and margin = a quarter of
+   the 48px badge, the clear space Apple requires. */
+.mk-stores {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 0.75rem; margin-top: 0.75rem; list-style: none; padding: 0;
+}
+.mk-store {
+  display: block; border-radius: 9px;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms var(--ease-standard), opacity 120ms var(--ease-standard);
+}
+.mk-store:active { transform: scale(0.976); }
+@media (hover: hover) { .mk-store:hover { opacity: 0.86; } }
+.mk-store img { display: block; width: auto; height: 48px; }
+
 /* --------------------------------------------------------------------- hero */
 
 .mk-hero {

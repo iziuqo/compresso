@@ -79,6 +79,9 @@
     "cta": "Apri l’app",
     "note": "Gratuito e open source, con licenza MIT."
   },
+  "stores": {
+    "appStore": "Scarica su App Store"
+  },
   "footer": {
     "tagline": "Fatto con cura per chi combatte con i caricamenti di file.",
     "lib": "Libreria",
@@ -197,7 +200,7 @@
     "metaTitle": "Compresso per Android e iPhone, prima di tutti",
     "label": "Accesso anticipato · Android e iPhone",
     "title": "Prima tu. Poi tutti gli altri.",
-    "lede": "Compresso rende le tue foto leggere, nella misura e nel formato giusti, senza che lascino il telefono. Prima che arrivi su Google Play e sull’App Store, un piccolo gruppo la usa per primo. Questo è il tuo invito.",
+    "lede": "Compresso rende le tue foto leggere, nella misura e nel formato giusti, senza che lascino il telefono. Prima che arrivi su Google Play, un piccolo gruppo la usa per primo. Questo è il tuo invito.",
     "roundLabel": "Primo giro",
     "roundDate": "Novembre 2026",
     "nameLabel": "Nome",
@@ -207,7 +210,7 @@
     "emailPlaceholder": "tu@esempio.com",
     "phoneLabel": "Il tuo telefono",
     "androidHint": "Quando entri nel gruppo, usa l’account Google del telefono. È l’unico che Google Play farà entrare.",
-    "iphoneHint": "Serve iOS 16.4 o successivo. Si installa con TestFlight, l’app di Apple.",
+    "iphoneHint": "È già sull’App Store, quindi non serve aspettare un invito. Serve iOS 16.4 o successivo.",
     "submit": "Chiedi il mio invito",
     "sending": "Invio",
     "privacy": "Una sola email, con il tuo invito. Nient’altro.",
@@ -242,7 +245,7 @@
     "step2Title": "Apri il tuo invito",
     "step2Body": "Arriva in pochi minuti, in questa lingua, con un link per ogni passo.",
     "step3Title": "Installala e tienila",
-    "step3Body": "Su Android, tenerla per 14 giorni è ciò che permette a Google di pubblicarla per tutti. Su iPhone, TestFlight pensa agli aggiornamenti.",
+    "step3Body": "Su Android, tenerla per 14 giorni è ciò che permette a Google di pubblicarla per tutti.",
     "closeTitle": "Tutti l’avranno dopo. Tu puoi averla adesso.",
     "closeCta": "Chiedi il mio invito",
     "closeNote": "Gratis. Nessun account. Le tue foto non lasciano mai il telefono.",

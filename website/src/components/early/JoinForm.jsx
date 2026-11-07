@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Logo from '../Logo';
 import { EARLY_ACCESS_URL } from '../marketing/links';
+import StoreBadges from '../marketing/StoreBadges';
 import { localePath } from '../../lib/locale-routes';
 
 const PLATFORMS = [
@@ -34,8 +35,12 @@ function readSource() {
  * JSON content type would trigger a CORS preflight, which Apps Script does not
  * answer. The card then turns into its own receipt, in place, so the page
  * never jumps and the visitor's eye never has to find the result.
+ *
+ * iPhone needs no invite since Compresso is on the App Store, so choosing it
+ * swaps the email fields for the store badge and nothing is collected.
  */
-export default function JoinForm({ e, locale, id }) {
+export default function JoinForm({ t, locale, id }) {
+  const e = t.early;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [platform, setPlatform] = useState(null);
@@ -112,6 +117,7 @@ export default function JoinForm({ e, locale, id }) {
 
   const hint = PLATFORMS.find((p) => p.id === platform)?.hint;
   const sending = status === 'sending';
+  const inStore = platform === 'ios';
 
   return (
     <form className="ea-card" id={id} onSubmit={submit} noValidate>
@@ -120,23 +126,25 @@ export default function JoinForm({ e, locale, id }) {
         <span className="mk-label">{e.roundDate}</span>
       </div>
 
-      <label className="ea-field">
-        <span className="mk-label">{e.nameLabel} <span className="ea-field__opt">· {e.optional}</span></span>
-        <input
-          className="ea-input" name="name" autoComplete="given-name" maxLength={60}
-          placeholder={e.namePlaceholder} value={name} onChange={(ev) => setName(ev.target.value)}
-        />
-      </label>
+      {!inStore && <>
+        <label className="ea-field">
+          <span className="mk-label">{e.nameLabel} <span className="ea-field__opt">· {e.optional}</span></span>
+          <input
+            className="ea-input" name="name" autoComplete="given-name" maxLength={60}
+            placeholder={e.namePlaceholder} value={name} onChange={(ev) => setName(ev.target.value)}
+          />
+        </label>
 
-      <label className="ea-field">
-        <span className="mk-label">{e.emailLabel}</span>
-        <input
-          ref={emailRef} className="ea-input" name="email" type="email" inputMode="email"
-          autoComplete="email" autoCapitalize="none" spellCheck={false} required maxLength={254}
-          placeholder={e.emailPlaceholder} value={email} onChange={(ev) => setEmail(ev.target.value)}
-          aria-invalid={error === e.errorEmail}
-        />
-      </label>
+        <label className="ea-field">
+          <span className="mk-label">{e.emailLabel}</span>
+          <input
+            ref={emailRef} className="ea-input" name="email" type="email" inputMode="email"
+            autoComplete="email" autoCapitalize="none" spellCheck={false} required maxLength={254}
+            placeholder={e.emailPlaceholder} value={email} onChange={(ev) => setEmail(ev.target.value)}
+            aria-invalid={error === e.errorEmail}
+          />
+        </label>
+      </>}
 
       <fieldset className="ea-field">
         <legend className="mk-label">{e.phoneLabel}</legend>
@@ -153,15 +161,17 @@ export default function JoinForm({ e, locale, id }) {
         {hint && <p className="ea-hint" key={hint}>{e[hint]}</p>}
       </fieldset>
 
-      {/* off-screen, not display:none, so form-filling bots still find it */}
-      <input className="ea-hp" name="ea_trap" tabIndex={-1} autoComplete="new-password" aria-hidden="true" />
+      {inStore ? <StoreBadges t={t} locale={locale} /> : <>
+        {/* off-screen, not display:none, so form-filling bots still find it */}
+        <input className="ea-hp" name="ea_trap" tabIndex={-1} autoComplete="new-password" aria-hidden="true" />
 
-      <button className="mk-pill mk-pill--lg ea-submit" type="submit" disabled={sending} aria-busy={sending}>
-        {sending ? e.sending : e.submit}
-      </button>
-      <p className={`ea-fine ${error ? 'is-error' : ''}`} aria-live="polite">{error || e.privacy}</p>
-      {/* the notice consent rests on (GDPR art. 13, LGPD art. 9): purpose, retention, and where the rest is */}
-      <p className="ea-fine">{e.consent} <a href={`${localePath(locale, 'privacy')}#early-access`}>{e.consentLink}</a></p>
+        <button className="mk-pill mk-pill--lg ea-submit" type="submit" disabled={sending} aria-busy={sending}>
+          {sending ? e.sending : e.submit}
+        </button>
+        <p className={`ea-fine ${error ? 'is-error' : ''}`} aria-live="polite">{error || e.privacy}</p>
+        {/* the notice consent rests on (GDPR art. 13, LGPD art. 9): purpose, retention, and where the rest is */}
+        <p className="ea-fine">{e.consent} <a href={`${localePath(locale, 'privacy')}#early-access`}>{e.consentLink}</a></p>
+      </>}
     </form>
   );
 }

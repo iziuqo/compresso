@@ -308,6 +308,9 @@
     "cta": "Open the app",
     "note": "Free and open source, MIT licensed."
   },
+  "stores": {
+    "appStore": "Download on the App Store"
+  },
   "lang": {
     "label": "Language"
   },
@@ -315,7 +318,7 @@
     "metaTitle": "Compresso for Android and iPhone, before everyone else",
     "label": "Early access · Android and iPhone",
     "title": "You first. Everyone else, later.",
-    "lede": "Compresso shrinks, resizes and converts your photos right on your phone. Nothing is uploaded. Before it reaches Google Play and the App Store, a small group gets it first. Consider this your invite.",
+    "lede": "Compresso shrinks, resizes and converts your photos right on your phone. Nothing is uploaded. Before it reaches Google Play, a small group gets it first. Consider this your invite.",
     "roundLabel": "First round",
     "roundDate": "November 2026",
     "nameLabel": "First name",
@@ -325,7 +328,7 @@
     "emailPlaceholder": "you@example.com",
     "phoneLabel": "Your phone",
     "androidHint": "When you join, use the Google account on your phone. It’s the only one Google Play will let in.",
-    "iphoneHint": "Needs iOS 16.4 or later. You install it through Apple’s TestFlight app.",
+    "iphoneHint": "It’s already on the App Store, so there’s no invite to wait for. Needs iOS 16.4 or later.",
     "submit": "Request my invite",
     "sending": "Sending",
     "privacy": "One email, with your invite. Nothing else.",
@@ -360,7 +363,7 @@
     "step2Title": "Open your invite",
     "step2Body": "It arrives in a few minutes, in this language, with one link per step.",
     "step3Title": "Install it, and keep it",
-    "step3Body": "On Android, keeping it for 14 days is what lets Google release it to everyone. On iPhone, TestFlight handles updates for you.",
+    "step3Body": "On Android, keeping it for 14 days is what lets Google release it to everyone.",
     "closeTitle": "Everyone gets it later. You can have it now.",
     "closeCta": "Request my invite",
     "closeNote": "Free. No account. Your photos never leave your phone.",

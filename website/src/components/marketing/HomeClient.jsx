@@ -16,11 +16,11 @@ export default function HomeClient({ initialLocale }) {
     <div className={`mk ${swapping ? 'is-swapping' : ''}`}>
       <Header t={t} locale={initialLocale} onLocaleChange={changeLocale} basePath={basePath} />
       <main>
-        <Hero t={t} />
+        <Hero t={t} locale={initialLocale} />
         <Proof t={t} />
         <AppSection t={t} />
         <Library t={t} basePath={basePath} />
-        <Close t={t} />
+        <Close t={t} locale={initialLocale} />
       </main>
       <Footer t={t} basePath={basePath} locale={initialLocale} />
     </div>

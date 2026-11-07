@@ -308,6 +308,9 @@
     "cta": "Abrir o app",
     "note": "Grátis e de código aberto, licença MIT."
   },
+  "stores": {
+    "appStore": "Baixar na App Store"
+  },
   "lang": {
     "label": "Idioma"
   },
@@ -315,7 +318,7 @@
     "metaTitle": "Compresso para Android e iPhone, antes de todo mundo",
     "label": "Acesso antecipado · Android e iPhone",
     "title": "Primeiro você. Depois, todo mundo.",
-    "lede": "O Compresso deixa suas fotos leves, no tamanho e no formato certos, sem que elas saiam do celular. Antes de chegar ao Google Play e à App Store, um grupo pequeno usa primeiro. Fica o convite.",
+    "lede": "O Compresso deixa suas fotos leves, no tamanho e no formato certos, sem que elas saiam do celular. Antes de chegar ao Google Play, um grupo pequeno usa primeiro. Fica o convite.",
     "roundLabel": "Primeira rodada",
     "roundDate": "Novembro de 2026",
     "nameLabel": "Primeiro nome",
@@ -325,7 +328,7 @@
     "emailPlaceholder": "voce@exemplo.com",
     "phoneLabel": "Seu celular",
     "androidHint": "Na hora de entrar, use a conta Google do seu celular. O Google Play só libera o app para ela.",
-    "iphoneHint": "Precisa do iOS 16.4 ou mais recente. A instalação é pelo app TestFlight, da Apple.",
+    "iphoneHint": "Já está na App Store, então não precisa esperar convite. Precisa do iOS 16.4 ou mais recente.",
     "submit": "Quero meu convite",
     "sending": "Enviando",
     "privacy": "Só um e-mail, com o seu convite. Mais nada.",
@@ -360,7 +363,7 @@
     "step2Title": "Abra seu convite",
     "step2Body": "Ele chega em poucos minutos, neste idioma, com um link para cada passo.",
     "step3Title": "Instale e fique com ele",
-    "step3Body": "No Android, manter o app por 14 dias é o que permite ao Google liberar para todo mundo. No iPhone, o TestFlight cuida das atualizações.",
+    "step3Body": "No Android, manter o app por 14 dias é o que permite ao Google liberar para todo mundo.",
     "closeTitle": "Todo mundo vai ter depois. Você pode ter agora.",
     "closeCta": "Quero meu convite",
     "closeNote": "Grátis. Sem conta. Suas fotos nunca saem do celular.",
