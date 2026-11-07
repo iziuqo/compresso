@@ -79,6 +79,9 @@
     "cta": "Ouvrir l’app",
     "note": "Gratuit et open source, sous licence MIT."
   },
+  "stores": {
+    "appStore": "Télécharger dans l’App Store"
+  },
   "footer": {
     "tagline": "Fait avec soin pour celles et ceux qui se battent avec les envois de fichiers.",
     "lib": "Bibliothèque",

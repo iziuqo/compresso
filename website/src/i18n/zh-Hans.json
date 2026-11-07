@@ -79,6 +79,9 @@
     "cta": "打开应用",
     "note": "免费开源，采用 MIT 许可证。"
   },
+  "stores": {
+    "appStore": "在 App Store 下载"
+  },
   "footer": {
     "tagline": "为每一个和文件上传较劲的人用心而做。",
     "lib": "库",

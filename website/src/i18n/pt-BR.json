@@ -308,6 +308,9 @@
     "cta": "Abrir o app",
     "note": "Grátis e de código aberto, licença MIT."
   },
+  "stores": {
+    "appStore": "Baixar na App Store"
+  },
   "lang": {
     "label": "Idioma"
   },

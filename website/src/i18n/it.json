@@ -79,6 +79,9 @@
     "cta": "Apri l’app",
     "note": "Gratuito e open source, con licenza MIT."
   },
+  "stores": {
+    "appStore": "Scarica su App Store"
+  },
   "footer": {
     "tagline": "Fatto con cura per chi combatte con i caricamenti di file.",
     "lib": "Libreria",

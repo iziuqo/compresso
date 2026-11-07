@@ -79,6 +79,9 @@
     "cta": "App öffnen",
     "note": "Kostenlos und quelloffen, unter MIT-Lizenz."
   },
+  "stores": {
+    "appStore": "Laden im App Store"
+  },
   "footer": {
     "tagline": "Mit Sorgfalt gemacht für alle, die sich mit Datei-Uploads herumschlagen.",
     "lib": "Bibliothek",
