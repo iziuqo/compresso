@@ -10,12 +10,13 @@ import JoinForm from './JoinForm';
 import Phone from './Phone';
 
 /**
- * The early-access page: a short list of people who get the Android and iPhone
- * apps before the stores do, which is also how the closed tests find testers.
+ * The early-access page: a short list of people who get the Android app before
+ * Google Play opens it to everyone, which is how the closed test finds testers.
+ * iPhone is already on the App Store, so the form sends iPhone users there.
  *
  * It is built on the marketing surface's own parts (header, type ramp, rows,
  * pills) and adds only what a signup needs. The pull is in the facts rather
- * than in the volume: the app exists, the stores are not open yet, and a few
+ * than in the volume: the app exists, Google Play is not open yet, and a few
  * people are already using it. Nothing on the page counts down or shouts.
  */
 export default function EarlyClient({ locale }) {
@@ -56,7 +57,7 @@ export default function EarlyClient({ locale }) {
               <Phone slug={slug} screen="compare" alt={e.altCompare} className="ea-phones__front" priority />
             </div>
 
-            <JoinForm e={e} locale={locale} id="join" />
+            <JoinForm t={t} locale={locale} id="join" />
           </div>
         </section>
 
