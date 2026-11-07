@@ -1,6 +1,10 @@
 # Compresso for iOS and Android
 
 Expo (SDK 58) app built on the same never-bigger rules as compresso.js.
+
+[![Download on the App Store](../website/public/badges/app-store/en.svg)](https://apps.apple.com/app/id6829326032)
+
+Android is in closed testing on Google Play; its badge goes here when it reaches production.
 Plan: https://claude.ai/artifact/WoSbpZ6WvuNFqR5ASPoiat
 
 ```bash
@@ -24,4 +28,4 @@ npm run typecheck
 ## Store notes
 
 - No photo-library read permission on either platform. Picking uses the system photo picker, and saving asks for add-only access on iOS.
-- The bundle id `xyz.izaias.compresso` is a placeholder until the developer accounts exist.
+- The bundle id is `xyz.izaias.compresso` on both stores. App Store id: 6829326032.

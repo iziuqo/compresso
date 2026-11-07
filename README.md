@@ -19,6 +19,10 @@
 </p>
 
 <p align="center">
+  <a href="https://apps.apple.com/app/id6829326032"><img src="website/public/badges/app-store/en.svg" alt="Download on the App Store" height="40" /></a>
+</p>
+
+<p align="center">
   <a href="https://compresso.izaias.xyz/compresso"><strong>▶ Try the live demo</strong></a> ·
   <a href="https://compresso.izaias.xyz/docs">Documentation</a> ·
   <a href="https://compresso.izaias.xyz/en/compare/">Compare</a> ·
