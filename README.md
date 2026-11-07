@@ -30,6 +30,13 @@
   <a href="#batch--parallel-compression">Batch & Workers</a>
 </p>
 
+<!-- Recorded from the live demo with the store sample photos in mobile/store/photos (no people or brands). -->
+<p align="center">
+  <a href="https://compresso.izaias.xyz/compresso">
+    <img src=".github/assets/demo.gif" alt="Six photos dropped into the Compresso web app shrink by 59–82% in the browser, with a before/after slider" width="800" />
+  </a>
+</p>
+
 ---
 
 ## Why Compresso
