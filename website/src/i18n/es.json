@@ -308,6 +308,9 @@
     "cta": "Abrir la app",
     "note": "Gratis y de código abierto, licencia MIT."
   },
+  "stores": {
+    "appStore": "Descárgalo en el App Store"
+  },
   "lang": {
     "label": "Idioma"
   },
@@ -315,7 +318,7 @@
     "metaTitle": "Compresso para Android y iPhone, antes que nadie",
     "label": "Acceso anticipado · Android y iPhone",
     "title": "Primero tú. Después, todos.",
-    "lede": "Compresso deja tus fotos ligeras, en el tamaño y el formato justos, sin que salgan de tu teléfono. Antes de llegar a Google Play y la App Store, un grupo pequeño la usa primero. Esta es tu invitación.",
+    "lede": "Compresso deja tus fotos ligeras, en el tamaño y el formato justos, sin que salgan de tu teléfono. Antes de llegar a Google Play, un grupo pequeño la usa primero. Esta es tu invitación.",
     "roundLabel": "Primera ronda",
     "roundDate": "Noviembre de 2026",
     "nameLabel": "Nombre",
@@ -325,7 +328,7 @@
     "emailPlaceholder": "tu@ejemplo.com",
     "phoneLabel": "Tu teléfono",
     "androidHint": "Al unirte, usa la cuenta de Google de tu teléfono. Es la única que Google Play dejará entrar.",
-    "iphoneHint": "Necesita iOS 16.4 o posterior. Se instala con TestFlight, la app de Apple.",
+    "iphoneHint": "Ya está en la App Store, así que no hace falta esperar una invitación. Necesita iOS 16.4 o posterior.",
     "submit": "Pedir mi invitación",
     "sending": "Enviando",
     "privacy": "Un solo correo, con tu invitación. Nada más.",
@@ -360,7 +363,7 @@
     "step2Title": "Abre tu invitación",
     "step2Body": "Llega en pocos minutos, en este idioma, con un enlace por paso.",
     "step3Title": "Instálala y quédatela",
-    "step3Body": "En Android, conservarla 14 días es lo que permite a Google publicarla para todos. En iPhone, TestFlight se encarga de las actualizaciones.",
+    "step3Body": "En Android, conservarla 14 días es lo que permite a Google publicarla para todos.",
     "closeTitle": "Todos la tendrán después. Tú puedes tenerla ahora.",
     "closeCta": "Pedir mi invitación",
     "closeNote": "Gratis. Sin cuenta. Tus fotos nunca salen del teléfono.",

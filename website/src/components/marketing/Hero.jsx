@@ -1,10 +1,11 @@
 import { APP_URL, GITHUB_URL } from './links';
+import StoreBadges from './StoreBadges';
 
 /**
  * Headline, then the product itself. The screenshot is the only colour on the
  * page, which is the app's own thesis applied to the page that sells it.
  */
-export default function Hero({ t }) {
+export default function Hero({ t, locale }) {
   return (
     <section className="mk-hero" id="top">
       <div className="mk-wrap mk-hero__inner">
@@ -18,6 +19,9 @@ export default function Hero({ t }) {
             {t.hero.ctaSecondary}
           </a>
         </div>
+
+        {/* above the fold, so the badge loads with the page instead of on scroll */}
+        <StoreBadges t={t} locale={locale} loading="eager" />
 
         <p className="mk-label mk-hero__note">{t.hero.note}</p>
 
