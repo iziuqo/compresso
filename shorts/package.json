@@ -1,0 +1,28 @@
+{
+  "name": "compresso-shorts",
+  "private": true,
+  "description": "The Compresso YouTube Shorts, rendered from the app's own design system.",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "photos": "node scripts/photos.mjs",
+    "measure": "node scripts/measure.mjs",
+    "sound": "python3 sound/build.py",
+    "stills": "node scripts/stills.mjs",
+    "render": "node scripts/render.mjs",
+    "youtube": "node scripts/youtube.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.541",
+    "@remotion/renderer": "4.0.541",
+    "@remotion/bundler": "4.0.541",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.541"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3"
+  }
+}
