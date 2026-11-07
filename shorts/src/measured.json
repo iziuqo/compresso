@@ -112,5 +112,12 @@
         }
       }
     }
+  },
+  "app-store-lofoten": {
+    "photo": "lofoten",
+    "purpose": "space",
+    "from": 9905230,
+    "to": 863139,
+    "file": "out/app-store-lofoten.jpeg"
   }
 }

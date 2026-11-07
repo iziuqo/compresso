@@ -2,7 +2,9 @@
 // languages, from the same numbers and photo credits the Shorts show, for
 // the upload in YouTube Studio. The Press and Can you tell? episodes are one
 // upload each in all seven languages (English first, the rest added as
-// translations); each File too large. cut is one upload in its own language.
+// translations); each File too large. cut is one upload in its own language,
+// and so is On the App Store, which says where to get the iPhone app and
+// carries Apple's credit lines.
 //
 //   node scripts/youtube.mjs [--stores]     --stores once both stores list the app
 import { bundle } from '@remotion/bundler';
@@ -20,13 +22,13 @@ const copy = Object.fromEntries(locales.map((l) => [l, read(join(root, 'locales'
 const stores = process.argv.includes('--stores');
 const fill = (text, values) => text.replace(/\{(\w+)\}/g, (_, k) => values[k]);
 
-/** The description: the store's promotional line, where to get the app, and the photo credits. */
-function describe(locale, shots) {
+/** The description: the store's promotional line, where to get the app, the photo credits, and any legal lines. */
+function describe(locale, shots, get = stores ? copy[locale].stores : copy[locale].web, legal = []) {
   const y = copy[locale];
   const credits = [...new Set(shots.map((s) => measured[s].photo))]
     .map((id) => fill(y.by, { ...photos[id], title: photos[id].commons.replace(/\.jpe?g$/i, '') }));
   const list = new Intl.ListFormat(locale, { type: 'conjunction' }).format(credits);
-  return [listing[locale].promotionalText, stores ? y.stores : y.web, fill(credits.length > 1 ? y.credits : y.credit, { list })].join('\n\n');
+  return [listing[locale].promotionalText, get, fill(credits.length > 1 ? y.credits : y.credit, { list }), ...legal].join('\n\n');
 }
 
 /** Title and description of one composition in one language. */
@@ -40,6 +42,9 @@ function text(composition, locale) {
   if (id.startsWith('can-you-tell')) {
     const m = measured[props.shot];
     return { title: fill(y.tell, { pct: formatPercent(locale, 1 - m.to / m.from) }), description: describe(locale, [props.shot]) };
+  }
+  if (id.startsWith('app-store')) {
+    return { title: y.appStore, description: describe(locale, [props.shot], y.appStoreGet, [props.card.legal]) };
   }
   return { title: y.tooLarge, description: describe(locale, ['too-large']) };
 }

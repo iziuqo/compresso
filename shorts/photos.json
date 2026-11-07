@@ -6,7 +6,8 @@
     "jagged": { "commons": "Lake along jagged mountains (Unsplash).jpg", "licence": "CC0", "author": "Cam Adams" },
     "reflect": { "commons": "Mountains reflect in lake (Unsplash).jpg", "licence": "CC0", "author": "Pierre Bouillot" },
     "couscous": { "commons": "A cat named Couscous.jpg", "licence": "CC0", "author": "MarshyBoardwalk" },
-    "edie": { "commons": "Edie's fur brown in the sun.jpg", "licence": "CC0", "author": "Mattkiska" }
+    "edie": { "commons": "Edie's fur brown in the sun.jpg", "licence": "CC0", "author": "Mattkiska" },
+    "lofoten": { "commons": "Lofoten, Norway (Unsplash).jpg", "licence": "CC0", "author": "Johannes Groll" }
   },
   "results": {
     "press-lake": { "photo": "lake", "purpose": "space" },
@@ -16,6 +17,7 @@
     "tell-cat": { "photo": "cat", "purpose": "message" },
     "tell-couscous": { "photo": "couscous", "purpose": "message" },
     "tell-edie": { "photo": "edie", "purpose": "message" },
-    "too-large": { "photo": "lake", "purpose": "upload", "recording": true }
+    "too-large": { "photo": "lake", "purpose": "upload", "recording": true },
+    "app-store-lofoten": { "photo": "lofoten", "purpose": "space" }
   }
 }

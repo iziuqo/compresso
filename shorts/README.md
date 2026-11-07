@@ -11,6 +11,7 @@ timings from its `motion.ts`, sizes printed by the app's formatter
 | `the-press-<n>`: the icon presses a heavy photo; the bytes go, the photo stays | 12 s loop | one wordless master per episode |
 | `can-you-tell-<n>`: original or Compresso? Guess, then the reveal | 10 s loop | one wordless master per episode |
 | `file-too-large-<lang>`: the limits pile up, one tap ends them | 13 s loop | one per language in `locales/` |
+| `app-store-en`: one press, then the plates close on the App Store badge | 10.5 s loop | English |
 
 ## Rules every frame follows
 
@@ -20,6 +21,11 @@ timings from its `motion.ts`, sizes printed by the app's formatter
 - The photo is the only colour. Numbers in Geist Mono, statements in Geist.
 - The app's curves and durations, so nothing can overshoot or bounce.
 - Cuts land on a 120 BPM grid. No outros: the icon's clamp is the brand moment.
+  The one card, in `app-store-en`, is the clamp: it cuts in on the hit.
+- Apple's badge only as Apple draws it, per the App Store marketing
+  guidelines: the official artwork, still, one per video, smaller than the
+  icon, with clear space a quarter of its height, Apple's credit lines on
+  the card and in the description, and "for iPhone and iPad", never "iOS".
 - Type stays out of the areas YouTube covers (`safe` in `src/system.ts`).
 
 ## Make them
@@ -33,7 +39,7 @@ Short both set Chinese as a phone does.
 npm ci
 npm run photos                    # checks the originals against Commons' SHA-1
 (cd ../mobile && npx expo export --platform web && python3 -m http.server 8765 -d dist) &
-npm run measure                   # real sizes and screens from the app
+npm run measure                   # real sizes and screens from the app; `npm run measure app-store-lofoten` for one
 npm run sound                     # the press, from sound/src
 npm run stills                    # key frames to out/stills
 npm run render                    # 4K masters to out/, loud as the press allows; `npm run render 0.5 the-press-1` for a quick look

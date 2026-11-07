@@ -30,9 +30,11 @@ const SWEEP = sec(4); //     the compare seam crosses and nothing changes
 const sizeAt = (shot: Shot, t: number) =>
   interpolate(tween(t, RELEASE, LAND - RELEASE), [0, 1], [measured[shot].from, measured[shot].to]);
 
-function Press({ shot, wordmark, t }: { shot: Shot; wordmark: boolean; t: number }) {
+/** One press at frame `t`. The size leaves on the exit curve at frame `until`, for a press that ends on the photo alone. */
+export function Press({ shot, wordmark, t, until }: { shot: Shot; wordmark: boolean; t: number; until?: number }) {
   const m = measured[shot];
   const clamped = t >= CLAMP && t < RELEASE;
+  const shown = until === undefined ? 1 : 1 - tween(t, until, frames('standard'), ease.exit);
   // Right of the seam is what the app wrote; it sweeps right to left.
   const seam = W * (1 - tween(t, SWEEP, sec(1.5), ease.glide));
 
@@ -49,8 +51,8 @@ function Press({ shot, wordmark, t }: { shot: Shot; wordmark: boolean; t: number
             </div>
           )}
           {/* A soft shade where the size sits, so white type reads on snow and sky alike. */}
-          <AbsoluteFill style={{ background: 'radial-gradient(ellipse 80% 16% at 50% 52%, rgb(0 0 0 / 0.42), transparent)' }} />
-          <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', textShadow: `0 0 ${px(40)}px rgb(0 0 0 / 0.4)` }}>
+          <AbsoluteFill style={{ background: 'radial-gradient(ellipse 80% 16% at 50% 52%, rgb(0 0 0 / 0.42), transparent)', opacity: shown }} />
+          <AbsoluteFill style={{ alignItems: 'center', justifyContent: 'center', textShadow: `0 0 ${px(40)}px rgb(0 0 0 / 0.4)`, opacity: shown }}>
             <Counter bytes={sizeAt(shot, t)} size={W / 6} turning={t < RELEASE ? 0 : 1 - tween(t, LAND - frames('standard'), frames('standard'))} />
             {t >= LAND && (
               <Mono size={px(40)} style={{ position: 'absolute', top: H / 2 + px(130), opacity: tween(t, LAND, frames('entrance'), ease.entrance) }}>
@@ -68,21 +70,30 @@ function Press({ shot, wordmark, t }: { shot: Shot; wordmark: boolean; t: number
   );
 }
 
+/** The groove from frame `from` to `to`: shutter on the eighths, a low knock on the beat. */
+export function Groove({ from, to }: { from: number; to: number }) {
+  const eighths = Array.from({ length: Math.round((to - from) / beats(0.5)) }, (_, i) => from + i * beats(0.5));
+  return (
+    <>
+      {eighths.map((f, i) => <Cue key={f} sound="shutter" at={f} volume={i % 2 ? 0.12 : 0.22} />)}
+      {eighths.filter((_, i) => i % 2 === 0).map((f) => <Cue key={`k${f}`} sound="knock" at={f} volume={0.4} pitch={semitones(-7)} />)}
+    </>
+  );
+}
+
 /**
  * The score of one press, from its photo's cut at frame `s`: the press logo
  * (its hum rises under the plates, its hit lands on the clamp), a counter tick
  * each time the size changes, the glass tick when it lands, then the groove
- * drops back in for the sweep: shutter on the eighths, a low knock on the beat.
+ * drops back in for the sweep.
  */
-function PressScore({ shot, s }: { shot: Shot; s: number }) {
-  const groove = Array.from({ length: (PRESS.length - SWEEP) / beats(0.5) }, (_, i) => s + SWEEP + i * beats(0.5));
+export function PressScore({ shot, s }: { shot: Shot; s: number }) {
   return (
     <>
       <Cue sound="press-logo" at={s} />
       {rollTicks((f) => sizeAt(shot, f - s), s + RELEASE, s + LAND).map((f) => <Cue key={f} sound="counter-tick" at={f} volume={0.45} />)}
       <Cue sound="glass-tick" at={s + LAND} volume={0.7} />
-      {groove.map((f, i) => <Cue key={f} sound="shutter" at={f} volume={i % 2 ? 0.12 : 0.22} />)}
-      {groove.filter((_, i) => i % 2 === 0).map((f) => <Cue key={f} sound="knock" at={f} volume={0.4} pitch={semitones(-7)} />)}
+      <Groove from={s + SWEEP} to={s + PRESS.length} />
     </>
   );
 }
