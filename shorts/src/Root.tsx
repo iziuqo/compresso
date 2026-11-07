@@ -6,6 +6,7 @@ import fr from '../locales/fr.json';
 import it from '../locales/it.json';
 import ptBR from '../locales/pt-BR.json';
 import zhHans from '../locales/zh-Hans.json';
+import { APP_STORE, AppStore } from './shorts/AppStore';
 import { CanYouTell, TELL } from './shorts/CanYouTell';
 import { FileTooLarge, TOO_LARGE } from './shorts/FileTooLarge';
 import { PRESS, ThePress } from './shorts/ThePress';
@@ -26,7 +27,8 @@ const TELLS = [
 /**
  * The first wave. The Press and Can you tell? are wordless series, one
  * master per episode for every market. File too large. gets one cut per
- * language, from locales/.
+ * language, from locales/. On the App Store announces the iPhone and iPad
+ * app, in English.
  */
 export function Root() {
   return (
@@ -41,6 +43,8 @@ export function Root() {
         <Composition key={locale} id={`file-too-large-${locale}`} component={FileTooLarge} durationInFrames={TOO_LARGE.duration} {...frame}
           defaultProps={{ copy: tooLarge, locale }} />
       ))}
+      <Composition id="app-store-en" component={AppStore} durationInFrames={APP_STORE.duration} {...frame}
+        defaultProps={{ shot: 'app-store-lofoten', card: en.appStore, locale: 'en' }} />
     </>
   );
 }

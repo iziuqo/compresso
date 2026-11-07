@@ -15,6 +15,7 @@ const KEY = {
   'the-press': [0.2, 1.2, 1.7, 3.3, 4.4, 6.2],
   'can-you-tell': [0.5, 5.2, 6.8, 8.4],
   'file-too-large': [0.0, 4.6, 6.2, 8.2, 9.6, 12.4],
+  'app-store': [0.2, 1.7, 3.3, 4.4, 6.6, 7.6, 10.2],
 };
 
 const [scaleArg = '1', ...ids] = process.argv.slice(2);
