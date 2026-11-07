@@ -2,17 +2,24 @@ import '../app/globals.css';
 import '../app/marketing.css';
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
-import { Plus_Jakarta_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import ServiceWorker from './ServiceWorker';
 import JsonLd from './seo/JsonLd';
 import { SITE_SCHEMA } from '../lib/seo';
 
-const display = Plus_Jakarta_Sans({
-  subsets: ['latin'],
+/**
+ * Plus Jakarta Sans (OFL), the Latin variable file Google Fonts serves, kept
+ * in the repo so a build never downloads it: when that download fails, the
+ * whole build fails. Latin covers all the site's Latin-script copy (none of
+ * it needs Latin Extended); anything outside it falls back to system-ui. 500
+ * to 800 are the weights the display type uses.
+ */
+const plusJakartaSans = localFont({
+  src: '../fonts/PlusJakartaSans-latin.woff2',
   variable: '--font-display',
-  weight: ['500', '600', '700', '800'],
+  weight: '500 800',
   display: 'swap',
 });
 
@@ -24,7 +31,7 @@ const display = Plus_Jakarta_Sans({
  */
 export default function RootDocument({ lang = 'en', children }) {
   return (
-    <html lang={lang} className={`scroll-smooth ${GeistSans.variable} ${GeistMono.variable} ${display.variable}`}>
+    <html lang={lang} className={`scroll-smooth ${GeistSans.variable} ${GeistMono.variable} ${plusJakartaSans.variable}`}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
