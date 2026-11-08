@@ -60,6 +60,14 @@ Or from a CDN:
 <script src="https://unpkg.com/compresso.js/dist/compresso.umd.js"></script>
 ```
 
+Or as an ES module, straight from jsDelivr (it rewrites the optional HEIC decoder's import for you):
+
+```html
+<script type="module">
+  import { compress } from 'https://cdn.jsdelivr.net/npm/compresso.js@1/+esm';
+</script>
+```
+
 ## Quick Start
 
 ```js
