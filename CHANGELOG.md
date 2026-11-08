@@ -6,11 +6,18 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+## [1.0.3] — 2026-11-08
+
 ### Fixed
 - **Worker memory.** Each pool worker made an object URL for every result and
   never revoked it, so a long-lived worker kept every image it had produced
   alive until it was terminated. The worker now frees it before posting the
   result; the pool still creates the `url` callers receive.
+
+### Docs
+- The npm README now shows the demo GIF and a one-line ES module import from
+  jsDelivr (`compresso.js@1/+esm`), which rewrites the optional HEIC decoder's
+  import so HEIC works with no bundler.
 
 ## [1.0.2] — 2026-08-04
 
