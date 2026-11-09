@@ -204,7 +204,7 @@ function Score() {
       <Bed sound="kitchen" levels={[[KITCHEN - 1, -60], [KITCHEN, -18], [OUT, -20], [GRANDMA.duration, -40]]} />
       {[SENDS[1], SEND].map((f) => <Cue key={`t${f}`} sound="tap" at={f - 4} volume={0.7} />)}
       {[...SENDS, SEND].map((f) => <Cue key={`s${f}`} sound="send" at={f} volume={0.5} />)}
-      {BOUNCES.map((f, i) => <Cue key={f} sound="thud" at={f} volume={0.8 + i * 0.2} />)}
+      {BOUNCES.map((f, i) => <Cue key={f} sound="thud" at={f} volume={0.6 + i * 0.15} />)}
       {BOUNCES.map((f, i) => <Cue key={`d${f}`} sound="deflate" at={f + 4} volume={0.35 + i * 0.15} />)}
       {BOUNCES.map((f) => <Cue key={`e${f}`} sound="error" at={f} volume={0.4} />)}
       {REMOVE.map((f, i) => <Cue key={f} sound="flick" at={f} volume={0.5} pitch={semitones(-i)} />)}
