@@ -31,6 +31,9 @@
     "tell-couscous": { "photo": "couscous", "purpose": "message" },
     "tell-edie": { "photo": "edie", "purpose": "message" },
     "too-large": { "photo": "lake", "purpose": "upload", "recording": true },
-    "app-store-lofoten": { "photo": "lofoten", "purpose": "space" }
+    "app-store-lofoten": { "photo": "lofoten", "purpose": "space" },
+    "deadline": { "photo": "happy-dog", "purpose": "upload", "limit": 2000000, "recording": ["en"] },
+    "grandma": { "photos": ["golden-gate", "cake", "happy-dog", "dim-sum", "palm-sunset", "couscous", "venice-palms", "stormy-sunset", "dog-run", "edie", "beach-dusk", "tropic-beach"], "purpose": "email", "recording": ["en"] },
+    "one-bar": { "photos": ["tropic-beach", "palm-sunset", "dog-run", "venice-palms", "stormy-sunset", "happy-dog", "beach-dusk", "golden-gate"], "purpose": "message", "recording": ["en"] }
   }
 }

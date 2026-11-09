@@ -4,6 +4,7 @@ import { Ground, Mono, Photo } from '../parts';
 import { Name, Plates, pressGap } from '../Plates';
 import { Cue, semitones } from '../sound';
 import { ease, formatBytes, formatPercent, frames, px, safe, sec, tween, W } from '../system';
+import type { Shot } from './ThePress';
 
 /**
  * Can you tell?, 10 s, loops. The same photo twice: one is the original, one
@@ -27,7 +28,7 @@ const PANE = { w: W, h: px(620), gap: px(4), top: px(280) };
  * One episode: `shot` is its result in photos.json, `focus` the point the
  * push-in closes on (a CSS transform-origin), where the detail is finest.
  */
-export function CanYouTell({ shot, focus }: { shot: keyof typeof measured; focus: string }) {
+export function CanYouTell({ shot, focus }: { shot: Shot; focus: string }) {
   const t = useCurrentFrame();
   const m = measured[shot];
   // A is what the app wrote, B the original: most people pick the wrong one.

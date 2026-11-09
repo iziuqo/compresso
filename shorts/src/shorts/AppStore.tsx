@@ -22,11 +22,14 @@ export type Card = { devices: string; legal: string };
 
 const AGAIN = sec(6); //  the size leaves and the plates come down again over the light photo
 const CARD = sec(8); //   and close on the card, held to the loop's cut
-const TOP = H * 0.38; //  the card's icon sits high, so all of it clears YouTube's captions
+export const TOP = H * 0.38; //  the card's icon sits high, so all of it clears YouTube's captions
 const BADGE = px(84);
 
-/** The closed icon and, under it, what to get and where. Everything cuts in on the hit; nothing on the card moves. */
-function CardFace({ devices, legal, locale }: Card & { locale: string }) {
+/**
+ * The closed icon and, under it, what to get and where. Everything cuts in on
+ * the hit; nothing on the card moves. The everyday stories end on it too.
+ */
+export function CardFace({ devices, legal, locale }: Card & { locale: string }) {
   return (
     <Ground lang={locale}>
       <Plates gap={40} y={TOP} />

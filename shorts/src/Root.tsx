@@ -8,7 +8,10 @@ import ptBR from '../locales/pt-BR.json';
 import zhHans from '../locales/zh-Hans.json';
 import { APP_STORE, AppStore } from './shorts/AppStore';
 import { CanYouTell, TELL } from './shorts/CanYouTell';
+import { DEADLINE, Deadline } from './shorts/Deadline';
 import { FileTooLarge, TOO_LARGE } from './shorts/FileTooLarge';
+import { GRANDMA, Grandma } from './shorts/Grandma';
+import { ONE_BAR, OneBar } from './shorts/OneBar';
 import { PRESS, ThePress } from './shorts/ThePress';
 import { FPS, H, W } from './system';
 
@@ -45,6 +48,9 @@ export function Root() {
       ))}
       <Composition id="app-store-en" component={AppStore} durationInFrames={APP_STORE.duration} {...frame}
         defaultProps={{ shot: 'app-store-lofoten', card: en.appStore, locale: 'en' }} />
+      <Composition id="the-2mb-limit" component={Deadline} durationInFrames={DEADLINE.duration} {...frame} />
+      <Composition id="photos-for-grandma" component={Grandma} durationInFrames={GRANDMA.duration} {...frame} />
+      <Composition id="one-bar" component={OneBar} durationInFrames={ONE_BAR.duration} {...frame} />
     </>
   );
 }

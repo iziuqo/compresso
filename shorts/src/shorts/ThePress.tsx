@@ -18,7 +18,9 @@ import { beats, ease, formatBytes, formatPercent, frames, H, px, sec, tween, W }
  */
 export const PRESS = { duration: sec(12), lead: sec(0.5), length: sec(6) };
 
-export type Shot = keyof typeof measured;
+type Measured = typeof measured;
+/** A result of one photo (the batches belong to the everyday stories). */
+export type Shot = { [K in keyof Measured]: Measured[K] extends { photo: string } ? K : never }[keyof Measured];
 
 // One press, from its photo's cut. Every cut lands on the 120 BPM grid.
 const CLAMP = sec(2); //     closed icon on black; the press sounds
