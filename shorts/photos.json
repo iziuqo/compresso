@@ -7,7 +7,20 @@
     "reflect": { "commons": "Mountains reflect in lake (Unsplash).jpg", "licence": "CC0", "author": "Pierre Bouillot" },
     "couscous": { "commons": "A cat named Couscous.jpg", "licence": "CC0", "author": "MarshyBoardwalk" },
     "edie": { "commons": "Edie's fur brown in the sun.jpg", "licence": "CC0", "author": "Mattkiska" },
-    "lofoten": { "commons": "Lofoten, Norway (Unsplash).jpg", "licence": "CC0", "author": "Johannes Groll" }
+    "lofoten": { "commons": "Lofoten, Norway (Unsplash).jpg", "licence": "CC0", "author": "Johannes Groll" },
+    "desk-night": { "commons": "Typewriter (Unsplash).jpg", "licence": "CC0", "author": "Alexa Mazzarello" },
+    "fruit-table": { "commons": "Healthy Fruit (Unsplash).jpg", "licence": "CC0", "author": "Tim Gouw" },
+    "living-room": { "commons": "Living room (Unsplash).jpg", "licence": "CC0", "author": "Jarosław Ceborski" },
+    "beach-dusk": { "commons": "Sunset over the beach (Unsplash).jpg", "licence": "CC0", "author": "Bagus Ghufron" },
+    "golden-gate": { "commons": "Golden Gate Sunset. (Unsplash).jpg", "licence": "CC0", "author": "Chris Brignola" },
+    "cake": { "commons": "Colorful Cake (Unsplash).jpg", "licence": "CC0", "author": "Annie Spratt" },
+    "dim-sum": { "commons": "Dim Sum Dinner (Unsplash).jpg", "licence": "CC0", "author": "Tara B" },
+    "stormy-sunset": { "commons": "Stormy orange beach sunset (Unsplash).jpg", "licence": "CC0", "author": "Quino Al" },
+    "happy-dog": { "commons": "Happy dog at Anjuna Beach (Unsplash).jpg", "licence": "CC0", "author": "Samantha Scholl" },
+    "palm-sunset": { "commons": "Sand beach at sunset 1 (Unsplash).jpg", "licence": "CC0", "author": "Jasper Boer" },
+    "venice-palms": { "commons": "Venice Beach palm trees at sunset (Unsplash).jpg", "licence": "CC0", "author": "Stuart Guest-Smith" },
+    "tropic-beach": { "commons": "Sunset beach 1 (Unsplash).jpg", "licence": "CC0", "author": "Andrew Coelho" },
+    "dog-run": { "commons": "Dog on a beach (Unsplash).jpg", "licence": "CC0", "author": "Meg Sanchez" }
   },
   "results": {
     "press-lake": { "photo": "lake", "purpose": "space" },
