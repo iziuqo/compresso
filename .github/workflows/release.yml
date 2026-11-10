@@ -1,0 +1,99 @@
+# Publishes compresso.js to npm and makes its GitHub Release, from one tag.
+#
+#   1. Move the CHANGELOG's [Unreleased] notes under "## [X.Y.Z] — date" and
+#      bump packages/compresso/package.json to X.Y.Z, in a PR to main.
+#   2. After it merges, tag that commit on main: git tag vX.Y.Z && git push origin vX.Y.Z
+#
+# The job checks the tag against the package version and main, builds, tests and
+# size-checks, then publishes with npm trusted publishing: npm trusts this
+# workflow through GitHub's OIDC token, so no npm token is stored anywhere and
+# every version carries a provenance statement linking it to this repo and run.
+# A prerelease version (1.1.0-beta.1) goes to the `next` dist-tag, not `latest`.
+#
+# Run it by hand (Actions → Release → Run workflow) for a dry run: every step
+# up to `npm publish --dry-run`, with nothing published or released.
+#
+# One-time setup, outside this file:
+#   - npmjs.com → compresso.js → Settings → Trusted publishing: GitHub Actions,
+#     owner iziuqo, repo compresso, workflow release.yml, environment npm.
+#   - GitHub → Settings → Environments → npm: add a required reviewer, so each
+#     publish waits for a maintainer's approval.
+# App tags (app-vX.Y.Z) don't match `v*`, so they never trigger this.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One release at a time; never cancel one halfway through publishing.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: write # create the GitHub Release
+      id-token: write # npm trusted publishing and provenance
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
+    defaults:
+      run:
+        working-directory: packages/compresso
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the main-ancestry check below needs history
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+
+      # Trusted publishing needs npm 11.5.1 or newer.
+      - run: npm install --global npm@^11.5.1
+
+      - name: Check the version
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          if [ "$DRY_RUN" = false ]; then
+            [ "$GITHUB_REF_NAME" = "v$version" ] \
+              || { echo "::error::Tag $GITHUB_REF_NAME doesn't match package.json version $version"; exit 1; }
+            git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+              || { echo "::error::$GITHUB_REF_NAME isn't on main"; exit 1; }
+          fi
+          # The release notes are the CHANGELOG section for this version.
+          awk -v v="$version" '$0 ~ "^## \\[" v "\\]" { on = 1; next } on && /^## \[/ { exit } on' \
+            ../../CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          [ -s "$RUNNER_TEMP/notes.md" ] \
+            || { echo "::error::CHANGELOG.md has no section for $version"; exit 1; }
+          case "$version" in *-*) tag=next ;; *) tag=latest ;; esac
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "dist-tag=$tag" >> "$GITHUB_OUTPUT"
+
+      # Only the library's own dependencies, not the other workspaces'.
+      - run: npm ci --workspace packages/compresso
+        working-directory: .
+      - run: npm run build
+      - run: npm test
+      - run: npm run size
+
+      - name: Publish to npm
+        run: npm publish --access public --tag "${{ steps.version.outputs.dist-tag }}" $([ "$DRY_RUN" = true ] && echo --dry-run)
+
+      - name: Create the GitHub Release
+        if: env.DRY_RUN == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" \
+            --notes-file "$RUNNER_TEMP/notes.md" \
+            $([ "${{ steps.version.outputs.dist-tag }}" = next ] && echo --prerelease)
