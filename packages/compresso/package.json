@@ -30,6 +30,7 @@
     "test": "vitest run --project unit",
     "test:watch": "vitest --project unit",
     "test:browser": "vitest run --project browser",
+    "test:types": "tsc --noEmit -p test/types",
     "generate:benchmark-corpus": "node scripts/generate-benchmark-corpus.mjs",
     "size": "size-limit",
     "prepublishOnly": "npm run build"
@@ -84,6 +85,7 @@
     "playwright": "^1.62.1",
     "rollup": "^4.62.4",
     "size-limit": "^13.0.3",
+    "typescript": "^5.9.2",
     "vitest": "^4.1.10"
   },
   "optionalDependencies": {

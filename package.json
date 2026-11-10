@@ -14,6 +14,7 @@
     "dev": "npm run dev -w website",
     "test:lib": "npm run test -w packages/compresso",
     "test:lib:browser": "npm run test:browser -w packages/compresso",
+    "test:types": "npm run test:types -w packages/compresso",
     "size:lib": "npm run size -w packages/compresso"
   }
 }
