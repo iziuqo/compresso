@@ -16,6 +16,11 @@
     "./pool": {
       "import": "./dist/compresso.pool.mjs",
       "types": "./types/pool.d.ts"
+    },
+    "./plan": {
+      "import": "./dist/compresso.plan.mjs",
+      "require": "./dist/compresso.plan.cjs",
+      "types": "./types/plan.d.ts"
     }
   },
   "files": [
@@ -107,6 +112,12 @@
       "name": "worker script (dist/worker.js, loaded by the pool, not imported directly)",
       "path": "dist/worker.js",
       "limit": "4 KB",
+      "gzip": true
+    },
+    {
+      "name": "plan entry (import { planPhoto } from 'compresso.js/plan')",
+      "path": "dist/compresso.plan.mjs",
+      "limit": "1.25 KB",
       "gzip": true
     }
   ]

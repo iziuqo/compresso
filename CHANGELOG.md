@@ -6,6 +6,22 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+### Added
+- **`compresso.js/plan`, the photo planner.** The decisions of `compress()`
+  without the pixels, for hosts with their own encoder (the Compresso apps,
+  React Native, Node). `planPhoto()` picks the format, searches quality under a
+  size target, steps the long edge down by 20% when no quality fits, and keeps
+  the never-bigger rule; `allocateBudget()` splits one budget across a batch;
+  `findQuality()` and `resolveFormat()` are exported too. No DOM, ESM and
+  CommonJS, under 1 KB gzipped, typed in `types/plan.d.ts`. It is its own
+  entry, so `import { compress }` doesn't load it.
+
+### Changed
+- `compress()` now runs the same quality search as the planner (one shared
+  `findQuality`), so both always agree. Qualities tried are rounded to three
+  decimals; results are otherwise unchanged. The core grows by about 30 bytes
+  and stays 3.6 KB gzipped.
+
 ## [1.0.3] — 2026-11-08
 
 ### Fixed

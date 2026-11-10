@@ -2,6 +2,7 @@ import { detectFormat, formatToMime, generateFileName, getBestFormat } from './u
 import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
 import { probeDimensions } from './probe.js';
+import { findQuality } from './quality.js';
 
 /**
  * Ceiling on decodable input resolution (width × height). A crafted file can
@@ -37,8 +38,6 @@ const DEFAULTS = {
  * Opt out on the fallback path too with `maxWidth: Infinity`.
  */
 const DEFAULT_MAX_DIMENSION = 2048;
-
-const MAX_QUALITY_STEPS = 10;
 
 export async function compress(source, options = {}) {
   // Fail clearly, once, up front — rather than deep inside the pipeline on a
@@ -110,10 +109,7 @@ export async function compress(source, options = {}) {
   const ceilingBytes =
     mimeType === 'image/png' ? Infinity : Math.min(opts.maxSizeMB * 1024 * 1024, originalSize || Infinity);
 
-  let blob = await encode(canvas, mimeType, opts.quality);
-  if (blob.size > ceilingBytes) {
-    blob = await shrinkToFit(canvas, mimeType, opts.quality, ceilingBytes, opts, blob);
-  }
+  let blob = await shrinkToFit(canvas, mimeType, opts.quality, ceilingBytes, opts);
 
   // shrinkToFit only searches quality within the target format — it can't help
   // when that format's own encoding overhead can't beat a source that was
@@ -148,31 +144,23 @@ export async function compress(source, options = {}) {
   };
 }
 
-/** Binary-search the highest quality whose encode fits within `maxBytes`. */
-async function shrinkToFit(canvas, mimeType, initialQuality, maxBytes, opts, firstBlob) {
-  let blob = firstBlob ?? (await encode(canvas, mimeType, initialQuality));
-  if (blob.size <= maxBytes) return blob;
-
-  let low = 0;
-  let high = initialQuality;
-  let best = blob;
-
-  for (let i = 0; i < MAX_QUALITY_STEPS; i++) {
+/**
+ * Encode at the highest quality that fits `maxBytes` (see `findQuality`), or
+ * at a 0.1 floor when none does — the never-bigger check in `compress()` then
+ * decides between that and the source.
+ */
+async function shrinkToFit(canvas, mimeType, quality, maxBytes, opts) {
+  // The last encode that fit is the best one: the search only moves up after a fit.
+  let fit = null;
+  const size = async (q) => {
     throwIfAborted(opts.signal);
-    const mid = (low + high) / 2;
-    blob = await encode(canvas, mimeType, mid);
-    if (blob.size <= maxBytes) {
-      best = blob;
-      low = mid;
-    } else {
-      high = mid;
-    }
-    if (high - low < 0.01) break;
-    report(opts, 0.5 + (i / MAX_QUALITY_STEPS) * 0.4, 'compressing');
-  }
-
-  if (best.size > maxBytes) best = await encode(canvas, mimeType, 0.1);
-  return best;
+    const blob = await encode(canvas, mimeType, q);
+    if (blob.size <= maxBytes) fit = blob;
+    return blob.size;
+  };
+  const onStep = (step) => report(opts, 0.5 + step * 0.4, 'compressing');
+  const found = await findQuality(size, quality, maxBytes, onStep);
+  return found === null ? encode(canvas, mimeType, 0.1) : fit;
 }
 
 function throwIfAborted(signal) {
