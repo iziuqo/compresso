@@ -109,13 +109,17 @@ export function TheLimit() {
   const finding = t >= B.find && t < B.loop;
   const st = t >= B.loop ? 0 : t; // the last quarter second is frame 0 again, fading in
   const p = poseAt && !finding ? poseAt(st) : null;
+  // The scene goes once the flood covers it (the flood alone sinks to black), stays hidden under Find, and fades back in as frame 0.
+  const shown = t >= B.loop ? span(t, B.loop, 30, ease.standard) : finding ? 0 : 1 - span(t, B.through + 1, B.through + 1.1);
+  const over = press.press && p && overlay(press.press, p, st);
   return (
     <AbsoluteFill style={{ background: 'var(--void)' }}>
-      <AbsoluteFill style={{ opacity: t >= B.loop ? span(t, B.loop, 30, ease.standard) : 1, filter: blurAt(t) }}>
+      <AbsoluteFill style={{ opacity: shown, filter: blurAt(t) }}>
         <PressCanvas {...press} pose={p} />
+        {over?.type}
       </AbsoluteFill>
-      {press.press && p && <Overlay press={press.press} p={p} t={st} fade={t >= B.loop ? span(t, B.loop, 30, ease.standard) : 1} />}
-      {t >= B.find && t < B.loop && <Find t={t - B.find} legal={en.appStore.legal} />}
+      {over?.front}
+      {finding && <Find t={t - B.find} legal={en.appStore.legal} />}
       <Grain seed={frame} />
       <Score />
     </AbsoluteFill>
@@ -157,8 +161,8 @@ const blurAt = (t: number) => {
   return soft > 0.001 ? `blur(${px(22) * soft}px)` : undefined;
 };
 
-/** The type that rides on the scene, the flood beyond the slot, and the phone. */
-function Overlay({ press, p, t, fade }: { press: Press; p: Pose; t: number; fade: number }) {
+/** The type that rides on the scene (it goes soft with it), and in front of it the flood beyond the slot and the phone. */
+function overlay(press: Press, p: Pose, t: number) {
   const under = p.bytes <= LIMIT_BYTES;
   const ink = under ? 'var(--ink)' : RED;
   const up = (a: number, b: number, curve = ease.standard) => span(t, a, b, curve);
@@ -187,8 +191,8 @@ function Overlay({ press, p, t, fade }: { press: Press; p: Pose; t: number; fade
   const slot = press.project(p, press.gateX, (press.slot.top + press.slot.bottom) / 2, 0);
   const flood = up(B.through, B.through + 1);
   const phoneY = mix(px(2600), 0, up(B.phone + 0.3, B.app, ease.glide)) + px(2600) * up(B.tap + 0.05, B.tap + 0.6, ease.glide);
-  return (
-    <AbsoluteFill style={{ opacity: fade }}>
+  const type = (
+    <>
       <Size bytes={p.bytes} size={px(78)} style={{ ...at(sizeAt, [close > 0.5 ? 1 : 0, close > 0.5 ? 0 : 0.5]), opacity: Math.max(0, Math.min(1, sizeShown)) }} />
       {lineShown > 0 && (
         <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: lineShown }} viewBox="0 0 1 1" preserveAspectRatio="none">
@@ -200,10 +204,16 @@ function Overlay({ press, p, t, fade }: { press: Press; p: Pose; t: number; fade
         {t < B.wide ? typed : label}
       </div>
       <Wordmark style={{ ...at([0.5, nameAt[1]], [0.5, 0]), opacity: name, marginTop: (1 - up(B.name, B.name + 0.25)) * px(19) }} />
+    </>
+  );
+  // The flood: the photo's own colours, blurred, opening from the slot on a soft edge.
+  const r = flood * 180;
+  const front = (
+    <>
       {flood > 0 && (
         <Img src={staticFile(m.file)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
           filter: `blur(${px(70)}px) saturate(1.3) brightness(${1 + 0.08 * Math.sin(Math.max(0, t - B.through - 1) * 2.4)})`, transform: 'scale(1.2)',
-          opacity: 1 - up(B.sink, B.find, ease.exit), clipPath: `circle(${flood * 130}% at ${slot[0] * 100}% ${slot[1] * 100}%)` }} />
+          opacity: 1 - up(B.sink, B.find, ease.exit), WebkitMaskImage: `radial-gradient(circle at ${slot[0] * 100}% ${slot[1] * 100}%, #000 ${r * 0.6}%, transparent ${r}%)` }} />
       )}
       {t >= B.phone && t < B.tap + 0.6 && (
         <Phone k={1.4} y={phoneY} neutral>
@@ -213,8 +223,9 @@ function Overlay({ press, p, t, fade }: { press: Press; p: Pose; t: number; fade
           <Touch x={196} y={813} at={sec(B.tap)} t={sec(t)} />
         </Phone>
       )}
-    </AbsoluteFill>
+    </>
   );
+  return { type, front };
 }
 
 const CUT = [{ start: 0, end: 99 }];

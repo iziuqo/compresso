@@ -39,14 +39,28 @@ export function Wordmark({ style }: { style?: CSSProperties }) {
   return <div style={{ position: 'absolute', fontFamily: ui, fontWeight: 500, fontSize: px(104), letterSpacing: '-0.04em', lineHeight: 1, whiteSpace: 'nowrap', color: 'var(--ink)', ...style }}>Compresso</div>;
 }
 
-/** Film grain, a new seed every frame, so it lives like film instead of sitting on the glass. */
+let grainTile: string | undefined;
+/** One tile of seeded noise, made once per tab: drawing turbulence every frame cost as much as the 3D scene. */
+const tile = () => {
+  if (grainTile) return grainTile;
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const x = c.getContext('2d')!, img = x.createImageData(256, 256);
+  let s = 1;
+  for (let i = 0; i < img.data.length; i += 4) {
+    s ^= s << 13; s ^= s >>> 17; s ^= s << 5; // xorshift: the same grain in every render
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = s & 255;
+    img.data[i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  return (grainTile = c.toDataURL());
+};
+
+/** Film grain that moves like film: the tile lands somewhere new every frame (seeded, so renders repeat). */
 export function Grain({ seed }: { seed: number }) {
-  return (
-    <svg width={W} height={H} style={{ position: 'absolute', inset: 0, mixBlendMode: 'overlay', opacity: 0.35, pointerEvents: 'none' }}>
-      <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency={0.9 * 1080 / W} numOctaves={2} seed={seed} /><feColorMatrix type="saturate" values="0" /></filter>
-      <rect width={W} height={H} filter="url(#grain)" />
-    </svg>
-  );
+  const k = px(256), jump = (n: number) => ((Math.imul(seed + 1, n) >>> 0) % 997) / 997 * k;
+  return <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', mixBlendMode: 'overlay', opacity: 0.12,
+    backgroundImage: `url(${tile()})`, backgroundSize: `${k}px ${k}px`, backgroundPosition: `${jump(2654435761)}px ${jump(2246822519)}px` }} />;
 }
 
 /** The app's icon as the stores show it: the store artwork (mobile/assets), rounded as phones round it. */
