@@ -114,5 +114,13 @@
   "photo.shared": "Wie die anderen",
   "photo.own": "Eigene Einstellungen",
   "photo.sharedHint": "Dieses Foto nutzt die Einstellungen für alle Fotos.",
-  "photo.ownHint": "Nur dieses Foto nutzt diese Einstellungen. Die anderen behalten die gemeinsamen."
+  "photo.ownHint": "Nur dieses Foto nutzt diese Einstellungen. Die anderen behalten die gemeinsamen.",
+  "home.demoBefore": "vorher {size}",
+  "job.hero": "Gespart",
+  "job.heroSoFar": "Bisher gespart",
+  "purpose.keepDetails": "Ort und Fotodetails behalten",
+  "fine.metaHint": "Wo und wann jedes Foto aufgenommen wurde, und mit welcher Kamera.",
+  "fine.metaHint.keep": "Ort, Datum und Kamera bleiben im Foto.",
+  "fine.metaHint.strip-location": "Der Ort wird entfernt. Datum und Kamera bleiben.",
+  "fine.metaHint.strip": "Ort, Datum und Kamera werden entfernt."
 }

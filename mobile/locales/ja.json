@@ -1,0 +1,6 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Compresso",
+    "NSPhotoLibraryAddUsageDescription": "Compresso は、作成した軽いコピーを写真ライブラリに保存します。ほかの写真を読み取ったり変更したりすることはありません。"
+  }
+}

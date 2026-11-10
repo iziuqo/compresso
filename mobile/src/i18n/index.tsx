@@ -6,14 +6,16 @@ import en from './locales/en.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
 import it from './locales/it.json';
+import ja from './locales/ja.json';
 import ptBR from './locales/pt-BR.json';
 import zhHans from './locales/zh-Hans.json';
 import { formatBytes, formatPercent } from './format';
 
 /**
- * The same seven locales, under the same tags, as the website and the web app,
- * so someone who reads the site in Italian opens the app in Italian. All are
- * bundled: switching language must never need a network.
+ * The website's and web app's seven locales, under the same tags, so someone
+ * who reads the site in Italian opens the app in Italian, plus Japanese,
+ * which testers asked for (the app first). All are bundled: switching
+ * language must never need a network.
  */
 export const LOCALES = {
   en:        { native: 'English',   english: 'English',              dict: en },
@@ -23,6 +25,7 @@ export const LOCALES = {
   it:        { native: 'Italiano',  english: 'Italian',              dict: it },
   'pt-BR':   { native: 'Português', english: 'Portuguese (Brazil)',  dict: ptBR },
   'zh-Hans': { native: '简体中文',   english: 'Chinese (Simplified)', dict: zhHans },
+  ja:        { native: '日本語',     english: 'Japanese',             dict: ja },
 } as const;
 
 export type Locale = keyof typeof LOCALES;

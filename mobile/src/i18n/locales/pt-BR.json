@@ -114,5 +114,13 @@
   "photo.shared": "Igual às outras",
   "photo.own": "Ajustes próprios",
   "photo.sharedHint": "Esta foto usa os ajustes escolhidos para todas.",
-  "photo.ownHint": "Só esta foto usa estes ajustes. As outras mantêm os ajustes gerais."
+  "photo.ownHint": "Só esta foto usa estes ajustes. As outras mantêm os ajustes gerais.",
+  "home.demoBefore": "antes {size}",
+  "job.hero": "Economizado",
+  "job.heroSoFar": "Economizado até agora",
+  "purpose.keepDetails": "Manter localização e dados da foto",
+  "fine.metaHint": "Onde e quando cada foto foi tirada, e com qual câmera.",
+  "fine.metaHint.keep": "Local, data e câmera ficam na foto.",
+  "fine.metaHint.strip-location": "O local é removido. Data e câmera ficam.",
+  "fine.metaHint.strip": "Local, data e câmera são removidos."
 }

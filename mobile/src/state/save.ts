@@ -28,7 +28,7 @@ export async function saveToPhotos(outcomes: Outcome[]): Promise<'saved' | 'deni
     if ((e as { code?: string }).code === 'ERR_PERMISSION') return 'denied';
     throw e;
   }
-  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  success();
   return 'saved';
 }
 
@@ -47,4 +47,7 @@ export async function share(uri: string): Promise<void> {
   if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(uri);
 }
 
+/** A light tap per finished photo. */
 export const tick = () => Haptics.selectionAsync();
+/** The "it worked" buzz: a run that saved something, or photos saved. */
+export const success = () => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

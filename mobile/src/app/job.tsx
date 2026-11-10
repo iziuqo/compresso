@@ -6,13 +6,14 @@ import {
 
 import { useI18n, type Key } from '../i18n';
 import { useApp, useJob, type Item, type Job } from '../state/app';
-import { canOpenLibrary, openLibrary, saveToPhotos, share, tick } from '../state/save';
+import { canOpenLibrary, openLibrary, saveToPhotos, share, success, tick } from '../state/save';
 import { font, fontScale, space, type, useTheme } from '../theme';
 import { Develop } from '../ui/Develop';
 import { Back, Check, Download, Gallery, Share, Shield, Sliders } from '../ui/icons';
-import { Ghost, IconButton, Pill, strip, T, Title } from '../ui/primitives';
+import { Figure, Ghost, IconButton, Label, Pill, strip, T } from '../ui/primitives';
 import { Preview } from '../ui/Preview';
 import { Screen } from '../ui/Screen';
+import { useCountUp } from '../ui/useCountUp';
 import { useReduceMotion } from '../ui/useReduceMotion';
 
 /** Where saved photos end up, said the way each platform's gallery shows it. */
@@ -22,9 +23,10 @@ type Saving = 'idle' | 'busy' | 'done';
 
 /**
  * One screen from "working" to "saved", laid out so nothing important needs a
- * scroll and the before / after gets every point it can: a compact summary at
- * the top, the comparison edge to edge in whatever height is left, the photo
- * strip under it, and the status line with the next step pinned at the
+ * scroll and the before / after gets every point it can: the amount saved,
+ * big, at the top (it glides up as each photo finishes, and the phone buzzes
+ * once when the run ends having saved something), the comparison edge to
+ * edge in whatever height is left, the photo strip under it, and the status line with the next step pinned at the
  * bottom, next to the Save it talks about. Back, Fine-tune and Start over are
  * always on screen, with words.
  *
@@ -59,10 +61,14 @@ function JobView({ job }: { job: Job }) {
   const saved = Math.max(0, original - now);
   const single = items.length === 1;
 
-  // A tick per finished photo; a spoken update every quarter and at the end.
+  const shownSaved = useCountUp(saved, reduceMotion, { from: 0 });
+
+  // A tick per finished photo, a success buzz for the last one if anything
+  // got lighter; a spoken update every quarter and at the end.
   useEffect(() => {
     if (finished === 0) return;
-    tick();
+    if (finished === items.length && saved > 0) success();
+    else tick();
     const quarter = Math.floor((finished / items.length) * 4);
     if (quarter > announced.current) {
       announced.current = quarter;
@@ -115,6 +121,7 @@ function JobView({ job }: { job: Job }) {
 
   const headline = running ? t('job.soFar', { amount: bytes(saved) })
     : t(single ? 'job.savedOne' : 'job.saved', { amount: bytes(saved) });
+  const sizes = original > 0 ? `${t('job.from', { from: bytes(original), to: bytes(now) })}  ·  −${percent(saved / original)}` : '';
   const guide = running ? t('job.working', { done: count(finished), total: count(items.length) })
     : saving === 'done' ? t(WHERE)
     : doneItems.length === 0 ? t('job.noneDone')
@@ -160,7 +167,7 @@ function JobView({ job }: { job: Job }) {
     </>
   );
 
-  const titleSize = type.title * (short ? 0.7 : 0.8);
+  const figureSize = short ? 40 : 48;
   const gap = short ? space[3] : space[4];
   const describe = (item: Item, i: number) => `${t('a11y.thumb', { n: count(i + 1), total: count(items.length) })}. ${
     item.status === 'done' && item.outcome ? t('job.from', { from: bytes(item.outcome.originalSize), to: bytes(item.outcome.size) })
@@ -176,11 +183,13 @@ function JobView({ job }: { job: Job }) {
       </>}
       footer={footer}
     >
-      {/* Same rows in every state (headline, sizes), so nothing below moves. */}
-      <View style={{ gap: space[1], marginBottom: gap }}>
-        <Title numberOfLines={1} adjustsFontSizeToFit style={{ fontSize: titleSize, lineHeight: titleSize * 1.15 }}>{headline}</Title>
+      {/* Same rows in every state (label, amount, sizes), so nothing below moves.
+          Screen readers hear the sentence, once, not three fragments. */}
+      <View accessible accessibilityRole="header" accessibilityLabel={sizes ? `${headline}. ${sizes}` : headline} style={{ marginBottom: gap }}>
+        <Label>{t(running ? 'job.heroSoFar' : 'job.hero')}</Label>
+        <Figure size={figureSize}>{bytes(shownSaved)}</Figure>
         <T muted style={{ fontFamily: font.mono, fontSize: type.meta }}>
-          {original > 0 ? `${t('job.from', { from: bytes(original), to: bytes(now) })}  ·  −${percent(saved / original)}` : ' '}
+          {sizes || ' '}
         </T>
       </View>
 

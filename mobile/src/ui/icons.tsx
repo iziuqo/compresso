@@ -54,6 +54,10 @@ export const Gallery = (p: Props) => (
   <Icon {...p}><Rect x={2.2} y={2.6} width={11.6} height={10.8} rx={1.4} /><Path d="M2.6 11.2l3.4-3.4 2.6 2.6 1.6-1.6 3.2 3.2" /><Path d="M10.6 6.2a.9.9 0 100-1.8.9.9 0 000 1.8z" /></Icon>
 );
 
+export const Pin = (p: Props) => (
+  <Icon {...p}><Path d="M8 14.2s4.6-4.1 4.6-7.8a4.6 4.6 0 10-9.2 0c0 3.7 4.6 7.8 4.6 7.8z" /><Path d="M8 8.2a1.8 1.8 0 100-3.6 1.8 1.8 0 000 3.6z" /></Icon>
+);
+
 /* purpose glyphs */
 export const Message = (p: Props) => (
   <Icon {...p}><Path d="M2.6 4.2a1.6 1.6 0 011.6-1.6h7.6a1.6 1.6 0 011.6 1.6v5a1.6 1.6 0 01-1.6 1.6H7.2L4.4 13.2v-2.4h-.2a1.6 1.6 0 01-1.6-1.6v-5z" /></Icon>

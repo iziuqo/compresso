@@ -15,6 +15,8 @@ import { Choice, ChoiceRow, Label, T } from './primitives';
  * reader, and every value is one a person would actually pick. Each group
  * starts with "Automatic", which leaves the field to the purpose (or, for one
  * photo, to the shared settings), so there is always a visible selection.
+ * Photo details come first: keeping the place a photo was taken is what
+ * people most often come here for.
  */
 const SIZES = [null, 2 * MB, 1 * MB, 500 * KB, 200 * KB];
 const EDGES = [null, 4032, 2560, 1920, 1280];
@@ -45,6 +47,9 @@ export function RecipeControls({ value, onChange }: { value: Tweaks; onChange: (
 
   return (
     <>
+      <Group label={t('fine.metadata')} hint={t(value.metadata ? metaHint(value.metadata) : 'fine.metaHint')}>
+        {options('metadata', METADATA.map(({ value: v, key }) => ({ v, label: t(key) })))}
+      </Group>
       <Group label={t('fine.size')}>
         {options('targetBytes', SIZES.map((v) => ({ v, label: v ? bytes(v) : t('fine.sizeNone') })))}
       </Group>
@@ -57,12 +62,12 @@ export function RecipeControls({ value, onChange }: { value: Tweaks; onChange: (
       <Group label={t('fine.format')}>
         {options('formats', engine.formats().map((f) => ({ v: [f], label: f.toUpperCase() })))}
       </Group>
-      <Group label={t('fine.metadata')}>
-        {options('metadata', METADATA.map(({ value: v, key }) => ({ v, label: t(key) })))}
-      </Group>
     </>
   );
 }
+
+/** What a photo details choice keeps and drops, in one line. */
+export const metaHint = (policy: MetadataPolicy): Key => `fine.metaHint.${policy}`;
 
 /** Formats are a one-item list; everything else compares by value. */
 const same = (a: unknown, b: unknown) => (Array.isArray(a) && Array.isArray(b) ? a[0] === b[0] : a === b);

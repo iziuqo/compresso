@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { useI18n } from '../i18n';
-import { font, motion, space, type, useTheme } from '../theme';
+import { font, space, type, useTheme } from '../theme';
 import { Form, Mail, Message, Shield } from './icons';
-import { Label, T } from './primitives';
+import { Figure, Label, T } from './primitives';
+import { useCountUp } from './useCountUp';
 
 /**
  * The product in one picture, with no photo needed: a size that counts down
@@ -17,40 +17,20 @@ const TO = 412_000;
 export function SizeStory({ reduceMotion }: { reduceMotion: boolean }) {
   const { t, bytes, percent } = useI18n();
   const { c } = useTheme();
-  const [p] = useState(() => new Animated.Value(0));
-  const [counted, setShown] = useState(FROM);
-  const shown = reduceMotion ? TO : counted;
-
-  useEffect(() => {
-    if (reduceMotion) {
-      p.setValue(1);
-      return;
-    }
-    const id = p.addListener(({ value }) => setShown(Math.round(FROM + (TO - FROM) * value)));
-    const run = Animated.timing(p, {
-      toValue: 1, duration: 1400, delay: 500, useNativeDriver: false,
-      easing: Easing.bezier(...motion.easeEntrance),
-    });
-    run.start();
-    return () => {
-      run.stop();
-      p.removeListener(id);
-    };
-  }, [reduceMotion, p]);
-
-  const width = p.interpolate({ inputRange: [0, 1], outputRange: ['100%', `${(TO / FROM) * 100}%`] });
+  const shown = useCountUp(TO, reduceMotion, { from: FROM, duration: 1400, delay: 500 });
   const saved = percent(1 - TO / FROM);
 
+  // "After" sits over the big number it names; the original size is the small print.
   return (
     <View accessible accessibilityLabel={t('home.demo', { from: bytes(FROM), to: bytes(TO), percent: saved })}
       style={[styles.card, { backgroundColor: c.surface, borderColor: c.line }]}>
       <View style={styles.row}>
-        <Label>{t('job.before')}</Label>
-        <T muted style={{ fontFamily: font.mono, fontSize: type.meta }}>{bytes(FROM)}</T>
+        <Label>{t('job.after')}</Label>
+        <T muted style={{ fontFamily: font.mono, fontSize: type.meta }}>{t('home.demoBefore', { size: bytes(FROM) })}</T>
       </View>
-      <T style={styles.big} numberOfLines={1} adjustsFontSizeToFit>{bytes(shown)}</T>
+      <Figure>{bytes(shown)}</Figure>
       <View style={[styles.track, { backgroundColor: c.line }]}>
-        <Animated.View style={[styles.fill, { width, backgroundColor: c.ink }]} />
+        <View style={[styles.fill, { width: `${(shown / FROM) * 100}%`, backgroundColor: c.ink }]} />
       </View>
       <T muted style={{ fontSize: type.meta }}>{t('home.demoCaption', { percent: saved })}</T>
     </View>
@@ -119,7 +99,6 @@ export function ShieldMark() {
 const styles = StyleSheet.create({
   card: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: space[5], gap: space[3] },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  big: { fontFamily: font.mono, fontSize: 48, lineHeight: 56, letterSpacing: -1.5 },
   track: { height: 6, borderRadius: 3, overflow: 'hidden' },
   fill: { height: 6, borderRadius: 3 },
   stage: { height: 200, alignItems: 'center', justifyContent: 'center' },

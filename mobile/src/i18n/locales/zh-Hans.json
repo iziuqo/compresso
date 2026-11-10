@@ -114,5 +114,13 @@
   "photo.shared": "与其他照片相同",
   "photo.own": "单独设置",
   "photo.sharedHint": "这张照片使用为所有照片选择的设置。",
-  "photo.ownHint": "只有这张照片使用这些设置，其他照片保持通用设置。"
+  "photo.ownHint": "只有这张照片使用这些设置，其他照片保持通用设置。",
+  "home.demoBefore": "压缩前 {size}",
+  "job.hero": "已节省",
+  "job.heroSoFar": "目前已节省",
+  "purpose.keepDetails": "保留位置和照片信息",
+  "fine.metaHint": "每张照片的拍摄地点、时间和所用相机。",
+  "fine.metaHint.keep": "地点、日期和相机信息都会保留在照片中。",
+  "fine.metaHint.strip-location": "会移除地点，保留日期和相机信息。",
+  "fine.metaHint.strip": "地点、日期和相机信息都会移除。"
 }

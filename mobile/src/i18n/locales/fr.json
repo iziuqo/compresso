@@ -114,5 +114,13 @@
   "photo.shared": "Comme les autres",
   "photo.own": "Ses propres réglages",
   "photo.sharedHint": "Cette photo suit les réglages choisis pour toutes.",
-  "photo.ownHint": "Seule cette photo utilise ces réglages. Les autres gardent les réglages communs."
+  "photo.ownHint": "Seule cette photo utilise ces réglages. Les autres gardent les réglages communs.",
+  "home.demoBefore": "avant {size}",
+  "job.hero": "Gagné",
+  "job.heroSoFar": "Gagné jusqu'ici",
+  "purpose.keepDetails": "Garder le lieu et les infos de la photo",
+  "fine.metaHint": "Où et quand chaque photo a été prise, et avec quel appareil.",
+  "fine.metaHint.keep": "Le lieu, la date et l'appareil restent dans la photo.",
+  "fine.metaHint.strip-location": "Le lieu est retiré. La date et l'appareil restent.",
+  "fine.metaHint.strip": "Le lieu, la date et l'appareil sont retirés."
 }

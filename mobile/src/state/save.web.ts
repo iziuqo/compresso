@@ -21,4 +21,6 @@ export async function share(uri: string): Promise<void> {
   if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file] });
 }
 
+/** No haptics on the web. */
 export const tick = () => {};
+export const success = () => {};

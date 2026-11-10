@@ -1,15 +1,16 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useState, type ComponentType } from 'react';
-import { AccessibilityInfo, FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, FlatList, Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { PURPOSES, purposeById, type PurposeId } from '../engine/presets';
 import { useI18n, type Key } from '../i18n';
 import { useApp, type SelectionSnapshot } from '../state/app';
 import { usePicker } from '../state/pick';
 import { font, space, target, type, useTheme } from '../theme';
-import { Back, Close, Form, Globe, Mail, Message, Plus, Sliders, Space, Trash } from '../ui/icons';
+import { Back, Close, Form, Globe, Mail, Message, Pin, Plus, Sliders, Space, Trash } from '../ui/icons';
 import { Choice, ChoiceRow, Ghost, IconButton, Label, Pill, strip, T, Title } from '../ui/primitives';
+import { metaHint } from '../ui/RecipeControls';
 import { Screen } from '../ui/Screen';
 
 const GLYPH: Record<PurposeId, ComponentType<{ color: string; size?: number }>> = {
@@ -22,7 +23,7 @@ const LIMITS = [...purposeById('upload').limits!].sort((a, b) => b - a);
 export default function PurposeScreen() {
   const { t, count, bytes } = useI18n();
   const { c } = useTheme();
-  const { selection, prefs, setPrefs, start, tweaks, own, remove, clearSelection, restoreSelection } = useApp();
+  const { selection, prefs, setPrefs, start, tweaks, setTweaks, own, remove, clearSelection, restoreSelection } = useApp();
   // What Clear took, kept until the list has photos again, so Undo can put it back.
   const [cleared, setCleared] = useState<SelectionSnapshot | null>(null);
   const { pick: add, busy: adding } = usePicker(() => setCleared(null), { append: true });
@@ -43,6 +44,19 @@ export default function PurposeScreen() {
   const undo = () => {
     if (cleared) restoreSelection(cleared);
     setCleared(null);
+  };
+
+  // Testers couldn't find "Keep everything" two levels down in Fine-tune, so
+  // the same setting is one switch here, under the purposes. On means keep
+  // every detail (place, date, camera); off goes back to what the purpose
+  // does, or, for Save space (which keeps them), to removing the place.
+  const auto = purposeById(purpose).recipe.metadata;
+  const policy = tweaks.metadata ?? auto;
+  const keep = policy === 'keep';
+  const setKeep = (on: boolean) => {
+    const { metadata: _, ...rest } = tweaks;
+    const next = on ? 'keep' : auto === 'keep' ? 'strip-location' : auto;
+    setTweaks(next === auto ? rest : { ...rest, metadata: next });
   };
 
   const go = () => {
@@ -161,6 +175,20 @@ export default function PurposeScreen() {
           );
         })}
       </View>
+
+      <Pressable onPress={() => setKeep(!keep)} accessibilityRole="switch" accessibilityState={{ checked: keep }}
+        accessibilityLabel={`${t('purpose.keepDetails')}. ${t(metaHint(policy))}`}
+        style={({ pressed }) => [styles.card, styles.row, { marginTop: space[5], borderWidth: 1, borderColor: c.line }, pressed && { backgroundColor: c.surface2 }]}>
+        <View style={[styles.glyph, { borderColor: c.line2 }]}>
+          <Pin color={c.ink} size={22} />
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <T style={{ fontFamily: font.medium, lineHeight: type.body * 1.25 }}>{t('purpose.keepDetails')}</T>
+          <T muted style={{ fontSize: type.meta, lineHeight: type.meta * 1.3 }}>{t(metaHint(policy))}</T>
+        </View>
+        <Switch value={keep} onValueChange={setKeep} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+          trackColor={{ false: c.line2, true: c.ink }} thumbColor={keep ? c.void : c.ink2} ios_backgroundColor={c.line2} />
+      </Pressable>
     </Screen>
   );
 }

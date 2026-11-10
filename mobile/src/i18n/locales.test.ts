@@ -5,10 +5,11 @@ import en from './locales/en.json';
 import es from './locales/es.json';
 import fr from './locales/fr.json';
 import it_ from './locales/it.json';
+import ja from './locales/ja.json';
 import ptBR from './locales/pt-BR.json';
 import zhHans from './locales/zh-Hans.json';
 
-const others = { de, es, fr, it: it_, 'pt-BR': ptBR, 'zh-Hans': zhHans } as Record<string, Record<string, string>>;
+const others = { de, es, fr, it: it_, ja, 'pt-BR': ptBR, 'zh-Hans': zhHans } as Record<string, Record<string, string>>;
 const placeholders = (s: string) => (s.match(/\{\w+\}/g) ?? []).sort().join(',');
 
 // A missing key would silently render in English; a missing {placeholder}

@@ -28,7 +28,7 @@ export default function Settings() {
       <IconButton label={t('settings.close')} icon={<Close color={c.ink} />} onPress={() => router.back()} />
     </>}>
       <Section label={t('settings.language')}>
-        {/* Native name first, English beneath. Never flags: a flag is a country. */}
+        {/* Native name first, English beneath unless it says the same. Never flags: a flag is a country. */}
         <View accessibilityRole="radiogroup">
           {LOCALE_LIST.map((l, i) => {
             const selected = l === locale;
@@ -43,7 +43,7 @@ export default function Settings() {
                   })}>
                   <View style={{ flex: 1 }}>
                     <T style={{ fontFamily: font.medium }}>{LOCALES[l].native}</T>
-                    <T muted style={{ fontSize: type.meta }}>{LOCALES[l].english}</T>
+                    {LOCALES[l].english !== LOCALES[l].native && <T muted style={{ fontSize: type.meta }}>{LOCALES[l].english}</T>}
                   </View>
                   {selected && <Check color={c.ink} />}
                 </Pressable>

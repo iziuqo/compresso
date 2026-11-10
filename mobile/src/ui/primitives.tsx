@@ -18,10 +18,10 @@ export function T({ style, muted, ...rest }: TextProps & { muted?: boolean }) {
   );
 }
 
-/** The tracked uppercase label from the web app, 13pt here. Not uppercased in Chinese. */
+/** The tracked uppercase label from the web app, 13pt here. Chinese and Japanese have no case, and tight tracking. */
 export function Label({ children, style, numberOfLines }: { children: ReactNode; style?: StyleProp<TextStyle>; numberOfLines?: number }) {
   const { locale } = useI18n();
-  const cjk = locale === 'zh-Hans';
+  const cjk = locale === 'zh-Hans' || locale === 'ja';
   return (
     <T muted numberOfLines={numberOfLines} style={[{
       fontFamily: font.medium, fontSize: type.label, lineHeight: type.label * 1.4,
@@ -34,6 +34,19 @@ export function Title({ style, ...rest }: TextProps) {
   return (
     <T accessibilityRole="header" {...rest}
       style={[{ fontFamily: font.medium, fontSize: type.title, lineHeight: type.title * 1.15, letterSpacing: -0.6 }, style]} />
+  );
+}
+
+/**
+ * A big monospaced number, the one figure a screen is about (a size, a
+ * saving). Shrinks to fit one line rather than wrap mid-number.
+ */
+export function Figure({ children, size = 48, style }: { children: ReactNode; size?: number; style?: StyleProp<TextStyle> }) {
+  return (
+    <T numberOfLines={1} adjustsFontSizeToFit
+      style={[{ fontFamily: font.mono, fontSize: size, lineHeight: size * 1.17, letterSpacing: -size / 32 }, style]}>
+      {children}
+    </T>
   );
 }
 
