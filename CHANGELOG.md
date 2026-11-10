@@ -15,6 +15,15 @@ All notable changes to `compresso.js` are documented here. The format is based o
   `findQuality()` and `resolveFormat()` are exported too. No DOM, ESM and
   CommonJS, under 1 KB gzipped, typed in `types/plan.d.ts`. It is its own
   entry, so `import { compress }` doesn't load it.
+- **The video planner, in `compresso.js/plan`.** `planVideo()` turns a size
+  target (or a quality) into encoder settings, the codec, resolution, frame
+  rate, video and audio bitrate, for a host with its own hardware encoder
+  (Media3, AVFoundation, WebCodecs). It encodes once, runs one correction
+  pass when the encoder overshoots, steps the resolution down a ladder of
+  standard heights rather than starving pixels of bits, and never returns a
+  file bigger than the source. `fitVideo()` is the pure first step on its
+  own. A photo-only import doesn't load it; the whole entry is under 2 KB
+  gzipped.
 
 ### Changed
 - `compress()` now runs the same quality search as the planner (one shared

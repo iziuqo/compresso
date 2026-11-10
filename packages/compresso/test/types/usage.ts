@@ -26,6 +26,10 @@ import type {
   ProgressEvent,
 } from 'compresso.js';
 
+import { allocateBudget, fitVideo, planVideo } from 'compresso.js/plan';
+
+import type { VideoDecision, VideoHost, VideoSettings, VideoSource } from 'compresso.js/plan';
+
 import type {
   CompressManyResult,
   ErrorKind,
@@ -196,6 +200,35 @@ void helpers();
 void poolSetup();
 void batchAndWorkers();
 
+// README "Bring your own encoder": the video planner.
+async function videoPlanner(): Promise<VideoDecision<string>> {
+  const source: VideoSource = {
+    width: 3840,
+    height: 2160,
+    fps: 30,
+    durationMs: 60_000,
+    hasAudio: true,
+    originalSize: 360_000_000,
+  };
+  const [targetBytes] = allocateBudget(10_000_000, [source.originalSize]);
+  const settings: VideoSettings | null = fitVideo(source, { codecs: ['hevc'], targetBytes });
+  console.log(settings?.videoBitrate);
+
+  const host: VideoHost<string> = {
+    source,
+    codecs: ['hevc', 'h264'],
+    encode: async ({ width, height, fps, videoBitrate, audioBitrate }, { signal, onProgress }) => {
+      console.log(width, height, fps, videoBitrate, audioBitrate, signal?.aborted);
+      onProgress?.(1);
+      return { result: 'file:///out.mp4', bytes: 9_000_000 };
+    },
+    keep: async () => 'file:///in.mp4',
+    discard: () => {},
+  };
+  return planVideo(host, { codecs: ['hevc', 'h264'], targetBytes, audio: true, maxFps: 30 });
+}
+void videoPlanner();
+
 // What the declarations must reject.
 // @ts-expect-error 'gif' is not a documented output format
 void compress(file, { format: 'gif' });
@@ -208,3 +241,14 @@ void compress(file, { maxWidthpx: 1920 });
 
 // @ts-expect-error workerUrl must be a string or URL
 void createPool({ workerUrl: 123 });
+
+void planVideo(
+  {
+    source: {} as VideoSource,
+    codecs: ['h264'],
+    // @ts-expect-error a video host must report the encoded size
+    encode: async () => ({ result: 1 }),
+    keep: async () => 1,
+  },
+  { codecs: ['h264'] },
+);

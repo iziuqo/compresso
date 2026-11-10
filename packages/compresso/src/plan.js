@@ -1,5 +1,5 @@
 /**
- * compresso.js/plan — the photo decisions, without the pixels.
+ * compresso.js/plan — the photo and video decisions, without the pixels.
  *
  * `compress()` decides and encodes in one go, on a canvas. The planner keeps
  * only the deciding, so any host that can encode (a canvas, iOS ImageIO,
@@ -17,10 +17,14 @@
  *      the long edge steps down by 20% and the search runs again, rather than
  *      failing. Below a 480 px long edge it gives the smallest file it can make
  *      and says so.
+ *
+ * Video follows the same rules through a `VideoHost`; see video.js.
  */
+import { resolveFormat, throwIfAborted } from './host.js';
 import { findQuality } from './quality.js';
 
-export { findQuality };
+export { findQuality, resolveFormat };
+export { fitVideo, planVideo } from './video.js';
 
 /** Each resize keeps this share of the long edge. */
 const EDGE_STEP = 0.8;
@@ -31,13 +35,8 @@ const MAX_EDGE_TRIES = 8;
 const FLOOR_QUALITY = 0.05;
 /** Room left in a shared budget for container overhead. */
 const BUDGET_MARGIN = 0.97;
-/** Weight of a photo whose size is unknown when there's nothing to average. */
+/** Weight of a file whose size is unknown when there's nothing to average. */
 const TYPICAL_PHOTO_BYTES = 3_000_000;
-
-/** The first preferred format the host can write; JPEG, which every host writes, otherwise. */
-export function resolveFormat(preferred, writable) {
-  return preferred.find((format) => writable.includes(format)) ?? 'jpeg';
-}
 
 /**
  * Plan and write one photo through `host`. See types/plan.d.ts for the
@@ -97,22 +96,11 @@ export async function planPhoto(host, recipe, { signal, onProgress } = {}) {
 }
 
 /**
- * Throws the standard cancellation error. React Native has no `DOMException`,
- * so there it is an `Error` with the same `name`, which is what callers check.
- */
-function throwIfAborted(signal) {
-  if (!signal?.aborted) return;
-  const message = 'Compression aborted';
-  throw typeof DOMException === 'function'
-    ? new DOMException(message, 'AbortError')
-    : Object.assign(new Error(message), { name: 'AbortError' });
-}
-
-/**
- * Split one byte budget across photos ("all of these under 10 MB"), roughly in
- * proportion to their size, since a big photo has more to give up. No photo
- * gets more than it already weighs; what a small photo can't use flows to the
- * others. A photo of unknown size (0) is weighed like an average one.
+ * Split one byte budget across files ("all of these under 10 MB"), roughly in
+ * proportion to their size, since a big file has more to give up; it works the
+ * same for photos and videos. No file gets more than it already weighs; what a
+ * small one can't use flows to the others. A file of unknown size (0) is
+ * weighed like an average one.
  *
  * @param {number} totalBytes The budget for all photos together.
  * @param {number[]} sizes Each photo's size in bytes, 0 when unknown.
@@ -126,9 +114,9 @@ export function allocateBudget(totalBytes, sizes) {
   let open = weights.map((_, i) => i);
   let remaining = totalBytes * BUDGET_MARGIN;
 
-  // Each round, photos whose proportional share would reach their own weight
+  // Each round, files whose proportional share would reach their own weight
   // are capped at it and leave; the rest share what's left. It ends in a round
-  // that caps no one, so it runs at most once per photo.
+  // that caps no one, so it runs at most once per file.
   while (open.length > 0 && remaining > 1) {
     const weight = open.reduce((sum, i) => sum + weights[i], 0);
     const share = (i) => (remaining * weights[i]) / weight;
