@@ -2,7 +2,7 @@
 // public/photos/<id>.jpg, byte for byte, and checks each against the SHA-1
 // Commons publishes, so the "before" size on screen is the real original.
 //
-//   node scripts/photos.mjs
+//   node scripts/photos.mjs [id ...]     only these photos; by default all of them
 //
 // Commons rate-limits busy addresses with 429 + Retry-After; we wait it out.
 // Behind a proxy, run with NODE_USE_ENV_PROXY=1.
@@ -28,7 +28,8 @@ async function get(url) {
 }
 
 mkdirSync(dir, { recursive: true });
-for (const [id, { commons }] of Object.entries(photos)) {
+const only = process.argv.slice(2);
+for (const [id, { commons }] of Object.entries(photos).filter(([id]) => !only.length || only.includes(id))) {
   const file = join(dir, `${id}.jpg`);
   const api = 'https://commons.wikimedia.org/w/api.php?action=query&format=json&prop=imageinfo&iiprop=url|sha1&titles='
     + encodeURIComponent(`File:${commons}`);
