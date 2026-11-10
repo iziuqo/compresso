@@ -14,6 +14,12 @@
         "buildType": "apk"
       }
     },
+    "poc": {
+      "extends": "preview",
+      "env": {
+        "APP_VARIANT": "poc"
+      }
+    },
     "simulator": {
       "distribution": "internal",
       "ios": {
