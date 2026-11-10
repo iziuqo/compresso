@@ -56,9 +56,9 @@ export type Pose = { k: number; x?: number; y?: number; rx?: number; ry?: number
  * A phone in the room, `k` frame pixels (at 1080 wide) per point. The body
  * is a titanium rim and black glass; a soft shadow falls behind it and a
  * highlight slides across the glass as it turns. `children` are drawn in
- * points, on the screen.
+ * points, on the screen. A `neutral` phone has no camera island: no maker's cues.
  */
-export function Phone({ k, x = 0, y = 0, rx = 0, ry = 0, rz = 0, children }: Pose & { children: ReactNode }) {
+export function Phone({ k, x = 0, y = 0, rx = 0, ry = 0, rz = 0, neutral = false, children }: Pose & { neutral?: boolean; children: ReactNode }) {
   const s = px(k);
   const [w, h, rim] = [SCREEN.w * s, SCREEN.h * s, 6 * s];
   return (
@@ -79,7 +79,7 @@ export function Phone({ k, x = 0, y = 0, rx = 0, ry = 0, rz = 0, children }: Pos
         <div style={{ position: 'relative', width: w, height: h, borderRadius: 55 * s, overflow: 'hidden', background: '#000' }}>
           <div style={{ position: 'absolute', left: 0, top: 0, width: SCREEN.w, height: SCREEN.h, transform: `scale(${s})`, transformOrigin: '0 0' }}>
             {children}
-            <div style={{ position: 'absolute', left: (SCREEN.w - 124) / 2, top: 11, width: 124, height: 36, borderRadius: 18, background: '#000' }} />
+            {!neutral && <div style={{ position: 'absolute', left: (SCREEN.w - 124) / 2, top: 11, width: 124, height: 36, borderRadius: 18, background: '#000' }} />}
             <div style={{ position: 'absolute', left: (SCREEN.w - 136) / 2, bottom: 8, width: 136, height: 5, borderRadius: 3, background: 'rgb(255 255 255 / 0.55)', mixBlendMode: 'difference' }} />
           </div>
           {/* The glass: a broad highlight that slides with the turn. */}

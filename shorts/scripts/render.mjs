@@ -14,6 +14,7 @@ import { bundle } from '@remotion/bundler';
 import { getCompositions, renderMedia } from '@remotion/renderer';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdirSync, rmSync } from 'node:fs';
+import { availableParallelism } from 'node:os';
 import { join } from 'node:path';
 import { root } from './shared.mjs';
 
@@ -33,15 +34,22 @@ const scale = Number(scaleArg);
 const out = join(root, 'out');
 mkdirSync(out, { recursive: true });
 const serveUrl = await bundle({ entryPoint: join(root, 'src/index.ts') });
-const options = { serveUrl, browserExecutable: process.env.REMOTION_BROWSER ?? null, chromiumOptions: { darkMode: true } };
+// The press builds its scene in software in every tab before its first frame, which can take minutes.
+const options = { serveUrl, browserExecutable: process.env.REMOTION_BROWSER ?? null, chromiumOptions: { darkMode: true, gl: 'swangle' }, timeoutInMilliseconds: 300000 };
 const all = await getCompositions(serveUrl, options);
 
 for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) {
   const mix = join(out, `${composition.id}.mix.mp4`);
   const file = join(out, `${composition.id}${scale === 1 ? '' : `@${scale}`}.mp4`);
+  const started = Date.now();
   await renderMedia({
     ...options, composition, codec: 'h264', outputLocation: mix, scale,
     crf: scale === 1 ? 14 : 20, audioCodec: 'aac', audioBitrate: '320k', pixelFormat: 'yuv420p',
+    // Every core: the wave-three press draws in software, one frame per tab at a time.
+    concurrency: availableParallelism(),
+    onProgress: ({ renderedFrames }) => {
+      if (renderedFrames % 60 === 0) console.log(`${composition.id}: ${renderedFrames}/${composition.durationInFrames} frames, ${((Date.now() - started) / 1000).toFixed(0)} s`);
+    },
   });
   const before = loudness(mix);
   // A quiet mix raised a long way can overshoot the limiter's ceiling once

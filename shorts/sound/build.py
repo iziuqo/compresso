@@ -134,6 +134,104 @@ for name, length, hp in (('tap', .25, 200), ('error', .9, 60), ('exhale', 1.6, 8
     save(name, one_shot(name, length, highpass=hp))
 
 
+# Wave three: the sound logo spells the name. Com (the plate lands), press
+# (the air leaving), o (one glass note). Built from the same recordings, so it
+# sits with the rest; the glass note is the tick's own partials rung long.
+
+
+def stretch(x, length, grain=.08, seed=3):
+    """Air `length` s long from a short breath: grains from its steady middle, overlapped, never repeating in step."""
+    rng = np.random.default_rng(seed)
+    g, n = int(SR * grain), int(SR * length)
+    body = x[int(len(x) * .15):int(len(x) * .7)]
+    win, bus, pos = np.hanning(g), np.zeros(n + g), 0
+    while pos < n:
+        i = rng.integers(0, len(body) - g)
+        bus[pos:pos + g] += body[i:i + g] * win
+        pos += g // 4
+    return bus[:n] / 2
+
+
+def glide(x, start, end):
+    """Read `x` at a rate moving from `start` to `end`: the pitch follows."""
+    idx = np.cumsum(np.linspace(start, end, len(x)))
+    idx = idx / idx[-1] * (len(x) - 1) * (start + end) / 2
+    return np.interp(np.clip(idx, 0, len(x) - 1), np.arange(len(x)), x)
+
+
+def entrance_speed(n):
+    """How fast the plate moves through the squeeze: the derivative of the app's entrance curve, by sampling it."""
+    u = np.linspace(0, 1, 4096)
+    x1, y1, x2, y2 = .16, 1, .3, 1
+    bx = 3 * (1 - u) ** 2 * u * x1 + 3 * (1 - u) * u ** 2 * x2 + u ** 3
+    by = 3 * (1 - u) ** 2 * u * y1 + 3 * (1 - u) * u ** 2 * y2 + u ** 3
+    v = np.gradient(by, bx)
+    return np.interp(np.linspace(0, 1, n), bx, v / v.max())
+
+
+def com():
+    """Com: the plate landing. A low soft thump, felt more than heard: the press's core, its body an octave down, no snap."""
+    core = filt(fade(trim(load('press-core'))[:int(SR * .6)], b=.3), 'lowpass', 380)
+    body = np.tanh(filt(speed(core, .5), 'lowpass', 160)[:int(SR * .7)] * 2) / np.tanh(2)
+    bus = np.zeros(int(SR * .8))
+    place(bus, core, 0, 1)
+    place(bus, fade(body, b=.4), .006, .9)
+    return fade(filt(bus, 'highpass', 32, 2), a=0, b=.3)
+
+
+def press_air(length=2.5):
+    """press: the air leaving as the plate squeezes, loudest while it moves fastest, falling an octave, a faint glass creak at the start."""
+    n = int(SR * length)
+    hiss = filt(stretch(trim(load('exhale')), length), 'lowpass', 7000)
+    low = filt(stretch(trim(load('deflate')), length, grain=.12, seed=5), 'lowpass', 900)
+    air = glide(hiss + low * 1.4, 1.0, .5) * (entrance_speed(n) * .85 + .15) ** 1.2
+    creak = filt(speed(load('glass-hum')[:int(SR * .9)], 1.5), 'highpass', 900)[:int(SR * .5)]
+    place(air, fade(creak, a=.05, b=.25), .02, .12)
+    return fade(air, a=.004, b=.6)
+
+
+def glass_o(length=4.0):
+    """o: one struck glass. The tick's own attack, then its partials (1308, 2616 and 6126 Hz) ringing on, each pair a hair apart so the ring breathes."""
+    attack = fade(trim(load('glass-tick'))[:int(SR * .12)], b=.06)
+    t = np.arange(int(SR * length)) / SR
+    ring = sum(g * np.exp(-t / tau) * (np.sin(2 * np.pi * f * t) + np.sin(2 * np.pi * (f + beat) * t + 1.1))
+               for f, g, tau, beat in ((1308, 1, 1.4, .7), (2616, .45, .8, 1.3), (6126, .12, .3, 2.1)))
+    ring *= np.minimum(1, t / .004)
+    bus = np.zeros(len(t))
+    place(bus, ring / np.abs(ring).max() * .5, 0)
+    place(bus, attack, 0, .9)
+    return fade(bus, a=0, b=1.2)
+
+
+def swell(length=1.6):
+    """The studio's lights coming up: the rubbed glass, low and soft, in and out."""
+    x = filt(hum(length), 'lowpass', 700)
+    return x * np.sin(np.linspace(0, np.pi, len(x))) ** 1.5
+
+
+def bloom(length=2.5):
+    """Air that opens and settles as the photo's colours flood through the slot."""
+    x = filt(stretch(trim(load('exhale')), length, grain=.14, seed=9), 'lowpass', 3500)
+    u = np.linspace(0, 1, len(x))
+    return x * np.minimum(1, u / .35) ** 2 * np.exp(-np.maximum(0, u - .35) * 2.2)
+
+
+def room(length=8.0):
+    """Studio quiet: air under 200 Hz, looped seamlessly, at -20 dBFS RMS like the other beds."""
+    rng = np.random.default_rng(1)
+    x = filt(np.cumsum(rng.standard_normal(int(SR * length) + SR)) * .02, 'bandpass', [25, 200], 2)[SR:]
+    k = int(SR * .5)
+    x[:k] = x[:k] * np.linspace(0, 1, k) + x[-k:] * np.linspace(1, 0, k)
+    x = x[:-k]
+    return x / np.sqrt(np.mean(x ** 2)) * 10 ** (-20 / 20)
+
+
+for name, x in (('com', com()), ('press-air', press_air()), ('glass-o', glass_o()), ('swell', swell()), ('bloom', bloom()),
+                ('rise', glide(press_air(1.0)[::-1], .7, 1.0))):
+    save(name, x, louder=name == 'com')
+wavfile.write(OUT / 'room.wav', SR, (np.clip(room(), -1, 1) * 32767).astype(np.int16))
+
+
 def bed(name):
     """A seamless loop at -20 dBFS RMS: generated looping, so only its ends get a 20 ms crossfade."""
     x = filt(load(name), 'highpass', 40, 2)

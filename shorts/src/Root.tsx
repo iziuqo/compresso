@@ -13,6 +13,7 @@ import { FileTooLarge, TOO_LARGE } from './shorts/FileTooLarge';
 import { GRANDMA, Grandma } from './shorts/Grandma';
 import { ONE_BAR, OneBar } from './shorts/OneBar';
 import { PRESS, ThePress } from './shorts/ThePress';
+import { LIMIT, TheLimit } from './shorts/TheLimit';
 import { FPS, H, W } from './system';
 
 const frame = { fps: FPS, width: W, height: H };
@@ -51,6 +52,7 @@ export function Root() {
       <Composition id="the-2mb-limit" component={Deadline} durationInFrames={DEADLINE.duration} {...frame} />
       <Composition id="photos-for-grandma" component={Grandma} durationInFrames={GRANDMA.duration} {...frame} />
       <Composition id="one-bar" component={OneBar} durationInFrames={ONE_BAR.duration} {...frame} />
+      <Composition id="the-limit" component={TheLimit} durationInFrames={LIMIT.duration} {...frame} />
     </>
   );
 }

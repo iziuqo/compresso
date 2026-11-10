@@ -315,5 +315,21 @@
         }
       }
     }
+  },
+  "limit-lake": {
+    "photo": "lake",
+    "purpose": "upload",
+    "from": 14142277,
+    "to": 692099,
+    "file": "out/limit-lake.jpeg",
+    "flows": {
+      "en": {
+        "flow": "out/limit-lake-en.mp4",
+        "at": {
+          "go": 0.697,
+          "done": 1.538
+        }
+      }
+    }
   }
 }

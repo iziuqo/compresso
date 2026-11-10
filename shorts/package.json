@@ -14,15 +14,17 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@remotion/bundler": "4.0.541",
     "@remotion/cli": "4.0.541",
     "@remotion/renderer": "4.0.541",
-    "@remotion/bundler": "4.0.541",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "remotion": "4.0.541"
+    "remotion": "4.0.541",
+    "three": "^0.170.0"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
+    "@types/three": "^0.170.0",
     "typescript": "~6.0.3"
   }
 }

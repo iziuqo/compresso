@@ -4,5 +4,7 @@ import { Config } from '@remotion/cli/config';
 // and headless Chrome reports light. The Shorts are the dark app.
 Config.setChromiumDarkMode(true);
 Config.setVideoImageFormat('png');
+// The wave-three press is WebGL; software ANGLE renders it the same on any machine.
+Config.setChromiumOpenGlRenderer('swangle');
 // Point at an installed Chrome headless shell instead of downloading one.
 if (process.env.REMOTION_BROWSER) Config.setBrowserExecutable(process.env.REMOTION_BROWSER);

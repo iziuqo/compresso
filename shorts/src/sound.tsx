@@ -2,10 +2,11 @@ import { Html5Audio, interpolate, Sequence, staticFile } from 'remotion';
 
 /** The sounds sound/build.py makes. Every Short is scored from these alone. */
 export type Sound = 'press-logo' | 'press-hit' | 'glass-tick' | 'shutter' | 'knock' | 'counter-tick'
-  | 'tap' | 'error' | 'exhale' | 'send' | 'thud' | 'pop' | 'chime' | 'zip' | 'flick' | 'deflate';
+  | 'tap' | 'error' | 'exhale' | 'send' | 'thud' | 'pop' | 'chime' | 'zip' | 'flick' | 'deflate'
+  | 'com' | 'press-air' | 'glass-o' | 'swell' | 'bloom' | 'rise';
 
 /** The looping beds sound/build.py makes for the everyday stories, all at one loudness. */
-export type BedSound = 'night' | 'beach' | 'kitchen' | 'heartbeat' | 'clock';
+export type BedSound = 'night' | 'beach' | 'kitchen' | 'heartbeat' | 'clock' | 'room';
 
 /** Semitones as a playback pitch: 12 is an octave up. */
 export const semitones = (n: number) => 2 ** (n / 12);
