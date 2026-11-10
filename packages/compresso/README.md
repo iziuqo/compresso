@@ -221,6 +221,39 @@ again (never below 480 px), then gives the smallest file it can make with `misse
 `findQuality` (the quality search on its own) and `resolveFormat` are exported too; see
 `types/plan.d.ts` for the full contract.
 
+### Video
+
+Phones encode video on a hardware chip, so a clip can't be test-encoded ten times like a photo.
+`planVideo` works the settings out from the numbers instead, the host encodes once, and if the
+encoder overshoots (hardware lands within about 5–10% of the bitrate it's asked for), one
+correction pass runs with the overshoot priced in. The host can be Media3 on Android,
+AVFoundation on iOS or WebCodecs; compresso.js itself never touches a frame.
+
+```js
+import { planVideo } from 'compresso.js/plan';
+
+const decision = await planVideo(
+  {
+    source: { width: 3840, height: 2160, fps: 30, durationMs: 60_000, hasAudio: true, originalSize },
+    codecs: ['hevc', 'h264'], // what this host can write, best first
+    // settings → { codec, width, height, fps, videoBitrate, audioBitrate, bytes }
+    encode: (settings, { signal, onProgress }) => myEncode(settings), // → { result, bytes }
+    keep: () => clip, // nothing smaller was possible
+    discard: (result) => myDelete(result), // an encode the planner won't use
+  },
+  { codecs: ['hevc', 'h264'], targetBytes: 10_000_000 }, // "fits Discord's 10 MB"
+);
+// → { result, settings, kept, missedTarget }
+```
+
+Without a target, `quality` (default 0.8) sets the bits per pixel at the source's own size. With
+one, the budget becomes a bitrate (8% left for MP4 overhead and encoder misses), the frame rate
+caps at 30, AAC audio takes 96 kbps (64 kbps when tight), and the resolution steps down a ladder
+of standard heights (2160, 1440, 1080, 720, 540, 480, 360) until each pixel gets enough bits to
+look clean rather than blocky. The output is never bigger than the source. `fitVideo(source,
+recipe)` is the pure first step on its own, for hosts that run their own encode loop, and
+`allocateBudget` splits one budget across videos the same way it does across photos.
+
 ## FAQ
 
 ### How do I convert a HEIC image to JPEG or WebP in JavaScript?

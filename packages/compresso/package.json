@@ -117,9 +117,9 @@
       "gzip": true
     },
     {
-      "name": "plan entry (import { planPhoto } from 'compresso.js/plan')",
+      "name": "plan entry, photo and video (import { planPhoto, planVideo } from 'compresso.js/plan')",
       "path": "dist/compresso.plan.mjs",
-      "limit": "1.25 KB",
+      "limit": "2 KB",
       "gzip": true
     }
   ]
