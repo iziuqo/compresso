@@ -51,6 +51,8 @@ export type PressSetup = {
    * chat bubble drawn in one hairline.
    */
   gate?: 'slot' | 'envelope' | 'bubble';
+  /** A clear glass dome over the whole studio, this many units in radius: the room is sealed, nothing leaves it. */
+  dome?: number;
 };
 
 export type Pose = {
@@ -77,6 +79,8 @@ export type Pose = {
   pour?: number;
   /** The envelope's flap, 0 (open) to 1 (sealed). */
   seal?: number;
+  /** The dome, 0 (lifted out of sight) to 1 (sealed on the floor), and how far the photo's colours fill its glass. */
+  dome?: { down: number; fill: number };
   /** The air the press squeezes out: seconds since the plate touched, and how long the squeeze lasts. */
   air?: { age: number; length: number };
 };
@@ -103,6 +107,14 @@ const texture = (canvas: HTMLCanvasElement) => {
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 16;
   return t;
+};
+
+/** A photo as its colours only: drawn 24 px wide, so the texture's filtering blurs it into soft light. */
+const colours = (canvas: HTMLCanvasElement) => {
+  const small = document.createElement('canvas');
+  small.width = 24; small.height = 18;
+  small.getContext('2d')!.drawImage(canvas, 0, 0, small.width, small.height);
+  return texture(small);
 };
 
 /**
@@ -362,6 +374,20 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
     scene.add(gate);
   }
 
+  // The dome: a glass bell that lowers over the studio, a hairline ring where it meets the floor, tinted by the photo as it fills.
+  const dome = new THREE.Group();
+  // Clear glass (transmission: bright at its rim, clear in the middle); filling, it glows with the top photo's colours.
+  const glass = new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.03, metalness: 0, transmission: 1, thickness: 0.04, ior: 1.5, specularIntensity: 0.3,
+    emissive: '#ffffff', emissiveMap: colours(bands[bands.length - 1].faces.after.image), emissiveIntensity: 0 });
+  if (setup.dome) {
+    const R = setup.dome;
+    dome.add(new THREE.Mesh(new THREE.SphereGeometry(R, 128, 64, 0, Math.PI * 2, 0, Math.PI / 2), glass));
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.03, 8, 256), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.6 }));
+    ring.rotation.x = Math.PI / 2;
+    dome.add(ring);
+    scene.add(dome);
+  }
+
   // Post: bloom on real highlights only.
   const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(width, height, { type: THREE.HalfFloatType, samples: 4 }));
   composer.addPass(new RenderPass(scene, camera));
@@ -416,6 +442,10 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
     edges.color.set(ink).multiplyScalar(1 + 1.6 * (p.glint ?? 0));
     light.opacity = p.pour ?? 0;
     flap.rotation.z = mix(1.45, 0.06 - Math.PI, p.seal ?? 0); // open: back over the envelope, just raised; sealed: down over the mouth
+    const bell = p.dome ?? { down: 0, fill: 0 };
+    dome.visible = bell.down > 0.001;
+    dome.position.y = (setup.dome ?? 0) * 2.2 * (1 - bell.down);
+    glass.emissiveIntensity = 0.6 * bell.fill;
 
     // Air leaves at the seam while the press travels, fastest at the start.
     const P = airGeo.attributes.position.array as Float32Array, C = airGeo.attributes.color.array as Float32Array;

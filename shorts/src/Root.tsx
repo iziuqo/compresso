@@ -13,7 +13,7 @@ import { FileTooLarge, TOO_LARGE } from './shorts/FileTooLarge';
 import { GRANDMA, Grandma } from './shorts/Grandma';
 import { ONE_BAR, OneBar } from './shorts/OneBar';
 import { PRESS, ThePress } from './shorts/ThePress';
-import { GATE_SHORT, GateShort } from './press/GateShort';
+import { ONE_PRESS, OnePress, type OnePressProps } from './press/OnePress';
 import { FPS, H, W } from './system';
 
 const frame = { fps: FPS, width: W, height: H };
@@ -27,6 +27,13 @@ const TELLS = [
   { shot: 'tell-couscous', focus: '33% 43%' },
   { shot: 'tell-edie', focus: '28% 56%' },
 ] as const;
+// The third wave, one press: each Short's measured result, and what it plays against.
+const ONE_PRESSES: (OnePressProps & { id: string })[] = [
+  { id: 'the-limit', result: 'limit-lake', kind: 'slot', limit: 1e6 },
+  { id: 'the-envelope', result: 'envelope', kind: 'envelope', limit: 5e6 },
+  { id: 'the-bubble', result: 'bubble-cat', kind: 'bubble', limit: 4e5 },
+  { id: 'airplane-mode', result: 'airplane-room', kind: 'dome' },
+];
 
 /**
  * The first wave. The Press and Can you tell? are wordless series, one
@@ -53,12 +60,9 @@ export function Root() {
       <Composition id="the-2mb-limit" component={Deadline} durationInFrames={DEADLINE.duration} {...frame} />
       <Composition id="photos-for-grandma" component={Grandma} durationInFrames={GRANDMA.duration} {...frame} />
       <Composition id="one-bar" component={OneBar} durationInFrames={ONE_BAR.duration} {...frame} />
-      <Composition id="the-limit" component={GateShort} durationInFrames={GATE_SHORT.duration} {...frame}
-        defaultProps={{ result: 'limit-lake', limit: 1e6, gate: 'slot' }} />
-      <Composition id="the-envelope" component={GateShort} durationInFrames={GATE_SHORT.duration} {...frame}
-        defaultProps={{ result: 'envelope', limit: 5e6, gate: 'envelope' }} />
-      <Composition id="the-bubble" component={GateShort} durationInFrames={GATE_SHORT.duration} {...frame}
-        defaultProps={{ result: 'bubble-cat', limit: 4e5, gate: 'bubble' }} />
+      {ONE_PRESSES.map(({ id, ...props }) => (
+        <Composition key={id} id={id} component={OnePress} durationInFrames={ONE_PRESS.duration} {...frame} defaultProps={props} />
+      ))}
     </>
   );
 }

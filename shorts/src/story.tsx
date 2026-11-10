@@ -93,15 +93,17 @@ export function Phone({ k, x = 0, y = 0, rx = 0, ry = 0, rz = 0, neutral = false
   );
 }
 
-/** The top of every screen: the time, signal bars out of four, and the battery. Ink follows the screen. */
-export function StatusBar({ time, bars = 4, battery = 0.8, ink = '#fff' }: { time: string; bars?: number; battery?: number; ink?: string }) {
+/** The top of every screen: the time, signal bars out of four (or the airplane, in airplane mode), and the battery. Ink follows the screen. */
+export function StatusBar({ time, bars = 4, battery = 0.8, ink = '#fff', airplane = false }: { time: string; bars?: number; battery?: number; ink?: string; airplane?: boolean }) {
   const low = battery < 0.2;
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 54, color: ink, fontFamily: ui, fontWeight: 600, fontSize: 17 }}>
       <div style={{ position: 'absolute', left: 52, top: 17, fontVariantNumeric: 'tabular-nums' }}>{time}</div>
-      <div style={{ position: 'absolute', right: 74, top: 21, display: 'flex', gap: 2, alignItems: 'flex-end' }}>
-        {[0, 1, 2, 3].map((i) => <div key={i} style={{ width: 3, height: 4 + i * 2.6, borderRadius: 1, background: ink, opacity: i < bars ? 1 : 0.28 }} />)}
-      </div>
+      {airplane ? <Glyph name="plane" size={17} color={ink} style={{ position: 'absolute', right: 70, top: 18 }} /> : (
+        <div style={{ position: 'absolute', right: 74, top: 21, display: 'flex', gap: 2, alignItems: 'flex-end' }}>
+          {[0, 1, 2, 3].map((i) => <div key={i} style={{ width: 3, height: 4 + i * 2.6, borderRadius: 1, background: ink, opacity: i < bars ? 1 : 0.28 }} />)}
+        </div>
+      )}
       <div style={{ position: 'absolute', right: 30, top: 20, width: 26, height: 13, borderRadius: 4, border: `1.2px solid ${ink}`, opacity: 0.95, padding: 1.6 }}>
         <div style={{ width: `${battery * 100}%`, height: '100%', borderRadius: 2, background: low ? tone.red : ink }} />
       </div>
@@ -110,7 +112,7 @@ export function StatusBar({ time, bars = 4, battery = 0.8, ink = '#fff' }: { tim
 }
 
 /** The symbols the stories speak in: they mean the same in every language. */
-export function Glyph({ name, size, color, style }: { name: 'up' | 'check' | 'cross' | 'mail' | 'heart' | 'clip' | 'clock' | 'alert'; size: number; color: string; style?: CSSProperties }) {
+export function Glyph({ name, size, color, style }: { name: 'up' | 'check' | 'cross' | 'mail' | 'heart' | 'clip' | 'clock' | 'alert' | 'plane'; size: number; color: string; style?: CSSProperties }) {
   const stroke = { fill: 'none', stroke: color, strokeWidth: 2.2, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
   const paths = {
     up: <path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" {...stroke} />,
@@ -120,6 +122,7 @@ export function Glyph({ name, size, color, style }: { name: 'up' | 'check' | 'cr
     heart: <path d="M12 20.5s-8-4.9-8-10.6A4.4 4.4 0 0 1 12 7.3a4.4 4.4 0 0 1 8 2.6c0 5.7-8 10.6-8 10.6Z" fill={color} />,
     clip: <path d="M20 11.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.1-8.1a3.3 3.3 0 0 1 4.7 4.7l-8.1 8.1a1.7 1.7 0 0 1-2.4-2.4l7.4-7.4" {...stroke} />,
     clock: <><circle cx="12" cy="12" r="8.5" {...stroke} /><path d="M12 7.5V12l3 2" {...stroke} /></>,
+    plane: <path d="M21 15.5v-1.8l-7.5-4.7V4.2a1.5 1.5 0 0 0-3 0V9L3 13.7v1.8l7.5-2.3v4.6l-2 1.5V21l3.5-1 3.5 1v-1.7l-2-1.5v-4.6Z" fill={color} />,
     alert: <><circle cx="12" cy="12" r="10" fill={color} /><path d="M12 6.8v6.4" stroke="#fff" strokeWidth={2.6} strokeLinecap="round" /><circle cx="12" cy="17" r="1.5" fill="#fff" /></>,
   };
   return <svg width={size} height={size} viewBox="0 0 24 24" style={style}>{paths[name]}</svg>;
@@ -180,7 +183,7 @@ export function recAt(cuts: Cut[], from: number, at: number) {
  * status bar of its own, so the recording sits below it, a little narrower;
  * the app's black ground hides the margins. The last frame holds.
  */
-export function Recording({ flow, from, cuts, time }: { flow: string; from: number; cuts: Cut[]; time: string }) {
+export function Recording({ flow, from, cuts, time, airplane }: { flow: string; from: number; cuts: Cut[]; time: string; airplane?: boolean }) {
   const top = 44;
   const height = SCREEN.h - top;
   const width = (height * SCREEN.w) / SCREEN.h;
@@ -196,7 +199,7 @@ export function Recording({ flow, from, cuts, time }: { flow: string; from: numb
           </Sequence>
         );
       })}
-      <StatusBar time={time} />
+      <StatusBar time={time} airplane={airplane} />
     </AbsoluteFill>
   );
 }

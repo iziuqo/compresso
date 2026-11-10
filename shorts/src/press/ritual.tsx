@@ -19,6 +19,32 @@ export const span = (t: number, a: number, b: number, curve?: (x: number) => num
 };
 export const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 
+/** The beats every one-press Short keeps, in seconds (a beat is 0.5 s, a bar 2 s, at 120 BPM). */
+export const B = {
+  line: 0.3, //      the red limit drops onto the photo
+  crane: 2, //       the photo is a tower, the line is the opening's top edge
+  wide: 3.5,
+  tries: [4, 5], //  it glides to the opening and stops against it, twice
+  phone: 5.5, //     the camera finds the phone: the real app, the purpose chosen
+  app: 7,
+  tap: 9, //         "Make it lighter": the plate is released
+  touch: 10, //      Com
+  pressed: 12.5, //  …press…
+  front: 12, //      the camera turns square to the icon
+  name: 14, //       …o
+  lift: 18, //       the plate goes, the prints stand up
+  shown: 20, //      the same pictures, full frame
+  flat: 22, //       they lie down again at the gate
+  slide: 22.75, //   and go through
+  through: 23.5,
+  sink: 26, //       the colour sinks to black
+  find: 26.5, //     the name typed into a search field; the store row; the badge
+  loop: 29.75, //    the first frame again
+};
+
+/** The frame's side margin, as a share of its width. */
+export const GUTTER = 96 / 1080;
+
 /** A size as the app prints it: the figure, and its unit smaller and dimmer. */
 export function Size({ bytes, size, style }: { bytes: number; size: number; style?: CSSProperties }) {
   const [n, unit] = formatBytes('en', bytes).split(' ');
