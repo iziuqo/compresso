@@ -7,6 +7,7 @@ import { Glyph, Phone, Recording, Touch } from '../story';
 import { ease, FPS, formatBytes, px, sec } from '../system';
 import { Chat, CHAT_LIGHT, CHAT_OPEN, REPLIES, SENDING, Sending, SENT } from './chat';
 import { PressCanvas, usePress } from './Press';
+import { ANSWER, Game, Looking, LOOKS, READ, SWAPS, TELL_OUT } from './tell';
 import { at, B, type Cam, Find, Grain, GUTTER, jolt, mix, Signature, Size, span, travel, Wordmark } from './ritual';
 import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type Press, type PressSetup } from './scene';
 
@@ -28,6 +29,8 @@ import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type P
  *    cards, and the deck goes into the envelope's mouth before its flap seals.
  * 03 The Bubble (bubble): one photo for a chat, stuck on a send that never
  *    moves; pressed, it fits its bubble, the send completes, replies come in.
+ * 07 Can You Tell? (tell): a loupe reads the photo before the press; after,
+ *    the original and the print are shuffled like shells, and glass answers.
  * 08 Airplane Mode (dome): a glass dome seals the studio and nothing is
  *    uploaded, ever; the press runs as always and the dome fills with colour.
  */
@@ -37,7 +40,7 @@ export type Kind = keyof typeof ACTS;
 
 export type OnePressProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
-  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'airplane-room';
+  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'airplane-room' | 'tell-fruit';
   kind: Kind;
   /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only). */
   limit?: number;
@@ -53,6 +56,10 @@ type Act = {
   gate?: NonNullable<PressSetup['gate']>;
   /** Where the prints' centre ends once through, from the gate's x. */
   gone?: (gateX: number) => number;
+  /** A glass dome over the studio. */
+  dome?: boolean;
+  /** No crane at the start: the photo fills the frame until the phone comes. */
+  still?: boolean;
   /** When the light opens: beyond the gate, from `light` (a point in the frame) if it isn't the gate's opening; or in the dome's glass. */
   open: number;
   light?: [number, number];
@@ -79,10 +86,19 @@ const ACTS = {
   },
   // Airplane mode switched on, the dome lands and seals, the room closes in.
   dome: {
-    open: B.flat + 0.6, out: [B.sink, B.find],
+    dome: true, open: B.flat + 0.6, out: [B.sink, B.find],
     cues: [['tap', B.line, 0.45, 5], ['thud', B.wide + 3, 0.4, -5], ['swell', B.flat + 0.6, 0.4]],
   },
+  // The loupe's glass on each stop, a card's flick on each swap, the two blocks rising.
+  tell: {
+    still: true, open: B.sink, out: [TELL_OUT, TELL_OUT + 0.4],
+    cues: [...LOOKS.map((a) => ['glass-tick', a, 0.25, 7] as const), ...SWAPS.map((a, i) => ['flick', a, 0.32, 2 * i] as const),
+      ...READ.map((a) => ['glass-tick', a, 0.25, 7] as const), ['rise', ANSWER + 0.5, 0.35], ['glass-tick', ANSWER + 0.75, 0.3, -5]],
+  },
 } satisfies Record<string, Act>;
+
+/** When the camera leaves the photo for the studio: on the crane, or for a still opening, as the phone comes. */
+const craneAt = (act: Act) => (act.still ? B.phone : B.crane);
 
 /** A measured result as the scene's bands, bottom to top, with its recording. */
 function bandsOf(result: OnePressProps['result']) {
@@ -109,8 +125,8 @@ function choreography(press: Press, kind: Kind) {
   const gx = act.gate ? 1 : 0; // the studio shots look a little left, to hold the gate too
   const close: Cam = { az: 0, el: Math.PI / 2, dist: near * 1.01, ty: top };
   const stops: [Cam, number, number][] = [
-    [{ ...close, dist: near }, 0, B.crane], // the slow drift that keeps frame 0 alive
-    [{ az: 0.55, el: 0.3, dist: distanceFor(top + 2.63, 0.78), tx: -1.1 * gx, ty: PLATE.tall + heavy * 0.5 }, B.crane, B.wide],
+    [{ ...close, dist: near }, 0, act.still ? B.phone : B.crane], // the slow drift that keeps frame 0 alive
+    ...(act.still ? [] : [[{ az: 0.55, el: 0.3, dist: distanceFor(top + 2.63, 0.78), tx: -1.1 * gx, ty: PLATE.tall + heavy * 0.5 }, B.crane, B.wide] as [Cam, number, number]]),
     [{ az: 0.42, el: 0.12, dist: distanceFor(top, 0.9), tx: -0.5 * gx, ty: PLATE.tall + heavy * 0.42 }, B.phone, B.app],
     [{ az: 0.5, el: 0.26, dist: distanceFor(framed, 0.8), tx: -0.9 * gx, ty: PLATE.tall + heavy * 0.5 }, B.tap, B.touch],
     [{ az: 0, el: 0, dist: 27.5, ty: PLATE.tall + GAP / 2 - 0.5 }, B.front, B.name],
@@ -143,7 +159,7 @@ function choreography(press: Press, kind: Kind) {
       cam,
       stack: { h, x, y, tilt, fan, after: t >= B.touch },
       upper,
-      studio: up(B.crane, B.crane + 1) - up(B.lift, B.lift + 1) + up(B.flat, B.flat + 0.6) - 0.7 * up(act.open, act.open + 1),
+      studio: up(craneAt(act), craneAt(act) + 1) - up(B.lift, B.lift + 1) + up(B.flat, B.flat + 0.6) - 0.7 * up(act.open, act.open + 1),
       gauge: up(B.crane + 0.5, B.wide) - up(B.pressed - 0.5, B.pressed),
       gate: 1 - up(B.front, B.front + 1.5, ease.exit) + up(B.flat - 0.4, B.flat + 0.4, ease.entrance),
       glint: B.tries.reduce((g, hit) => g + (t >= hit ? Math.exp(-(t - hit) * 7) : 0), 0),
@@ -161,7 +177,7 @@ export function OnePress({ result, kind, limit = Infinity }: OnePressProps) {
   const t = frame / FPS;
   const act: Act = ACTS[kind];
   const { bands, rec } = bandsOf(result);
-  const press = usePress({ photos: bands, limit, gate: act.gate, dome: act.gate ? undefined : ROOM });
+  const press = usePress({ photos: bands, limit, gate: act.gate, dome: act.dome ? ROOM : undefined });
   const poseAt = press.press && choreography(press.press, kind);
   // Find covers the scene from its start until the first frame comes back for the loop.
   const finding = t >= B.find && t < B.loop;
@@ -201,7 +217,7 @@ function Score({ act, many }: { act: Act; many: boolean }) {
       <Bed sound="room" levels={room} />
       {many && <Cue sound="flick" at={0} volume={0.3} />}
       {act.gate && <Cue sound="knock" at={s(B.line + 0.2)} volume={0.5} pitch={semitones(5)} />}
-      <Cue sound="swell" at={s(B.crane)} volume={0.35} />
+      <Cue sound="swell" at={s(craneAt(act))} volume={0.35} />
       {act.gate && B.tries.flatMap((hit) => [
         <Cue key={hit} sound="knock" at={s(hit)} volume={paper ? 0.4 : 0.55} pitch={semitones(paper ? 2 : -4)} />,
         <Cue key={`glass${hit}`} sound="glass-tick" at={s(hit)} volume={0.22} pitch={semitones(-12)} />,
@@ -235,7 +251,7 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
   const up = (a: number, b: number, curve = ease.standard) => span(t, a, b, curve);
   const many = press.photos.length > 1;
   // 1 while the photos fill the frame: lying at the start, standing for the proof.
-  const close = 1 - up(B.crane, B.wide, ease.glide) + up(B.lift + 1, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide);
+  const close = 1 - up(craneAt(act), craneAt(act) + 1.5, ease.glide) + up(B.lift + 1, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide);
   const proof = t > B.lift;
 
   // The size: under the top photo's right edge when it fills the frame; in the studio, right of its top face, riding the plate down.
@@ -264,6 +280,8 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
     <>
       {kind === 'bubble' && t > B.through - 0.1 && <Chat press={press} p={p} t={t} />}
       {kind === 'dome' && <Offline t={t} />}
+      {kind === 'tell' && t < B.phone && <Looking press={press} p={p} t={t} />}
+      {kind === 'tell' && t > B.lift && <Game press={press} t={t} />}
       {act.gate && <Flood src={press.photos[press.photos.length - 1].after} t={t} open={act.open} from={light} />}
       {t >= B.phone && t < B.tap + 0.6 && (
         <Phone k={1.4} y={phoneY(t)} neutral>
