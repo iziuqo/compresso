@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="website/public/logo.svg" alt="Compresso" width="120" />
+  <img src=".github/assets/logo.svg" alt="Compresso" width="120" />
 </p>
 
 <h1 align="center">Compresso</h1>
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://apps.apple.com/app/id6829326032"><img src="website/public/badges/app-store/en.svg" alt="Download on the App Store" height="40" /></a>
+  <a href="https://apps.apple.com/app/id6829326032"><img src=".github/assets/app-store-badge.svg" alt="Download on the App Store" height="40" /></a>
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@
   <a href="#batch--parallel-compression">Batch & Workers</a>
 </p>
 
-<!-- Recorded from the live demo with the store sample photos in mobile/store/photos (no people or brands). -->
+<!-- Recorded from the live demo with the app store sample photos (no people or brands). -->
 <p align="center">
   <a href="https://compresso.izaias.xyz/compresso">
     <img src=".github/assets/demo.gif" alt="Six photos dropped into the Compresso web app shrink by 59–82% in the browser, with a before/after slider" width="800" />
