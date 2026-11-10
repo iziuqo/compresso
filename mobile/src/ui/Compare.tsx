@@ -13,8 +13,8 @@ import { Label } from './primitives';
  * Each label lives on its own photo: "Before" inside the clipped left layer,
  * "After" on the layer beneath, so the seam slides over them and each label
  * is only ever shown on the side it names. The seam and knob sit above both.
- * "Drag to compare" sits under the knob it explains and fades out after the
- * first drag, leaving the bottom corners free for the screen's own controls.
+ * "Drag to compare" sits under the knob it explains, on top of the seam, and
+ * fades out after the first drag, leaving the bottom corners free for the screen's own controls.
  *
  * The seam follows the drag distance from where the finger went down, not
  * the touch's position inside the view: once a finger leaves the photo,
@@ -86,19 +86,20 @@ export function Compare({ before, after, aspect }: { before: string; after: stri
         <Image source={{ uri: before }} contentFit="contain" style={{ width, height: '100%' }} />
         <Chip label={t('job.before')} style={[styles.corner, { left: space[2], maxWidth: half }]} />
       </Animated.View>
-      <Animated.View pointerEvents="none" style={[styles.hint, { opacity: hint }]}>
-        <Chip label={t('job.compare')} lines={2} style={{ maxWidth: '90%' }} />
-      </Animated.View>
       <Animated.View pointerEvents="none" style={[styles.seam, { transform: [{ translateX: x }] }]} />
       <Animated.View pointerEvents="none" style={[styles.knob, { transform: [{ translateX: x }] }]}>
         <Drag color="#000000" size={18} />
+      </Animated.View>
+      {/* Last and opaque, so the seam never shows through it. */}
+      <Animated.View pointerEvents="none" style={[styles.hint, { opacity: hint }]}>
+        <Chip label={t('job.compare')} lines={2} style={{ maxWidth: '90%', backgroundColor: onPhoto.solid }} />
       </Animated.View>
     </View>
   );
 }
 
 /** Controls drawn over a photo: white on a dark scrim in both themes, so they read on any picture. */
-export const onPhoto = { ink: '#FFFFFF', scrim: 'rgba(0,0,0,0.55)' } as const;
+export const onPhoto = { ink: '#FFFFFF', scrim: 'rgba(0,0,0,0.55)', solid: '#262626' } as const;
 
 /** A label over the photo. */
 function Chip({ label, lines = 1, style }: { label: string; lines?: number; style?: StyleProp<ViewStyle> }) {
