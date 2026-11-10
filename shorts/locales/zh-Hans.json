@@ -19,6 +19,10 @@
     "web": "在浏览器中试用：compresso.izaias.xyz/compresso",
     "credit": "图片来源：{list}，Wikimedia Commons。",
     "credits": "图片来源：{list}，Wikimedia Commons。",
-    "by": "“{title}”，作者 {author}（{licence}）"
+    "by": "“{title}”，作者 {author}（{licence}）",
+    "limit": "{from} 的照片，{limit} 的上限，只剩 2 分钟。",
+    "grandma": "给奶奶的 12 张照片，邮件一直被退回。",
+    "oneBar": "信号只有一格，8 张照片发不出去。",
+    "iphone": "Compresso 适用于 iPhone 和 iPad，App Store 免费下载：搜索“{name}”，或访问 apps.apple.com/app/id6829326032"
   }
 }

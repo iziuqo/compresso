@@ -4,7 +4,8 @@
 // upload each in all seven languages (English first, the rest added as
 // translations); each File too large. cut is one upload in its own language,
 // and so is On the App Store, which says where to get the iPhone app and
-// carries Apple's credit lines.
+// carries Apple's credit lines. So do the everyday stories (The 2 MB limit,
+// Photos for Grandma, One bar), one upload each with the six translations.
 //
 //   node scripts/youtube.mjs [--stores]     --stores once both stores list the app
 import { bundle } from '@remotion/bundler';
@@ -21,14 +22,25 @@ const locales = readdirSync(join(root, 'locales')).map((f) => basename(f, '.json
 const copy = Object.fromEntries(locales.map((l) => [l, read(join(root, 'locales', `${l}.json`)).youtube]));
 const stores = process.argv.includes('--stores');
 const fill = (text, values) => text.replace(/\{(\w+)\}/g, (_, k) => values[k]);
+/** Where to get the iPhone app, under its App Store name in that language. */
+const iphone = (locale) => fill(copy[locale].iphone, { name: listing[locale].name });
+/** The Apple credit lines the store card shows; Apple gives them in English. */
+const legal = [read(join(root, 'locales/en.json')).appStore.legal];
+
+/** The everyday stories: each shot's title fields, from what the app measured for it. */
+const STORIES = {
+  'the-2mb-limit': { shot: 'deadline', title: 'limit' },
+  'photos-for-grandma': { shot: 'grandma', title: 'grandma' },
+  'one-bar': { shot: 'one-bar', title: 'oneBar' },
+};
 
 /** The description: the store's promotional line, where to get the app, the photo credits, and any legal lines. */
-function describe(locale, shots, get = stores ? copy[locale].stores : copy[locale].web, legal = []) {
+function describe(locale, shots, get = stores ? copy[locale].stores : copy[locale].web, lines = []) {
   const y = copy[locale];
-  const credits = [...new Set(shots.map((s) => measured[s].photo))]
+  const credits = [...new Set(shots.flatMap((s) => measured[s].photos ?? [measured[s].photo]))]
     .map((id) => fill(y.by, { ...photos[id], title: photos[id].commons.replace(/\.jpe?g$/i, '') }));
   const list = new Intl.ListFormat(locale, { type: 'conjunction' }).format(credits);
-  return [listing[locale].promotionalText, get, fill(credits.length > 1 ? y.credits : y.credit, { list }), ...legal].join('\n\n');
+  return [listing[locale].promotionalText, get, fill(credits.length > 1 ? y.credits : y.credit, { list }), ...lines].join('\n\n');
 }
 
 /** Title and description of one composition in one language. */
@@ -44,7 +56,12 @@ function text(composition, locale) {
     return { title: fill(y.tell, { pct: formatPercent(locale, 1 - m.to / m.from) }), description: describe(locale, [props.shot]) };
   }
   if (id.startsWith('app-store')) {
-    return { title: y.appStore, description: describe(locale, [props.shot], y.appStoreGet, [props.card.legal]) };
+    return { title: y.appStore, description: describe(locale, [props.shot], iphone(locale), legal) };
+  }
+  if (STORIES[id]) {
+    const { shot, title } = STORIES[id];
+    const m = measured[shot];
+    return { title: fill(y[title], { from: formatBytes(locale, m.from), limit: formatBytes(locale, m.limit) }), description: describe(locale, [shot], iphone(locale), legal) };
   }
   return { title: y.tooLarge, description: describe(locale, ['too-large']) };
 }

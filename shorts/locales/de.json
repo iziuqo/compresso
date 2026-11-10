@@ -19,6 +19,10 @@
     "web": "Probier es im Browser: compresso.izaias.xyz/compresso",
     "credit": "Foto: {list}, via Wikimedia Commons.",
     "credits": "Fotos: {list}, via Wikimedia Commons.",
-    "by": "„{title}“ von {author} ({licence})"
+    "by": "„{title}“ von {author} ({licence})",
+    "limit": "{from} Foto, {limit} Limit, noch 2 Minuten.",
+    "grandma": "12 Fotos für Oma. Die Mail kommt immer zurück.",
+    "oneBar": "Ein Balken Empfang. 8 Fotos. Nichts geht raus.",
+    "iphone": "Compresso für iPhone und iPad, kostenlos im App Store: such nach „{name}“ oder geh auf apps.apple.com/app/id6829326032"
   }
 }

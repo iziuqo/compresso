@@ -44,11 +44,18 @@ for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) 
     crf: scale === 1 ? 14 : 20, audioCodec: 'aac', audioBitrate: '320k', pixelFormat: 'yuv420p',
   });
   const before = loudness(mix);
-  execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', mix, '-c:v', 'copy',
-    '-af', `volume=${(LUFS - before.lufs).toFixed(2)}dB,alimiter=limit=${LIMIT.toFixed(3)}:attack=2:release=80:level=false`,
-    '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', file]);
+  // A quiet mix raised a long way can overshoot the limiter's ceiling once
+  // encoded; then master again with the ceiling lowered by the overshoot.
+  let after;
+  for (let ceiling = LIMIT, tries = 0; tries < 3; tries++) {
+    execFileSync('ffmpeg', ['-v', 'error', '-y', '-i', mix, '-c:v', 'copy',
+      '-af', `volume=${(LUFS - before.lufs).toFixed(2)}dB,alimiter=limit=${ceiling.toFixed(3)}:attack=2:release=80:level=false`,
+      '-c:a', 'aac', '-b:a', '320k', '-ar', '48000', '-movflags', '+faststart', file]);
+    after = loudness(file);
+    if (after.peak <= MAX_TRUE_PEAK) break;
+    ceiling *= 10 ** ((MAX_TRUE_PEAK - after.peak - 0.3) / 20);
+  }
   rmSync(mix);
-  const after = loudness(file);
   console.log(file, `${before.lufs.toFixed(1)} → ${after.lufs.toFixed(1)} LUFS, ${after.peak.toFixed(1)} dBTP`);
   if (after.peak > MAX_TRUE_PEAK) throw new Error(`${composition.id}: true peak ${after.peak} dBTP is over ${MAX_TRUE_PEAK}`);
 }

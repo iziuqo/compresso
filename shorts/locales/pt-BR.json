@@ -19,6 +19,10 @@
     "web": "Experimente no navegador: compresso.izaias.xyz/compresso",
     "credit": "Foto: {list}, do Wikimedia Commons.",
     "credits": "Fotos: {list}, do Wikimedia Commons.",
-    "by": "“{title}”, de {author} ({licence})"
+    "by": "“{title}”, de {author} ({licence})",
+    "limit": "Foto de {from}, limite de {limit}, faltam 2 minutos.",
+    "grandma": "12 fotos para a vovó. O e-mail sempre volta.",
+    "oneBar": "Um tracinho de sinal. 8 fotos. Não saem do lugar.",
+    "iphone": "Compresso para iPhone e iPad, grátis na App Store: procure “{name}” ou acesse apps.apple.com/app/id6829326032"
   }
 }

@@ -1,9 +1,11 @@
 // Runs every result in photos.json through the real app, its web build: the
-// photo, a tap on the purpose, "Make it lighter", "Save". Keeps what the app
-// saved (public/out/<id>.<ext>) and the sizes in src/measured.json. A result
-// marked `recording` is also filmed in every language in locales/
-// (public/out/<id>-<lang>.mp4), with the moments of its taps. So every number
-// and app screen in a Short is real.
+// photo (or, for a result with `photos`, the whole batch), a tap on the
+// purpose, "Make it lighter", "Save". Keeps what the app saved
+// (public/out/<id>[-<n>].<ext>) and the sizes in src/measured.json. A result
+// with a `limit` sets the upload form's size limit first. A result marked
+// `recording` is also filmed in every language in locales/, or only in the
+// languages it lists (public/out/<id>-<lang>.mp4), with the moments of its
+// taps. So every number and app screen in a Short is real.
 //
 //   (cd ../mobile && npx expo export --platform web)   then serve mobile/dist on 8765
 //   node scripts/measure.mjs [id ...]     only these results; the rest of measured.json stays
@@ -58,24 +60,32 @@ const TAP_TO_DONE = 2;
 
 /**
  * One pass through the app in `locale`: tap the purpose, wait `gap` s, tap
- * "Make it lighter", wait for the result. With `save`, keeps the app's file as
- * public/out/<save>.<ext>; with `flow`, records the screen from just before
- * the tap to after the result.
+ * "Make it lighter", wait for the result. With `save`, keeps the app's files
+ * as public/out/<save>.<ext> (one photo) or <save>-<n>.<ext> (a batch); with
+ * `flow`, records the screen from just before the tap to after the result.
  */
-async function run({ photo, purpose, locale, gap, save, flow }) {
+async function run({ photos, purpose, limit = 1000000, locale, gap, save, flow }) {
   const t = require(`../../mobile/src/i18n/locales/${locale}.json`);
   const ctx = await browser.newContext({
     viewport: { width: PHONE.width, height: PHONE.height }, deviceScaleFactor: PHONE.scale, colorScheme: 'dark', hasTouch: true,
   });
   // Message is the app's default, so the tap on any other purpose shows on camera.
-  await ctx.addInitScript((locale) => localStorage.setItem('compresso.prefs', JSON.stringify({
-    locale, appearance: 'dark', introSeen: true, lastPurpose: 'message', uploadLimit: 1000000, lastSaved: 0,
-  })), locale);
+  await ctx.addInitScript(({ locale, limit }) => localStorage.setItem('compresso.prefs', JSON.stringify({
+    locale, appearance: 'dark', introSeen: true, lastPurpose: 'message', uploadLimit: limit, lastSaved: 0,
+  })), { locale, limit });
+  await ctx.addInitScript(() => {
+    window.saved = [];
+    const click = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      if (!this.hasAttribute('download')) return click.call(this);
+      window.saved.push(this.href);
+    };
+  });
   const page = await ctx.newPage();
   await page.goto(URL);
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: t['home.choose'] }).click();
-  await (await chooser).setFiles(join(root, 'public/photos', `${photo}.jpg`));
+  await (await chooser).setFiles(photos.map((photo) => join(root, 'public/photos', `${photo}.jpg`)));
   await page.getByText(t['purpose.title']).waitFor();
   await page.waitForTimeout(800); // the thumbnail settles
 
@@ -87,37 +97,52 @@ async function run({ photo, purpose, locale, gap, save, flow }) {
   await page.getByRole('radio', { name: new RegExp(`^${t[`purpose.${purpose}.name`]}\\.`) }).click();
   await page.waitForTimeout(gap * 1000);
   mark('go');
-  await page.getByRole('button', { name: t['purpose.goOne'] }).click();
+  await page.getByRole('button', { name: t[photos.length > 1 ? 'purpose.go' : 'purpose.goOne'] }).click();
   await page.getByRole('button', { name: t['job.again'] }).waitFor({ timeout: 180000 });
   mark('done');
   await page.waitForTimeout(2500);
   const start = stop ? await stop(join(root, 'public', flow)) : moment.tap;
 
-  let file;
+  const files = [];
   if (save) {
-    const download = page.waitForEvent('download');
-    await page.getByRole('button', { name: t['job.save'] }).click();
-    const saved = await download;
-    file = `out/${save}${extname(saved.suggestedFilename()) || '.jpg'}`;
-    await saved.saveAs(join(root, 'public', file));
+    // The web build saves each photo by clicking a download link to its blob.
+    // Chromium allows ten such downloads at once, so the init script below
+    // collects the links instead, and the files are read straight from them.
+    await page.getByRole('button', { name: t[photos.length > 1 ? 'job.saveAll' : 'job.save'] }).click();
+    const saved = await page.evaluate(() => Promise.all(window.saved.map(async (href) => {
+      const blob = await (await fetch(href)).blob();
+      return { type: blob.type, bytes: Array.from(new Uint8Array(await blob.arrayBuffer())) };
+    })));
+    for (const [i, { type, bytes }] of saved.entries()) {
+      const file = `out/${save}${photos.length > 1 ? `-${i + 1}` : ''}.${type.split('/')[1]}`;
+      writeFileSync(join(root, 'public', file), Buffer.from(bytes));
+      files.push(file);
+    }
   }
   await ctx.close();
   const at = Object.fromEntries(Object.entries(moment).map(([k, v]) => [k, Number((v - start).toFixed(3))]));
-  return { file, at, work: moment.done - moment.go };
+  return { files, at, work: moment.done - moment.go };
 }
 
 const ids = process.argv.slice(2);
 const measuredPath = join(root, 'src/measured.json');
 const measured = ids.length ? JSON.parse(readFileSync(measuredPath, 'utf8')) : {};
 const browser = await chromium.launch();
-for (const [id, { photo, purpose, recording }] of Object.entries(results).filter(([id]) => !ids.length || ids.includes(id))) {
-  const { file, work } = await run({ photo, purpose, locale: 'en', gap: 0.9, save: id });
-  const result = { photo, purpose, from: statSync(join(root, 'public/photos', `${photo}.jpg`)).size, to: statSync(join(root, 'public', file)).size, file };
+const size = (file) => statSync(join(root, file)).size;
+for (const [id, { photo, photos = [photo], purpose, limit, recording }] of Object.entries(results).filter(([id]) => !ids.length || ids.includes(id))) {
+  const { files, work } = await run({ photos, purpose, limit, locale: 'en', gap: 0.9, save: id });
+  const from = photos.map((p) => size(`public/photos/${p}.jpg`));
+  const to = files.map((f) => size(`public/${f}`));
+  const sum = (sizes) => sizes.reduce((a, b) => a + b, 0);
+  const result = photo
+    ? { photo, purpose, from: from[0], to: to[0], file: files[0] }
+    : { photos, purpose, from: sum(from), to: sum(to), items: photos.map((p, i) => ({ photo: p, from: from[i], to: to[i], file: files[i] })) };
+  if (limit) result.limit = limit;
   if (recording) {
     result.flows = {};
-    for (const locale of locales) {
+    for (const locale of Array.isArray(recording) ? recording : locales) {
       const flow = `out/${id}-${locale}.mp4`;
-      const { at } = await run({ photo, purpose, locale, gap: Math.max(0.6, TAP_TO_DONE - work), flow });
+      const { at } = await run({ photos, purpose, limit, locale, gap: Math.max(0.6, TAP_TO_DONE - work), flow });
       result.flows[locale] = { flow, at };
     }
   }

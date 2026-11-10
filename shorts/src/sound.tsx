@@ -1,7 +1,11 @@
-import { Html5Audio, Sequence, staticFile } from 'remotion';
+import { Html5Audio, interpolate, Sequence, staticFile } from 'remotion';
 
 /** The sounds sound/build.py makes. Every Short is scored from these alone. */
-export type Sound = 'press-logo' | 'press-hit' | 'glass-tick' | 'shutter' | 'knock' | 'counter-tick';
+export type Sound = 'press-logo' | 'press-hit' | 'glass-tick' | 'shutter' | 'knock' | 'counter-tick'
+  | 'tap' | 'error' | 'exhale' | 'send' | 'thud' | 'pop' | 'chime' | 'zip' | 'flick' | 'deflate';
+
+/** The looping beds sound/build.py makes for the everyday stories, all at one loudness. */
+export type BedSound = 'night' | 'beach' | 'kitchen' | 'heartbeat' | 'clock';
 
 /** Semitones as a playback pitch: 12 is an octave up. */
 export const semitones = (n: number) => 2 ** (n / 12);
@@ -16,4 +20,14 @@ export function Cue({ sound, at, volume = 1, pitch = 1 }: { sound: Sound; at: nu
       <Html5Audio src={staticFile(`sound/${sound}.wav`)} volume={volume} toneFrequency={pitch} />
     </Sequence>
   );
+}
+
+/**
+ * A bed looping under a whole Short, its level in dB at keyframes
+ * `[frame, dB]` (straight lines between them, held at both ends). Below
+ * -60 dB it is silent.
+ */
+export function Bed({ sound, levels }: { sound: BedSound; levels: [number, number][] }) {
+  const db = (f: number) => interpolate(f, levels.map(([at]) => at), levels.map(([, v]) => v), { extrapolateLeft: 'clamp', extrapolateRight: 'clamp' });
+  return <Html5Audio src={staticFile(`sound/${sound}.wav`)} loop volume={(f) => (db(f) <= -60 ? 0 : 10 ** (db(f) / 20))} />;
 }

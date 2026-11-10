@@ -9,6 +9,11 @@ logo is identical in every Short. Writes public/sound/press-logo.wav and
 press-hit.wav (the hit alone, for the clamp), mastered for phone speakers,
 and the cleaned one-shots the Shorts place on their timelines: the glass
 tick, a leaf shutter, a muted wood block and one tick of a mechanical counter.
+
+The everyday stories (wave two) add foley and room tone from the same
+source: one-shots trimmed like the rest, and beds (a room, a beach, a
+kitchen, a heartbeat, a clock) generated as seamless loops and levelled to
+one loudness, so each Short sets a bed's level by its role alone.
 """
 import subprocess
 from pathlib import Path
@@ -123,4 +128,22 @@ save('glass-tick', one_shot('glass-tick', .6))
 save('shutter', one_shot('shutter', .14, highpass=300, db=-8))  # skip the faint pre-click
 save('knock', one_shot('wood-block', .22, highpass=80))
 save('counter-tick', one_shot('counter', .045, highpass=400))
+# Wave two: the everyday stories.
+for name, length, hp in (('tap', .25, 200), ('error', .9, 60), ('exhale', 1.6, 80), ('send', 1.2, 150), ('thud', .8, 50),
+                         ('pop', .5, 150), ('chime', 1.8, 300), ('zip', 1.0, 120), ('flick', .5, 200), ('deflate', 1.0, 60)):
+    save(name, one_shot(name, length, highpass=hp))
+
+
+def bed(name):
+    """A seamless loop at -20 dBFS RMS: generated looping, so only its ends get a 20 ms crossfade."""
+    x = filt(load(name), 'highpass', 40, 2)
+    k = int(SR * .02)
+    x[:k] = x[:k] * np.linspace(0, 1, k) + x[-k:] * np.linspace(1, 0, k)
+    x = x[:-k]
+    return x / np.sqrt(np.mean(x ** 2)) * 10 ** (-20 / 20)
+
+
+for name in ('night', 'beach', 'kitchen', 'heartbeat', 'clock'):
+    x = bed(name)
+    wavfile.write(OUT / f'{name}.wav', SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
 print('wrote', OUT)

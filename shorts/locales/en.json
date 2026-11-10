@@ -18,13 +18,16 @@
   "youtube": {
     "tooLarge": "File too large.",
     "appStore": "Compresso is on the App Store.",
-    "appStoreGet": "Compresso for iPhone and iPad, free on the App Store: search “Compresso: Photo Compressor”, or go to apps.apple.com/app/id6829326032",
     "press": "{from} → {to}. Same photo.",
     "tell": "Can you tell? One of these is {pct} lighter.",
     "stores": "On the App Store and Google Play: search “Compresso”.",
     "web": "Try it in your browser: compresso.izaias.xyz/compresso",
     "credit": "Photo: {list}, via Wikimedia Commons.",
     "credits": "Photos: {list}, via Wikimedia Commons.",
-    "by": "“{title}” by {author} ({licence})"
+    "by": "“{title}” by {author} ({licence})",
+    "limit": "{from} photo, {limit} limit, 2 minutes left.",
+    "grandma": "12 photos for Grandma. The email keeps bouncing.",
+    "oneBar": "One bar of signal. 8 photos. Going nowhere.",
+    "iphone": "Compresso for iPhone and iPad, free on the App Store: search “{name}”, or go to apps.apple.com/app/id6829326032"
   }
 }
