@@ -17,8 +17,8 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 const here = dirname(fileURLToPath(import.meta.url));
 const [photoDir, outDir, ...only] = process.argv.slice(2);
 const photos = readdirSync(photoDir).filter((f) => /\.jpe?g$/i.test(f)).sort().map((f) => join(photoDir, f));
-const LOCALES = only.length ? only : ['en', 'es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans'];
-const BROWSER_LOCALE = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', it: 'it-IT', 'pt-BR': 'pt-BR', 'zh-Hans': 'zh-CN' };
+const LOCALES = only.length ? only : Object.keys(JSON.parse(readFileSync(join(here, 'listing.json'), 'utf8')));
+const BROWSER_LOCALE = { en: 'en-US', es: 'es-ES', fr: 'fr-FR', de: 'de-DE', it: 'it-IT', 'pt-BR': 'pt-BR', 'zh-Hans': 'zh-CN', ja: 'ja-JP' };
 // iPhone 6.9" (1290×2796) and iPad 13" (2064×2752), both in points × scale.
 const DEVICES = [
   { id: 'phone', width: 430, height: 932, scale: 3 },

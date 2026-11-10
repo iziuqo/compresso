@@ -34,6 +34,8 @@ const css = `
   @font-face { font-family: G; src: url(${fonts}/Geist-Regular.ttf); font-weight: 400; }
   * { margin: 0; box-sizing: border-box; }
   html, body { width: ${W}px; height: ${H}px; background: transparent; color: #fff; font-family: G, 'Noto Sans SC', sans-serif; }
+  /* Japanese kanji take Japanese glyph shapes, not Chinese ones. */
+  :lang(ja) body { font-family: G, 'Noto Sans JP', 'Noto Sans SC', sans-serif; }
   .mark { width: 132px; height: 132px; }
 `;
 const MARK = '<svg class="mark" viewBox="0 0 512 512"><path d="M104 128H408L332 236H180Z" fill="#fff"/><path d="M104 384H408L332 276H180Z" fill="#fff"/></svg>';
@@ -55,9 +57,10 @@ const ff = (args) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...args]);
 
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: W, height: H } });
+let lang = 'en'; // the language being rendered, so its captions pick its fonts
 async function png(html, file, size = { width: W, height: H }) {
   const tmp = `${file}.html`;
-  writeFileSync(tmp, `<!doctype html><meta charset="utf-8">${html}`);
+  writeFileSync(tmp, `<!doctype html><html lang="${lang}"><meta charset="utf-8">${html}`);
   await page.setViewportSize(size);
   await page.goto(pathToFileURL(tmp).href);
   await page.evaluate(() => document.fonts.ready);
@@ -65,7 +68,7 @@ async function png(html, file, size = { width: W, height: H }) {
   rmSync(tmp);
 }
 
-for (const lang of LOCALES) {
+for (lang of LOCALES) {
   const c = listing[lang];
   const src = join(recDir, lang);
   const out = join(outDir, lang);

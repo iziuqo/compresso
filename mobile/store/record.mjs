@@ -17,7 +17,7 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 const here = dirname(fileURLToPath(import.meta.url));
 const [photoDir, outDir, ...only] = process.argv.slice(2).map((a, i) => (i < 2 ? resolve(a) : a));
 const photos = readdirSync(photoDir).filter((f) => /\.jpe?g$/i.test(f)).sort().map((f) => join(photoDir, f));
-const LOCALES = only.length ? only : ['en', 'es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans'];
+const LOCALES = only.length ? only : Object.keys(JSON.parse(readFileSync(join(here, 'listing.json'), 'utf8')));
 const URL = process.env.APP_URL ?? 'http://localhost:8765/';
 const W = 430;
 const H = 932;

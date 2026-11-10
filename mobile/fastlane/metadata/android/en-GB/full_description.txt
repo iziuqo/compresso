@@ -25,6 +25,6 @@ DONE RIGHT
 • Keeps the date the photo was taken, so your library stays in order
 • Works with HEIC, JPEG, PNG and WebP
 • Compare before and after with a simple slider
-• Available in English, Español, Français, Deutsch, Italiano, Português and 简体中文
+• Available in English, Español, Français, Deutsch, Italiano, Português, 简体中文 and 日本語
 
 Compresso is built on compresso.js, the open-source image library.

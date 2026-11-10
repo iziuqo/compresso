@@ -25,6 +25,6 @@ BEM FEITO
 • Mantém a data em que a foto foi tirada, para sua galeria continuar em ordem
 • Funciona com HEIC, JPEG, PNG e WebP
 • Compare o antes e o depois com um controle deslizante
-• Disponível em English, Español, Français, Deutsch, Italiano, Português e 简体中文
+• Disponível em English, Español, Français, Deutsch, Italiano, Português, 简体中文 e 日本語
 
 O Compresso é feito com o compresso.js, a biblioteca de imagens de código aberto.

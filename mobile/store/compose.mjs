@@ -40,6 +40,8 @@ const base = `
   @font-face { font-family: G; src: url(${fonts}/Geist-SemiBold.ttf); font-weight: 600; }
   * { margin: 0; box-sizing: border-box; }
   body { font-family: G, 'Noto Sans SC', sans-serif; background: ${INK.bg}; color: ${INK.ink}; overflow: hidden; }
+  /* Japanese kanji take Japanese glyph shapes, not Chinese ones. */
+  :lang(ja) body { font-family: G, 'Noto Sans JP', 'Noto Sans SC', sans-serif; }
 `;
 
 /** One store image: headline block on top, the phone or tablet below. */
@@ -58,7 +60,7 @@ function shot({ w, h, status }, img, headline, sub, lang) {
   return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><style>${base}
     .cap { position: absolute; top: 0; left: 0; right: 0; height: ${capH}px; padding: 0 ${pad}px;
       display: flex; flex-direction: column; justify-content: flex-end; gap: ${Math.round(head * 0.32)}px; padding-bottom: ${Math.round(h * 0.03)}px; }
-    h1 { font-weight: 500; font-size: ${head}px; line-height: 1.06; letter-spacing: ${lang === 'zh-Hans' ? 0 : -head * 0.035}px; }
+    h1 { font-weight: 500; font-size: ${head}px; line-height: 1.06; letter-spacing: ${['zh-Hans', 'ja'].includes(lang) ? 0 : -head * 0.035}px; }
     p { color: ${INK.ink2}; font-size: ${Math.round(head * 0.42)}px; line-height: 1.3; }
     .dev { position: absolute; left: 50%; transform: translateX(-50%); top: ${top}px; width: ${frameW}px;
       background: ${INK.bezel}; border-radius: ${radius + bezel}px; padding: ${bezel}px; box-shadow: 0 0 0 1px ${INK.line}; }

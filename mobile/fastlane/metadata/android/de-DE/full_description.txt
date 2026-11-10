@@ -25,6 +25,6 @@ RICHTIG GEMACHT
 • Behält das Aufnahmedatum, damit deine Mediathek in Ordnung bleibt
 • Unterstützt HEIC, JPEG, PNG und WebP
 • Vorher und nachher mit einem Schieberegler vergleichen
-• Verfügbar auf English, Español, Français, Deutsch, Italiano, Português und 简体中文
+• Verfügbar auf English, Español, Français, Deutsch, Italiano, Português, 简体中文 und 日本語
 
 Compresso basiert auf compresso.js, der Open-Source-Bildbibliothek.

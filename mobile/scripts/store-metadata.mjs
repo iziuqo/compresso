@@ -6,7 +6,7 @@
 // `appStoreName` overrides `name` on the App Store where another app already
 // holds that name in a storefront.
 //
-// Each of the seven app languages is published to every store locale that
+// Each of the eight app languages is published to every store locale that
 // speaks it (see store-locales.mjs).
 //
 // App Store screenshots and previews are read from the store kit renders in
@@ -23,7 +23,8 @@ import { APPLE, PLAY } from './store-locales.mjs';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const listing = JSON.parse(readFileSync(join(root, 'store/listing.json'), 'utf8'));
 const site = 'https://compresso.izaias.xyz';
-const slug = { en: 'en', es: 'es', fr: 'fr', de: 'de', it: 'it', 'pt-BR': 'pt-br', 'zh-Hans': 'zh-hans' };
+// The website has no Japanese pages yet, so the Japanese listing links the English ones.
+const slug = { en: 'en', es: 'es', fr: 'fr', de: 'de', it: 'it', 'pt-BR': 'pt-br', 'zh-Hans': 'zh-hans', ja: 'en' };
 
 const LIMITS = { name: 30, appStoreName: 30, subtitle: 30, shortDescription: 80, promotionalText: 170, description: 4000, releaseNotes: 500 };
 for (const [lang, copy] of Object.entries(listing)) {

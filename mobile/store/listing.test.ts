@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import listing from './listing.json';
 
-// The app's seven languages (src/i18n); importing that module would pull in Expo.
-const LOCALE_LIST = ['en', 'es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans'];
+// The app's eight languages (src/i18n); importing that module would pull in Expo.
+const LOCALE_LIST = ['en', 'es', 'fr', 'de', 'it', 'pt-BR', 'zh-Hans', 'ja'];
 
 /** Store limits, checked here so a copy edit can't fail at upload time. */
 const LIMITS = { name: 30, appStoreName: 30, subtitle: 30, shortDescription: 80, promotionalText: 170, description: 4000, releaseNotes: 500 };
