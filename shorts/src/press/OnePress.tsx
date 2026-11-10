@@ -8,6 +8,7 @@ import { ease, FPS, formatBytes, px, sec } from '../system';
 import { Chat, CHAT_LIGHT, CHAT_OPEN, REPLIES, SENDING, Sending, SENT } from './chat';
 import { PressCanvas, usePress } from './Press';
 import { ANSWER, Game, Looking, LOOKS, READ, SWAPS, TELL_OUT } from './tell';
+import { STAMPS, stamping } from './batch';
 import { GAUGE_LIGHT, MEET, Meter, TICKS } from './meter';
 import { Flip, FLIPS, flight, LANDED, landing, SHOTS } from './tube';
 import { at, B, type Cam, Find, Grain, GUTTER, jolt, mix, Signature, Size, span, travel, Wordmark } from './ritual';
@@ -34,6 +35,8 @@ import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type P
  * 04 One Bar (tube): six photos for a chat on one bar of signal, a glass duct
  *    with a sliver of a mouth; the proof a flip book, then the prints shoot
  *    through one per 8th note and land as a stack at the far end.
+ * 05 The Batch (batch): forty photos in one tower; the plate stamps it forty
+ *    times, top band first, faster and faster; the forty fan into one arc.
  * 06 The Meter (meter): one photo on a mobile data meter, its ghost needle
  *    showing what sending it would leave; pressed, it goes in, and a whole
  *    roll's light prints follow until the needle meets the ghost.
@@ -48,7 +51,7 @@ export type Kind = keyof typeof ACTS;
 
 export type OnePressProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
-  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'harbour' | 'airplane-room' | 'tell-fruit';
+  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'batch' | 'harbour' | 'airplane-room' | 'tell-fruit';
   kind: Kind;
   /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only): for all the photos, or for each in an `each` act. */
   limit?: number;
@@ -71,6 +74,10 @@ type Act = {
   shots?: readonly number[];
   /** The proof is a flip book, a print per 8th note, instead of a fanned hand. */
   flip?: boolean;
+  /** The plate stamps the bands one by one, top first, at these seconds, instead of one squeeze. */
+  stamps?: readonly number[];
+  /** The prints hold the proof, standing, until the light opens. */
+  hold?: boolean;
   /** The camera's stops from the flat beat, if not the slot's one stop at the gate. */
   flat?: [Cam, number, number][];
   /** A glass dome over the studio. */
@@ -107,6 +114,12 @@ const ACTS = {
     flat: [[{ az: 0.82, el: 0.34, dist: 19, tx: -3.4, ty: 1.3 }, B.flat, B.flat + 0.6], [{ az: 0.82, el: 0.34, dist: 19, tx: -9.4, ty: 1.3 }, B.slide + 0.2, LANDED + 0.2]], // the mouth, then along with the prints
     open: LANDED + 0.1, light: landing, out: [LANDED + 1.1, LANDED + 1.2],
     cues: [...FLIPS.map((a, i) => ['flick', a, 0.28, i] as const), ...SHOTS.map((a, i) => ['send', a, 0.3, 2 * i] as const), ['thud', LANDED, 0.3, 5]],
+  },
+  // A stamp per band, each a thump that lightens as the run speeds up; the fan holds, then the light opens from it.
+  batch: {
+    stamps: STAMPS, hold: true, flat: [[{ az: 0, el: 0, dist: (NEAR * 1.45 + GAP / 2) * 0.9, ty: SHOW }, B.shown, B.sink - 1.5]],
+    open: B.sink - 1.5, light: (press, p) => press.project(p, 0, SHOW, 0), out: [B.sink - 0.5, B.sink - 0.4],
+    cues: STAMPS.slice(1).map((a, i) => ['press-hit', a, Math.max(0.12, 0.4 - i * 0.012), Math.min(7, i / 5)] as const),
   },
   // A thin dial lands with the limit's clack; a low double warning as its ghost swings; a tiny tick per print in; a soft click as the needles meet.
   meter: {
@@ -147,6 +160,7 @@ function choreography(press: Press, kind: Kind) {
   const hover = heavy + 0.95;
   const many = press.photos.length > 1;
   const fanned = many && !act.flip;
+  const hand = fanned && press.photos.length <= 8; // a small hand opens fanned too; a big one opens as a deck, its top photo filling the frame
   const wallX = press.gateX + PLATE.tip / 2; // the tower's centre when it touches the gate
   const near = NEAR * (fanned ? 1.45 : 1); // a fanned hand needs more width
   // Under a dome the upper plate goes up only as far as the glass.
@@ -154,9 +168,9 @@ function choreography(press: Press, kind: Kind) {
   const framed = Math.max(top + 1, 7.5); // what the tap's shot holds: a short tower still leaves room for its size
 
   const gx = act.gate ? 1 : 0; // the studio shots look a little left, to hold the gate too
-  const close: Cam = { az: 0, el: Math.PI / 2, dist: near * 1.01, ty: top };
+  const close: Cam = { az: 0, el: Math.PI / 2, dist: NEAR * (hand ? 1.45 : 1) * 1.01, ty: top };
   const stops: [Cam, number, number][] = [
-    [{ ...close, dist: near }, 0, act.still ? B.phone : B.crane], // the slow drift that keeps frame 0 alive
+    [{ ...close, dist: close.dist / 1.01 }, 0, act.still ? B.phone : B.crane], // the slow drift that keeps frame 0 alive
     ...(act.still ? [] : [[{ az: 0.55, el: 0.3, dist: distanceFor(top + 2.63, 0.78), tx: -1.1 * gx, ty: PLATE.tall + heavy * 0.5 }, B.crane, B.wide] as [Cam, number, number]]),
     [{ az: 0.42, el: 0.12, dist: distanceFor(top, 0.9), tx: -0.5 * gx, ty: PLATE.tall + heavy * 0.42 }, B.phone, B.app],
     [{ az: 0.5, el: 0.26, dist: distanceFor(framed, 0.8), tx: -0.9 * gx, ty: PLATE.tall + heavy * 0.5 }, B.tap, B.touch],
@@ -171,25 +185,28 @@ function choreography(press: Press, kind: Kind) {
 
   return (t: number): Pose => {
     const up = (a: number, b: number, curve = ease.standard) => span(t, a, b, curve);
-    const squeeze = up(B.touch, B.pressed, ease.entrance);
-    const h = mix(heavy, GAP, squeeze);
-    // The upper plate: out of the dark while the camera finds the phone, the fall on the tap, the squeeze, away.
-    const upper = (t < B.tap ? mix(hover + 16, hover, up(B.phone, B.app, ease.entrance)) : t < B.touch ? mix(hover, heavy, up(B.tap, B.touch, ease.exit)) : h)
+    // One squeeze, or a stamp per band.
+    const stamped = act.stamps ? stamping(press, t) : undefined;
+    const h = stamped ? press.photos.reduce((n, b, i) => n + press.heightOf(mix(b.from, b.to, stamped.squeeze[i])), 0) : mix(heavy, GAP, up(B.touch, B.pressed, ease.entrance));
+    // The upper plate: out of the dark while the camera finds the phone, the fall on the tap, the squeeze (or the stamps), away.
+    const upper = (t < B.tap ? mix(hover + 16, hover, up(B.phone, B.app, ease.entrance)) : t < B.touch ? mix(hover, heavy, up(B.tap, B.touch, ease.exit)) : h + (stamped?.hop ?? 0))
       + leave * up(B.lift, B.lift + 0.75, ease.entrance);
+    // The prints lie down again at the flat beat, unless they hold the proof to the end.
+    const down = act.hold ? 0 : up(B.flat, B.flat + 0.5, ease.glide);
     // The stack tries the gate twice; then it rises to face us; then it lies down and goes through.
     const tries = act.gate ? B.tries.reduce((x, hit) => x + up(hit - 0.5, hit) - up(hit, hit + 0.5), 0) : 0;
     const x = mix(0, wallX, tries) + (act.gone ? mix(0, act.gone(press.gateX), up(...act.slide ?? [B.slide, B.through])) : 0);
-    const y = mix(mix(PLATE.tall + h / 2, SHOW, up(B.lift, B.shown, ease.glide)), PLATE.tall + GAP / 2, up(B.flat, B.flat + 0.5, ease.glide));
-    const tilt = (up(B.lift + 0.3, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide)) * Math.PI / 2;
+    const y = mix(mix(PLATE.tall + h / 2, SHOW, up(B.lift, B.shown, ease.glide)), PLATE.tall + GAP / 2, down);
+    const tilt = (up(B.lift + 0.3, B.shown, ease.glide) - down) * Math.PI / 2;
     // Several photos fan like a hand of cards while they fill the frame, and square into a deck for the gate.
-    const fan = fanned ? 1 - up(B.crane, B.crane + 1, ease.glide) + up(B.lift + 0.6, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide) : 0;
+    const fan = fanned ? (hand ? 1 - up(B.crane, B.crane + 1, ease.glide) : 0) + up(B.lift + 0.6, B.shown, ease.glide) - down : 0;
     const cam = travel(t, close, stops);
     cam.shake = jolt(t, B.touch, 0.03);
     const seal = kind === 'envelope' ? up(SEAL[0], SEAL[1], ease.glide) : 0;
     const { shift, courier } = act.shots ? flight(press, x, t) : {};
     return {
       cam,
-      stack: { h, x, y, tilt, fan, after: t >= B.touch, shift },
+      stack: { h, x, y, tilt, fan, after: t >= B.touch, shift, squeeze: stamped?.squeeze },
       courier,
       upper,
       studio: up(craneAt(act), craneAt(act) + 1) - up(B.lift, B.lift + 1) + up(B.flat, B.flat + 0.6) - 0.7 * up(act.open, act.open + 1),
@@ -295,7 +312,7 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
   const sizeAt: [number, number] = fanned && proof ? [0.5, foot[1] + 0.07] : [corner[0] + mix(0.03, 0, close), corner[1] + mix(0, 0.022, close)];
   // A flip book carries its own sizes.
   const sizeShown = Math.max(0, Math.min(1, 1 - up(B.pressed + 0.4, B.pressed + 0.9) + (act.flip ? 0 : up(B.shown - 0.4, B.shown) - up(B.flat, B.flat + 0.3))));
-  const each = fanned && proof ? press.photos.map((b, i) => ({ b, at: press.onStack(p, 0, 0.5, 0.5, i) })) : [];
+  const each = fanned && proof && press.photos.length <= 8 ? press.photos.map((b, i) => ({ b, at: press.onStack(p, 0, 0.5, 0.5, i) })) : [];
 
   const name = up(B.name, B.name + 0.25) - up(B.lift, B.lift + 0.5);
   const nameAt = press.project(p, 0, -0.62, DEPTH / 2);

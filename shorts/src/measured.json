@@ -792,5 +792,21 @@
         }
       }
     }
+  },
+  "everywhere": {
+    "photo": "lofoten",
+    "purpose": "message",
+    "from": 9905230,
+    "to": 117267,
+    "file": "out/everywhere.jpeg",
+    "flows": {
+      "en": {
+        "flow": "out/everywhere-en.mp4",
+        "at": {
+          "go": 0.7,
+          "done": 1.534
+        }
+      }
+    }
   }
 }

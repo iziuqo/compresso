@@ -67,7 +67,7 @@ export type Pose = {
    * the photos are the app's files yet, and how far its bands fan out like a
    * hand of cards (0 = stacked).
    */
-  stack: { h: number; x?: number; y: number; tilt?: number; after?: boolean; fan?: number; shift?: [number, number][] };
+  stack: { h: number; x?: number; y: number; tilt?: number; after?: boolean; fan?: number; shift?: [number, number][]; squeeze?: number[] };
   /** The upper plate's tip, above the lower plate's tip. */
   upper: number;
   /** Studio light, 0 (only the photo glows) to 1. */
@@ -438,17 +438,20 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
   function pose(p: Pose) {
     const { h, x = 0, y, tilt = 0, fan = 0 } = p.stack;
     stack.position.set(x, y, 0); stack.rotation.x = tilt;
-    // Each band is pressed by the same share, so the bands always add up to the stack.
+    // Each band is pressed by the same share, so the bands always add up to the stack; or, stamped one by one, each by its own.
     const k = pressed(h), mid0 = (bands.length - 1) / 2;
+    // A big hand fans no wider than eight cards.
+    const spread = fan * Math.min(1, 7 / Math.max(1, bands.length - 1));
     let base = -h / 2;
     bands.forEach((b, i) => {
-      const bh = heightOf(mix(b.from, b.to, k));
+      const bk = p.stack.squeeze?.[i] ?? k;
+      const bh = heightOf(mix(b.from, b.to, bk));
       b.mesh.scale.y = bh;
       // Fanned, the bands spread like cards from their front edges and separate a hair, so each photo shows.
       const [dx, dy] = p.stack.shift?.[i] ?? [0, 0]; // a print on its own way, through the duct
-      b.pivot.position.set((i - mid0) * 0.34 * fan + dx, base + bh / 2 + i * 0.03 * fan + dy, DEPTH / 2);
-      b.pivot.rotation.y = -(i - mid0) * 0.2 * fan;
-      b.top.map = p.stack.after ? b.faces.after : b.faces.before;
+      b.pivot.position.set((i - mid0) * 0.34 * spread + dx, base + bh / 2 + i * 0.03 * spread + dy, DEPTH / 2);
+      b.pivot.rotation.y = -(i - mid0) * 0.2 * spread;
+      b.top.map = p.stack.after && (p.stack.squeeze?.[i] ?? 1) > 0 ? b.faces.after : b.faces.before; // stamped one by one, each as its stamp lands
       base += bh;
     });
     upper.position.y = PLATE.tall + p.upper + PLATE.tall; // flipped, its tip is `tall` below its origin
