@@ -31,6 +31,16 @@ export default [
     ],
     plugins: [terser()],
   },
+  // The planner is pure logic with no DOM or worker URL, so unlike the pool it
+  // also ships as CommonJS, for React Native's Metro and Node.
+  {
+    input: 'src/plan.js',
+    output: [
+      { file: 'dist/compresso.plan.mjs', format: 'es', sourcemap: true },
+      { file: 'dist/compresso.plan.cjs', format: 'cjs', sourcemap: true, exports: 'named' },
+    ],
+    plugins: [terser()],
+  },
   // `pool.js`/`worker.js` are ESM-only: real module workers and
   // `import.meta.url`-relative worker discovery are fundamentally ESM
   // concepts (§3.4). Both ship as dist/ siblings — pool.js resolves

@@ -189,6 +189,38 @@ Migrating usually means: delete your own `pool.ts`/`worker.ts`, import `createPo
 latest preview request matters") as a small wrapper around `createPool({ size: 1 })` at your own
 app layer, rather than baking it into the pool itself.
 
+## Bring your own encoder: the planner
+
+`compresso.js/plan` is the deciding half of `compress()` with no pixels in it: which format,
+which quality, and how small, under the same never-bigger rule. Any host that can encode (iOS
+ImageIO, Android `Bitmap`, a server, a test fake) plugs in through a small adapter and gets the
+same answers. It has no DOM dependency, so it runs in React Native and Node too (ESM and CommonJS).
+
+```js
+import { planPhoto, allocateBudget } from 'compresso.js/plan';
+
+// "All of these under 10 MB": one target per photo, in proportion to its size.
+const targets = allocateBudget(10_000_000, photos.map((photo) => photo.size));
+
+const decision = await planPhoto(
+  {
+    formats: ['webp', 'jpeg'], // what this host can write, best first
+    prepare: (maxLongEdge) => myDecode(photo, maxLongEdge), // → { width, height, originalSize }
+    measure: (format, quality) => myEncodedSize(format, quality), // bytes, in memory
+    write: (format, quality) => myWrite(format, quality),
+    keep: () => photo, // nothing smaller was possible
+    release: () => myFree(),
+  },
+  { formats: ['avif', 'webp', 'jpeg'], quality: 0.8, targetBytes: targets[0] },
+);
+// → { result, format, quality, kept, missedTarget }
+```
+
+When no quality meets `targetBytes`, the planner steps the long edge down by 20% and searches
+again (never below 480 px), then gives the smallest file it can make with `missedTarget: true`.
+`findQuality` (the quality search on its own) and `resolveFormat` are exported too; see
+`types/plan.d.ts` for the full contract.
+
 ## FAQ
 
 ### How do I convert a HEIC image to JPEG or WebP in JavaScript?
