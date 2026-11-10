@@ -418,5 +418,81 @@
         }
       }
     }
+  },
+  "trip": {
+    "photos": [
+      "trip-desert",
+      "trip-canyon",
+      "trip-coast",
+      "trip-forest",
+      "trip-waterfall",
+      "trip-night"
+    ],
+    "purpose": "message",
+    "from": 22537536,
+    "to": 1791333,
+    "items": [
+      {
+        "photo": "trip-desert",
+        "from": 3982210,
+        "to": 250981,
+        "file": "out/trip-1.jpeg"
+      },
+      {
+        "photo": "trip-canyon",
+        "from": 3008907,
+        "to": 244469,
+        "file": "out/trip-2.jpeg"
+      },
+      {
+        "photo": "trip-coast",
+        "from": 3068239,
+        "to": 330397,
+        "file": "out/trip-3.jpeg"
+      },
+      {
+        "photo": "trip-forest",
+        "from": 3374528,
+        "to": 398735,
+        "file": "out/trip-4.jpeg"
+      },
+      {
+        "photo": "trip-waterfall",
+        "from": 6023476,
+        "to": 394203,
+        "file": "out/trip-5.jpeg"
+      },
+      {
+        "photo": "trip-night",
+        "from": 3080176,
+        "to": 172548,
+        "file": "out/trip-6.jpeg"
+      }
+    ],
+    "flows": {
+      "en": {
+        "flow": "out/trip-en.mp4",
+        "at": {
+          "go": 0.699,
+          "done": 3.151
+        }
+      }
+    }
+  },
+  "harbour": {
+    "photo": "dusk-harbour",
+    "purpose": "message",
+    "from": 9156343,
+    "to": 236974,
+    "file": "out/harbour.jpeg",
+    "flows": {
+      "en": {
+        "flow": "out/harbour-en.mp4",
+        "at": {
+          "go": 0.698,
+          "done": 1.584
+        }
+      }
+    }
   }
 }

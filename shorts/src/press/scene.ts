@@ -26,6 +26,8 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 /** The icon's plates: wide base, narrow tip, height; and the gap between the tips. */
 export const PLATE = { wide: 3.04, tip: 1.52, tall: 1.08 };
 export const GAP = 0.4;
+/** The glass duct's length, from its mouth to its far end; the prints land past it, on a stack of their own. */
+export const TUBE = 3.6;
 /** A 4:3 photo lies on the tip face. */
 export const DEPTH = PLATE.tip * 0.75;
 /** The vertical field of view: long, so the closed press reads flat as the icon. */
@@ -43,14 +45,16 @@ export type Band = { before: string; after: string; from: number; to: number };
 export type PressSetup = {
   /** The photos, bottom to top: each is a band of glass as tall as its own file. */
   photos: Band[];
-  /** The size the gate allows, in bytes. */
+  /** The size the gate allows, in bytes: for all the photos together, or with `each`, for every photo on its own. */
   limit: number;
+  each?: boolean;
   /**
    * The gate, left of the press, its opening exactly as tall as the limit: a
    * slot in a white wall, the mouth of an envelope lying on a plinth, or a
-   * chat bubble drawn in one hairline.
+   * chat bubble drawn in one hairline, or the mouth of a glass duct that
+   * carries the prints one by one to a landing at its far end.
    */
-  gate?: 'slot' | 'envelope' | 'bubble';
+  gate?: 'slot' | 'envelope' | 'bubble' | 'tube';
   /** A clear glass dome over the whole studio, this many units in radius: the room is sealed, nothing leaves it. */
   dome?: number;
 };
@@ -63,7 +67,7 @@ export type Pose = {
    * the photos are the app's files yet, and how far its bands fan out like a
    * hand of cards (0 = stacked).
    */
-  stack: { h: number; x?: number; y: number; tilt?: number; after?: boolean; fan?: number };
+  stack: { h: number; x?: number; y: number; tilt?: number; after?: boolean; fan?: number; shift?: [number, number][] };
   /** The upper plate's tip, above the lower plate's tip. */
   upper: number;
   /** Studio light, 0 (only the photo glows) to 1. */
@@ -77,6 +81,8 @@ export type Pose = {
   bytes: number;
   /** The slot's glow, 0 to 1, as the photo's light pours through it. */
   pour?: number;
+  /** A print in flight through the duct: which band, where along x, and how brightly it lights the glass with its colours. */
+  courier?: { band: number; x: number; k: number };
   /** The envelope's flap, 0 (open) to 1 (sealed). */
   seal?: number;
   /** The dome, 0 (lifted out of sight) to 1 (sealed on the floor), and how far the photo's colours fill its glass. */
@@ -239,7 +245,7 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
     const pivot = new THREE.Group();
     pivot.add(mesh);
     stack.add(pivot);
-    return { ...print, faces, top, mesh, pivot };
+    return { ...print, faces, top, mesh, pivot, colour: average(print.before, 0, 0, 1600, 1200) };
   });
   scene.add(stack);
   // The light the stack throws is the top photo's.
@@ -278,7 +284,9 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
   const fill = new THREE.DirectionalLight('#ffffff', 0); fill.position.set(8, 5, 6);
   const face = new THREE.RectAreaLight(tint.all, 0, PLATE.tip, DEPTH); face.rotation.x = Math.PI / 2;
   const spill = [tint.left, tint.right, tint.front].map((c) => new THREE.PointLight(c, 0, 6, 2));
-  scene.add(key, rim, fill, face, ...spill);
+  // A print in flight lights the duct's glass with its own colours.
+  const courier = new THREE.PointLight('#ffffff', 0, 2.4, 2);
+  scene.add(key, rim, fill, face, ...spill, courier);
 
   // The air the press squeezes out at the seam: seeded, so every render repeats.
   const rand = (() => { let s = 11; return () => (s = (s * 16807) % 2147483647) / 2147483647; })();
@@ -306,6 +314,8 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
   const limitY = PLATE.tall + heightOf(setup.limit);
   const gateX = -2.7;
   const slot = { bottom: PLATE.tall, top: limitY, half: DEPTH / 2 + 0.07 };
+  /** Where the prints land beyond a duct: the centre of their new stack, two prints' widths clear of its far end, room for each one's arc. */
+  const landX = gateX - TUBE - PLATE.tip * 2.5;
   const gate = new THREE.Group();
   const edges = new THREE.MeshBasicMaterial({ color: RED });
   const light = new THREE.MeshBasicMaterial({ color: tint.all, transparent: true, opacity: 0, side: THREE.DoubleSide });
@@ -326,6 +336,14 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
       const [x0, x1, d] = [gateX - t, gateX, 1.5];
       box(x0, x1, 0, slot.bottom, -d, d); box(x0, x1, slot.top, GATE_H, -d, d);
       box(x0, x1, slot.bottom, slot.top, -d, -slot.half); box(x0, x1, slot.bottom, slot.top, slot.half, d);
+    } else if (setup.gate === 'tube') {
+      // A glass duct, its mouth the limit tall, laid on a dark rail that runs on past its far end as the landing.
+      const pane = new THREE.MeshPhysicalMaterial({ color: '#ffffff', roughness: 0.05, metalness: 0, transmission: 1, thickness: 0.02, ior: 1.4, specularIntensity: 0.7 });
+      const w = 0.02;
+      box(landX - PLATE.tip / 2 - 0.3, gateX, 0, slot.bottom - w, -slot.half - w, slot.half + w, new THREE.MeshPhysicalMaterial({ color: '#1c1c1e', roughness: 0.55, metalness: 0 }));
+      const x0 = gateX - TUBE;
+      box(x0, gateX, slot.top, slot.top + w, -slot.half - w, slot.half + w, pane);
+      box(x0, gateX, slot.bottom, slot.top, -slot.half - w, -slot.half, pane); box(x0, gateX, slot.bottom, slot.top, slot.half, slot.half + w, pane);
     } else if (setup.gate === 'envelope') {
       // An envelope lying on a dark plinth, its open mouth towards the press: paper walls round a pocket the limit tall.
       const [x0, p] = [gateX - 2.3, 0.02];
@@ -367,6 +385,13 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
       const edge = (y: number, z: number, sy: number, sz: number) => box(gateX - t, gateX + 0.004, y - sy / 2, y + sy / 2, z - sz / 2, z + sz / 2, edges).castShadow = false;
       edge(slot.bottom + e / 2, 0, e, slot.half * 2); edge(slot.top - e / 2, 0, e, slot.half * 2);
       edge(slot.bottom + h / 2, -slot.half + e / 2, h, e); edge(slot.bottom + h / 2, slot.half - e / 2, h, e);
+      // A duct's glass is drawn by its long top edges and its far rim, in the opening's ink.
+      if (setup.gate === 'tube') {
+        const x0 = gateX - TUBE;
+        for (const z of [-slot.half, slot.half]) box(x0, gateX - t, slot.top - e, slot.top, z - e / 2, z + e / 2, edges).castShadow = false;
+        const rim = (y: number, z: number, sy: number, sz: number) => box(x0 - 0.004, x0 + e, y - sy / 2, y + sy / 2, z - sz / 2, z + sz / 2, edges).castShadow = false;
+        rim(slot.top - e / 2, 0, e, slot.half * 2); rim(slot.bottom + h / 2, -slot.half, h, e); rim(slot.bottom + h / 2, slot.half, h, e);
+      }
       pane = new THREE.Mesh(new THREE.PlaneGeometry(slot.half * 2, h), light);
       pane.rotation.y = Math.PI / 2; pane.position.set(gateX - t - 0.02, slot.bottom + h / 2, 0);
     }
@@ -404,6 +429,12 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
     camera.updateMatrixWorld();
   }
 
+  /** Whether the photos are under the limit yet: together, or each on its own. */
+  function fits(p: Pose) {
+    const k = pressed(p.stack.h);
+    return setup.each ? bands.every((b) => mix(b.from, b.to, k) <= setup.limit) : p.bytes <= setup.limit;
+  }
+
   function pose(p: Pose) {
     const { h, x = 0, y, tilt = 0, fan = 0 } = p.stack;
     stack.position.set(x, y, 0); stack.rotation.x = tilt;
@@ -414,7 +445,8 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
       const bh = heightOf(mix(b.from, b.to, k));
       b.mesh.scale.y = bh;
       // Fanned, the bands spread like cards from their front edges and separate a hair, so each photo shows.
-      b.pivot.position.set((i - mid0) * 0.34 * fan, base + bh / 2 + i * 0.03 * fan, DEPTH / 2);
+      const [dx, dy] = p.stack.shift?.[i] ?? [0, 0]; // a print on its own way, through the duct
+      b.pivot.position.set((i - mid0) * 0.34 * fan + dx, base + bh / 2 + i * 0.03 * fan + dy, DEPTH / 2);
       b.pivot.rotation.y = -(i - mid0) * 0.2 * fan;
       b.top.map = p.stack.after ? b.faces.after : b.faces.before;
       base += bh;
@@ -428,9 +460,12 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
     spill[0].position.set(x - PLATE.tip / 2 - 0.45, mid, 0.2);
     spill[1].position.set(x + PLATE.tip / 2 + 0.45, mid, 0.2);
     spill[2].position.set(x, mid, DEPTH / 2 + 0.6);
+    const flight = p.courier ?? { band: 0, x: 0, k: 0 };
+    courier.color.copy(bands[flight.band].colour); courier.intensity = 6 * flight.k;
+    courier.position.set(flight.x, (slot.top + slot.bottom) / 2, 0);
     for (const s of spill) s.intensity = (0.5 + h * 0.34) * p.studio;
 
-    const under = p.bytes <= setup.limit;
+    const under = fits(p);
     const ink = under ? '#ffffff' : RED;
     gauge.visible = p.gauge > 0.01;
     // The upper plate wipes each tick as it passes: what is above the seam is gone.
@@ -472,9 +507,11 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
     total,
     /** The size a stack `h` tall stands for: the count is read off the height, so the two never disagree. */
     bytesOf: (h: number) => h / perByte,
+    fits,
     limitY,
     gateX,
     slot,
+    landX,
     /** The photo's colours: everything, its left and right edges, its foot. CSS strings. */
     tints: Object.fromEntries(Object.entries(tint).map(([k, c]) => [k, `#${c.getHexString(THREE.SRGBColorSpace)}`])) as Record<keyof typeof tint, string>,
     /** Renders one frame. */

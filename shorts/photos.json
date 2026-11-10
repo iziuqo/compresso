@@ -66,6 +66,8 @@
     "envelope": { "photos": ["milky-way", "jagged", "reflect"], "purpose": "email", "preselected": true, "recording": ["en"] },
     "bubble-cat": { "photo": "cat", "purpose": "message", "preselected": true, "recording": ["en"] },
     "airplane-room": { "photo": "living-room", "purpose": "message", "preselected": true, "recording": ["en"] },
-    "tell-fruit": { "photo": "fruit-table", "purpose": "space", "preselected": true, "recording": ["en"] }
+    "tell-fruit": { "photo": "fruit-table", "purpose": "space", "preselected": true, "recording": ["en"] },
+    "trip": { "photos": ["trip-desert", "trip-canyon", "trip-coast", "trip-forest", "trip-waterfall", "trip-night"], "purpose": "message", "preselected": true, "recording": ["en"] },
+    "harbour": { "photo": "dusk-harbour", "purpose": "message", "preselected": true, "recording": ["en"] }
   }
 }

@@ -3,11 +3,12 @@ import { AbsoluteFill, Freeze, Img, Sequence, useCurrentFrame } from 'remotion';
 import en from '../../locales/en.json';
 import measured from '../measured.json';
 import { Bed, Cue, semitones, type Sound } from '../sound';
-import { Glyph, Phone, Recording, Touch } from '../story';
+import { Glyph, Phone, Recording, Signal, Touch } from '../story';
 import { ease, FPS, formatBytes, px, sec } from '../system';
 import { Chat, CHAT_LIGHT, CHAT_OPEN, REPLIES, SENDING, Sending, SENT } from './chat';
 import { PressCanvas, usePress } from './Press';
 import { ANSWER, Game, Looking, LOOKS, READ, SWAPS, TELL_OUT } from './tell';
+import { Flip, FLIPS, flight, LANDED, landing, SHOTS } from './tube';
 import { at, B, type Cam, Find, Grain, GUTTER, jolt, mix, Signature, Size, span, travel, Wordmark } from './ritual';
 import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type Press, type PressSetup } from './scene';
 
@@ -29,6 +30,9 @@ import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type P
  *    cards, and the deck goes into the envelope's mouth before its flap seals.
  * 03 The Bubble (bubble): one photo for a chat, stuck on a send that never
  *    moves; pressed, it fits its bubble, the send completes, replies come in.
+ * 04 One Bar (tube): six photos for a chat on one bar of signal, a glass duct
+ *    with a sliver of a mouth; the proof a flip book, then the prints shoot
+ *    through one per 8th note and land as a stack at the far end.
  * 07 Can You Tell? (tell): a loupe reads the photo before the press; after,
  *    the original and the print are shuffled like shells, and glass answers.
  * 08 Airplane Mode (dome): a glass dome seals the studio and nothing is
@@ -40,9 +44,9 @@ export type Kind = keyof typeof ACTS;
 
 export type OnePressProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
-  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'airplane-room' | 'tell-fruit';
+  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'airplane-room' | 'tell-fruit';
   kind: Kind;
-  /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only). */
+  /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only): for all the photos, or for each in an `each` act. */
   limit?: number;
 };
 
@@ -54,15 +58,24 @@ const CUT = [{ start: 0, end: 99 }];
 type Act = {
   /** The gate the photos must pass, which they try twice and go through. */
   gate?: NonNullable<PressSetup['gate']>;
-  /** Where the prints' centre ends once through, from the gate's x. */
+  /** The limit is for every photo on its own. */
+  each?: boolean;
+  /** Where the prints' centre ends once through, from the gate's x, and when it moves (by default, from the slide to through). */
   gone?: (gateX: number) => number;
+  slide?: [number, number];
+  /** The prints go through one by one, departing at these seconds, instead of as one deck. */
+  shots?: readonly number[];
+  /** The proof is a flip book, a print per 8th note, instead of a fanned hand. */
+  flip?: boolean;
+  /** The camera's stops from the flat beat, if not the slot's one stop at the gate. */
+  flat?: [Cam, number, number][];
   /** A glass dome over the studio. */
   dome?: boolean;
   /** No crane at the start: the photo fills the frame until the phone comes. */
   still?: boolean;
   /** When the light opens: beyond the gate, from `light` (a point in the frame) if it isn't the gate's opening; or in the dome's glass. */
   open: number;
-  light?: [number, number];
+  light?: (press: Press, p: Pose) => [number, number];
   /** When the scene leaves the frame: once the light covers it, or as the colour sinks. */
   out: [number, number];
   /** Its own sounds, in seconds. */
@@ -80,9 +93,16 @@ const ACTS = {
   },
   // A chat photo stays in its bubble, and the scene gives way to the chat as it goes in.
   bubble: {
-    gate: 'bubble', gone: (x) => x, open: CHAT_OPEN, light: CHAT_LIGHT, out: [B.through, B.through + 0.45],
+    gate: 'bubble', gone: (x) => x, open: CHAT_OPEN, light: () => CHAT_LIGHT, out: [B.through, B.through + 0.45],
     cues: [['send', B.line, 0.25], ...SENDING.map(([a], i) => ['counter-tick', a, 0.14 - i * 0.02, 9] as const), ['counter-tick', SENT, 0.45, 12],
       ...REPLIES.map((a, i) => ['pop', a, 0.3, [0, 3, 7][i]] as const)],
+  },
+  // The deck goes to the duct's mouth as it lies down; a whoosh per shot, a soft landing.
+  tube: {
+    gate: 'tube', each: true, gone: (x) => x + PLATE.tip / 2, slide: [B.flat, B.slide], shots: SHOTS, flip: true,
+    flat: [[{ az: 0.82, el: 0.34, dist: 19, tx: -3.4, ty: 1.3 }, B.flat, B.flat + 0.6], [{ az: 0.82, el: 0.34, dist: 19, tx: -9.4, ty: 1.3 }, B.slide + 0.2, LANDED + 0.2]], // the mouth, then along with the prints
+    open: LANDED + 0.1, light: landing, out: [LANDED + 1.1, LANDED + 1.2],
+    cues: [...FLIPS.map((a, i) => ['flick', a, 0.28, i] as const), ...SHOTS.map((a, i) => ['send', a, 0.3, 2 * i] as const), ['thud', LANDED, 0.3, 5]],
   },
   // Airplane mode switched on, the dome lands and seals, the room closes in.
   dome: {
@@ -116,8 +136,9 @@ function choreography(press: Press, kind: Kind) {
   const top = PLATE.tall + heavy;
   const hover = heavy + 0.95;
   const many = press.photos.length > 1;
+  const fanned = many && !act.flip;
   const wallX = press.gateX + PLATE.tip / 2; // the tower's centre when it touches the gate
-  const near = NEAR * (many ? 1.45 : 1); // a fanned hand needs more width
+  const near = NEAR * (fanned ? 1.45 : 1); // a fanned hand needs more width
   // Under a dome the upper plate goes up only as far as the glass.
   const leave = act.gate ? 12 : ROOM - 3.1 - GAP;
   const framed = Math.max(top + 1, 7.5); // what the tap's shot holds: a short tower still leaves room for its size
@@ -132,9 +153,9 @@ function choreography(press: Press, kind: Kind) {
     [{ az: 0, el: 0, dist: 27.5, ty: PLATE.tall + GAP / 2 - 0.5 }, B.front, B.name],
     [{ az: 0, el: 0, dist: 27.5 * 0.97, ty: PLATE.tall + GAP / 2 - 0.5 }, B.name, B.lift], // the push-in on the name
     [{ az: 0, el: 0, dist: near + GAP / 2, ty: SHOW }, B.lift, B.shown],
-    act.gate
+    ...(act.flat ?? [act.gate
       ? [{ az: 0.82, el: 0.3, dist: 19, tx: -1.5, ty: 1.45 }, B.flat, B.flat + 0.6] // to the gate
-      : [{ az: 0.35, el: 0.22, dist: 20, ty: PLATE.tall }, B.flat, B.flat + 0.6], // down with the print as it lies back on the plate
+      : [{ az: 0.35, el: 0.22, dist: 20, ty: PLATE.tall }, B.flat, B.flat + 0.6]] as [Cam, number, number][]), // down with the print as it lies back on the plate
     ...(act.gate ? [] : [[{ az: 0.6, el: 0.32, dist: distanceFor(ROOM * 1.25, 0.8), ty: ROOM * 0.45 }, B.flat + 0.6, B.sink] as [Cam, number, number]]), // then out, slowly, to see the whole dome
   ];
 
@@ -147,17 +168,19 @@ function choreography(press: Press, kind: Kind) {
       + leave * up(B.lift, B.lift + 0.75, ease.entrance);
     // The stack tries the gate twice; then it rises to face us; then it lies down and goes through.
     const tries = act.gate ? B.tries.reduce((x, hit) => x + up(hit - 0.5, hit) - up(hit, hit + 0.5), 0) : 0;
-    const x = mix(0, wallX, tries) + (act.gone ? mix(0, act.gone(press.gateX), up(B.slide, B.through)) : 0);
+    const x = mix(0, wallX, tries) + (act.gone ? mix(0, act.gone(press.gateX), up(...act.slide ?? [B.slide, B.through])) : 0);
     const y = mix(mix(PLATE.tall + h / 2, SHOW, up(B.lift, B.shown, ease.glide)), PLATE.tall + GAP / 2, up(B.flat, B.flat + 0.5, ease.glide));
     const tilt = (up(B.lift + 0.3, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide)) * Math.PI / 2;
     // Several photos fan like a hand of cards while they fill the frame, and square into a deck for the gate.
-    const fan = many ? 1 - up(B.crane, B.crane + 1, ease.glide) + up(B.lift + 0.6, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide) : 0;
+    const fan = fanned ? 1 - up(B.crane, B.crane + 1, ease.glide) + up(B.lift + 0.6, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide) : 0;
     const cam = travel(t, close, stops);
     cam.shake = jolt(t, B.touch, 0.03);
     const seal = kind === 'envelope' ? up(SEAL[0], SEAL[1], ease.glide) : 0;
+    const { shift, courier } = act.shots ? flight(press, x, t) : {};
     return {
       cam,
-      stack: { h, x, y, tilt, fan, after: t >= B.touch },
+      stack: { h, x, y, tilt, fan, after: t >= B.touch, shift },
+      courier,
       upper,
       studio: up(craneAt(act), craneAt(act) + 1) - up(B.lift, B.lift + 1) + up(B.flat, B.flat + 0.6) - 0.7 * up(act.open, act.open + 1),
       gauge: up(B.crane + 0.5, B.wide) - up(B.pressed - 0.5, B.pressed),
@@ -177,7 +200,7 @@ export function OnePress({ result, kind, limit = Infinity }: OnePressProps) {
   const t = frame / FPS;
   const act: Act = ACTS[kind];
   const { bands, rec } = bandsOf(result);
-  const press = usePress({ photos: bands, limit, gate: act.gate, dome: act.dome ? ROOM : undefined });
+  const press = usePress({ photos: bands, limit, each: act.each, gate: act.gate, dome: act.dome ? ROOM : undefined });
   const poseAt = press.press && choreography(press.press, kind);
   // Find covers the scene from its start until the first frame comes back for the loop.
   const finding = t >= B.find && t < B.loop;
@@ -228,8 +251,8 @@ function Score({ act, many }: { act: Act; many: boolean }) {
       <Signature touch={B.touch} name={B.name} find={B.find} />
       <Cue sound="flick" at={s(B.lift)} volume={0.3} pitch={semitones(-5)} />
       <Cue sound="flick" at={s(B.lift + 0.6)} volume={0.25} />
-      {act.gate && <Cue sound="send" at={s(B.slide)} volume={0.35} pitch={semitones(-3)} />}
-      {act.gate && <Cue sound="counter-tick" at={s(B.through)} volume={0.5} pitch={semitones(-7)} />}
+      {act.gone && !act.shots && <Cue sound="send" at={s(B.slide)} volume={0.35} pitch={semitones(-3)} />}
+      {act.gone && !act.shots && <Cue sound="counter-tick" at={s(B.through)} volume={0.5} pitch={semitones(-7)} />}
       {act.cues.map(([sound, a, volume, pitch = 0]) => <Cue key={`${sound}${a}`} sound={sound} at={s(a)} volume={volume} pitch={semitones(pitch)} />)}
       <Cue sound="bloom" at={s(act.open)} volume={0.5} />
     </>
@@ -249,7 +272,7 @@ const phoneY = (t: number) => mix(px(2600), 0, span(t, B.phone + 0.3, B.app, eas
 function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, rec: ReturnType<typeof bandsOf>['rec']) {
   const act: Act = ACTS[kind];
   const up = (a: number, b: number, curve = ease.standard) => span(t, a, b, curve);
-  const many = press.photos.length > 1;
+  const fanned = press.photos.length > 1 && !act.flip;
   // 1 while the photos fill the frame: lying at the start, standing for the proof.
   const close = 1 - up(craneAt(act), craneAt(act) + 1.5, ease.glide) + up(B.lift + 1, B.shown, ease.glide) - up(B.flat, B.flat + 0.5, ease.glide);
   const proof = t > B.lift;
@@ -258,17 +281,18 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
   // Fanned for the proof, each print carries its own size and the total sits under the hand.
   const corner = press.onStack(p, 0.5, 0.5, 0.5);
   corner[0] = Math.max(corner[0], press.onStack(p, 0.5, 0.5, -0.5)[0]); // clear of the far edge too, which a tall tower swings right
-  const foot = many && proof ? press.onStack(p, 0, 0.5, 0.5, 0) : corner;
-  const sizeAt: [number, number] = many && proof ? [0.5, foot[1] + 0.07] : [corner[0] + mix(0.03, 0, close), corner[1] + mix(0, 0.022, close)];
-  const sizeShown = Math.max(0, Math.min(1, 1 - up(B.pressed + 0.4, B.pressed + 0.9) + up(B.shown - 0.4, B.shown) - up(B.flat, B.flat + 0.3)));
-  const each = many && proof ? press.photos.map((b, i) => ({ b, at: press.onStack(p, 0, 0.5, 0.5, i) })) : [];
+  const foot = fanned && proof ? press.onStack(p, 0, 0.5, 0.5, 0) : corner;
+  const sizeAt: [number, number] = fanned && proof ? [0.5, foot[1] + 0.07] : [corner[0] + mix(0.03, 0, close), corner[1] + mix(0, 0.022, close)];
+  // A flip book carries its own sizes.
+  const sizeShown = Math.max(0, Math.min(1, 1 - up(B.pressed + 0.4, B.pressed + 0.9) + (act.flip ? 0 : up(B.shown - 0.4, B.shown) - up(B.flat, B.flat + 0.3))));
+  const each = fanned && proof ? press.photos.map((b, i) => ({ b, at: press.onStack(p, 0, 0.5, 0.5, i) })) : [];
 
   const name = up(B.name, B.name + 0.25) - up(B.lift, B.lift + 0.5);
   const nameAt = press.project(p, 0, -0.62, DEPTH / 2);
-  const light = act.light ?? press.project(p, press.gateX, (press.slot.top + press.slot.bottom) / 2, 0);
+  const light = act.light?.(press, p) ?? press.project(p, press.gateX, (press.slot.top + press.slot.bottom) / 2, 0);
   const type = (
     <>
-      <Size bytes={p.bytes} size={px(78)} style={{ ...at(sizeAt, many && proof ? [0.5, 0] : [close > 0.5 ? 1 : 0, close > 0.5 ? 0 : 0.5]), opacity: sizeShown }} />
+      <Size bytes={p.bytes} size={px(78)} style={{ ...at(sizeAt, fanned && proof ? [0.5, 0] : [close > 0.5 ? 1 : 0, close > 0.5 ? 0 : 0.5]), opacity: sizeShown }} />
       {each.map(({ b, at: a }) => (
         <Size key={b.after} bytes={b.to} size={px(40)} style={{ ...at([a[0], a[1] + 0.012], [0.5, 0]), opacity: sizeShown * up(B.shown - 0.4, B.shown) }} />
       ))}
@@ -282,6 +306,7 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
       {kind === 'dome' && <Offline t={t} />}
       {kind === 'tell' && t < B.phone && <Looking press={press} p={p} t={t} />}
       {kind === 'tell' && t > B.lift && <Game press={press} t={t} />}
+      {act.flip && t > B.lift && t < B.shown + 0.2 && <Flip press={press} t={t} />}
       {act.gate && <Flood src={press.photos[press.photos.length - 1].after} t={t} open={act.open} from={light} />}
       {t >= B.phone && t < B.tap + 0.6 && (
         <Phone k={1.4} y={phoneY(t)} neutral>
@@ -301,11 +326,13 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
 /**
  * The limit: a red hairline over the photo's top edge, which the crane turns
  * into the opening's top edge, with its tag: the size it allows (typed as
- * the line lands), or for a chat the send that stalls. White once under.
+ * the line lands), for a chat the send that stalls, or for a duct its one
+ * bar of signal. White once under.
  */
 function Limit({ press, p, t, kind, limit }: { press: Press; p: Pose; t: number; kind: Kind; limit: number }) {
   const up = (a: number, b: number, curve = ease.standard) => span(t, a, b, curve);
-  const chat = kind === 'bubble';
+  const act: Act = ACTS[kind];
+  const chat = kind === 'bubble', signal = kind === 'tube';
   const edgeL = press.onStack(p, -0.5, 0.5, -0.5), edgeR = press.onStack(p, 0.5, 0.5, -0.5);
   const slotL = press.project(p, press.gateX, press.slot.top, -press.slot.half), slotR = press.project(p, press.gateX, press.slot.top, press.slot.half);
   const k = up(B.crane, B.wide, ease.glide);
@@ -318,7 +345,8 @@ function Limit({ press, p, t, kind, limit }: { press: Press; p: Pose; t: number;
   const tagAt: [number, number] = [mix(line[2], tagEnd[0], k), mix(line[3] - 0.004, tagEnd[1], k)];
   // An envelope's tag sits over the envelope, clear of the tower beside it, until the prints come back to it.
   const tagAnchor = mix(1, kind === 'envelope' && t < B.lift ? 1 : 0, k);
-  const tagShown = Math.min(1, (t < B.wide ? (chat ? drop : 1) : 0) + up(B.wide - 0.5, B.wide) * (1 - up(B.front, B.front + 0.5)) + up(B.flat, B.flat + 0.6) * (1 - up(B.through, B.through + 0.3)));
+  const gone = act.shots ? LANDED : B.through;
+  const tagShown = Math.min(1, (t < B.wide ? (chat || signal ? drop : 1) : 0) + up(B.wide - 0.5, B.wide) * (1 - up(B.front, B.front + 0.5)) + up(B.flat, B.flat + 0.6) * (1 - up(gone, gone + 0.3)));
   return (
     <>
       {lineShown > 0 && (
@@ -327,8 +355,8 @@ function Limit({ press, p, t, kind, limit }: { press: Press; p: Pose; t: number;
         </svg>
       )}
       <div style={{ position: 'absolute', ...at(tagAt, [tagAnchor, 1]), marginTop: -px(14), fontFamily: 'var(--font-mono)', fontWeight: 500, fontSize: px(36), letterSpacing: '0.06em',
-        color: p.bytes <= limit ? 'var(--ink)' : RED, opacity: tagShown, whiteSpace: 'nowrap' }}>
-        {chat ? <Sending t={t} /> : t < B.wide ? typed : label}
+        color: press.fits(p) ? 'var(--ink)' : RED, opacity: tagShown, whiteSpace: 'nowrap' }}>
+        {chat ? <Sending t={t} /> : signal ? <Signal bars={1} unit={px(4)} color="currentColor" /> : t < B.wide ? typed : label}
       </div>
     </>
   );

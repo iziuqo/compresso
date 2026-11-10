@@ -100,13 +100,20 @@ export function StatusBar({ time, bars = 4, battery = 0.8, ink = '#fff', airplan
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 54, color: ink, fontFamily: ui, fontWeight: 600, fontSize: 17 }}>
       <div style={{ position: 'absolute', left: 52, top: 17, fontVariantNumeric: 'tabular-nums' }}>{time}</div>
       {airplane ? <Glyph name="plane" size={17} color={ink} style={{ position: 'absolute', right: 70, top: 18 }} /> : (
-        <div style={{ position: 'absolute', right: 74, top: 21, display: 'flex', gap: 2, alignItems: 'flex-end' }}>
-          {[0, 1, 2, 3].map((i) => <div key={i} style={{ width: 3, height: 4 + i * 2.6, borderRadius: 1, background: ink, opacity: i < bars ? 1 : 0.28 }} />)}
-        </div>
+        <Signal bars={bars} unit={1} color={ink} style={{ position: 'absolute', right: 74, top: 21 }} />
       )}
       <div style={{ position: 'absolute', right: 30, top: 20, width: 26, height: 13, borderRadius: 4, border: `1.2px solid ${ink}`, opacity: 0.95, padding: 1.6 }}>
         <div style={{ width: `${battery * 100}%`, height: '100%', borderRadius: 2, background: low ? tone.red : ink }} />
       </div>
+    </div>
+  );
+}
+
+/** Signal bars out of four, as the status bar draws them, `unit` times its size. */
+export function Signal({ bars, unit, color, style }: { bars: number; unit: number; color: string; style?: CSSProperties }) {
+  return (
+    <div style={{ display: 'flex', gap: 2 * unit, alignItems: 'flex-end', ...style }}>
+      {[0, 1, 2, 3].map((i) => <div key={i} style={{ width: 3 * unit, height: (4 + i * 2.6) * unit, borderRadius: unit, background: color, opacity: i < bars ? 1 : 0.28 }} />)}
     </div>
   );
 }
