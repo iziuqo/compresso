@@ -36,6 +36,7 @@
     "grandma": { "photos": ["golden-gate", "cake", "happy-dog", "dim-sum", "palm-sunset", "couscous", "venice-palms", "stormy-sunset", "dog-run", "edie", "beach-dusk", "tropic-beach"], "purpose": "email", "recording": ["en"] },
     "one-bar": { "photos": ["tropic-beach", "palm-sunset", "dog-run", "venice-palms", "stormy-sunset", "happy-dog", "beach-dusk", "golden-gate"], "purpose": "message", "recording": ["en"] },
     "limit-lake": { "photo": "lake", "purpose": "upload", "preselected": true, "recording": ["en"] },
-    "envelope": { "photos": ["milky-way", "jagged", "reflect"], "purpose": "email", "preselected": true, "recording": ["en"] }
+    "envelope": { "photos": ["milky-way", "jagged", "reflect"], "purpose": "email", "preselected": true, "recording": ["en"] },
+    "bubble-cat": { "photo": "cat", "purpose": "message", "preselected": true, "recording": ["en"] }
   }
 }

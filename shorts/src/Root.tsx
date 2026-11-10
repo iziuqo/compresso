@@ -57,6 +57,8 @@ export function Root() {
         defaultProps={{ result: 'limit-lake', limit: 1e6, gate: 'slot' }} />
       <Composition id="the-envelope" component={GateShort} durationInFrames={GATE_SHORT.duration} {...frame}
         defaultProps={{ result: 'envelope', limit: 5e6, gate: 'envelope' }} />
+      <Composition id="the-bubble" component={GateShort} durationInFrames={GATE_SHORT.duration} {...frame}
+        defaultProps={{ result: 'bubble-cat', limit: 4e5, gate: 'bubble' }} />
     </>
   );
 }

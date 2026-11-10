@@ -370,5 +370,21 @@
         }
       }
     }
+  },
+  "bubble-cat": {
+    "photo": "cat",
+    "purpose": "message",
+    "from": 9253734,
+    "to": 294532,
+    "file": "out/bubble-cat.jpeg",
+    "flows": {
+      "en": {
+        "flow": "out/bubble-cat-en.mp4",
+        "at": {
+          "go": 0.698,
+          "done": 1.551
+        }
+      }
+    }
   }
 }

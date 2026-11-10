@@ -3,7 +3,7 @@ import en from '../../locales/en.json';
 import measured from '../measured.json';
 import { Bed, Cue, semitones } from '../sound';
 import { Phone, Recording, Touch } from '../story';
-import { ease, FPS, formatBytes, px, sec } from '../system';
+import { ease, FPS, formatBytes, H, px, sec, W } from '../system';
 import { PressCanvas, usePress } from './Press';
 import { at, type Cam, Find, Grain, jolt, mix, Signature, Size, span, travel, Wordmark } from './ritual';
 import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type Press, type PressSetup } from './scene';
@@ -24,12 +24,14 @@ import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type P
  * 01 The Limit: one photo, an upload form's slot in a white wall.
  * 02 The Envelope: three photos, one email: the bands fan like cards, and
  *    the deck goes into the envelope's mouth before its flap seals.
+ * 03 The Bubble: one photo for a chat, stuck on a send that never moves;
+ *    pressed, it fits its bubble, the send completes, and replies come in.
  */
 export const GATE_SHORT = { duration: sec(30) };
 
 export type GateShortProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
-  result: 'limit-lake' | 'envelope';
+  result: 'limit-lake' | 'envelope' | 'bubble-cat';
   /** What the gate allows, in bytes, as the app's purpose defines it. */
   limit: number;
   gate: NonNullable<PressSetup['gate']>;
@@ -60,8 +62,13 @@ export const B = {
 
 const SHOW = 4.3; // where the light prints stand to face the camera
 const SEAL = [B.through + 0.1, B.through + 1.1]; // an envelope's flap swings shut
-/** When the light beyond the gate opens: at once past a slot; for an envelope, a beat after it is sealed. */
-const openAt = (gate: GateShortProps['gate']) => (gate === 'envelope' ? SEAL[1] + 0.25 : B.through);
+/** A chat's send: the share sent at each second while the photo is too heavy (it stalls), all of it in a quarter second once it fits. */
+const SENDING: [number, number][] = [[0.5, 0.03], [1, 0.06], [1.5, 0.09], [3, 0.11], [5, 0.12]];
+const SENT = B.through + 0.25;
+const REPLIES = [24, 24.5, 25]; // the answers that come in once it is sent
+const GUTTER = 96 / 1080; // the frame's side margin, as a share of its width
+/** When the light beyond the gate opens: at once past a slot; for an envelope, a beat after it is sealed; after a chat's last reply. */
+const openAt = (gate: GateShortProps['gate']) => ({ slot: B.through, envelope: SEAL[1] + 0.25, bubble: REPLIES[2] + 0.45 })[gate];
 const CUT = [{ start: 0, end: 99 }];
 
 /** A measured result as the scene's bands, bottom to top, with its recording. */
@@ -80,7 +87,8 @@ function choreography(press: Press, { gate }: GateShortProps) {
   const hover = heavy + 0.95;
   const many = press.photos.length > 1;
   const wallX = press.gateX + PLATE.tip / 2; // the tower's centre when it touches the gate
-  const goneX = press.gateX - PLATE.tip / 2 - (gate === 'envelope' ? 0.25 : 0.3); // the prints' centre once they are through
+  // The prints' centre once they are through; a chat photo stays in its bubble.
+  const goneX = gate === 'bubble' ? press.gateX : press.gateX - PLATE.tip / 2 - (gate === 'envelope' ? 0.25 : 0.3);
   const near = NEAR * (many ? 1.45 : 1); // a fanned hand needs more width
   const open = openAt(gate);
 
@@ -141,7 +149,9 @@ export function GateShort(props: GateShortProps) {
   const p = poseAt && !finding ? poseAt(st) : null;
   // The scene goes once the flood covers it (the flood alone sinks to black), stays hidden under Find, and fades back in as frame 0.
   const open = openAt(props.gate);
-  const shown = t >= B.loop ? span(t, B.loop, 30, ease.standard) : finding ? 0 : 1 - span(t, open + 1, open + 1.1);
+  // A chat's scene gives way to the chat itself as the photo goes into its bubble.
+  const gone = props.gate === 'bubble' ? span(t, B.through, B.through + 0.45) : span(t, open + 1, open + 1.1);
+  const shown = t >= B.loop ? span(t, B.loop, 30, ease.standard) : finding ? 0 : 1 - gone;
   const over = press.press && p && overlay(press.press, p, st, props, rec);
   return (
     <AbsoluteFill style={{ background: 'var(--void)' }}>
@@ -165,7 +175,7 @@ export function GateShort(props: GateShortProps) {
  */
 function Score({ gate, many }: { gate: GateShortProps['gate']; many: boolean }) {
   const s = sec;
-  const paper = gate === 'envelope';
+  const paper = gate === 'envelope', chat = gate === 'bubble';
   return (
     <>
       <Bed sound="room" levels={[[0, -40], [s(B.find), -40], [s(B.find) + 1, -50], [s(B.loop), -50], [s(30), -40]]} />
@@ -186,10 +196,78 @@ function Score({ gate, many }: { gate: GateShortProps['gate']; many: boolean }) 
       <Cue sound="counter-tick" at={s(B.through)} volume={0.5} pitch={semitones(-7)} />
       {paper && <Cue sound="flick" at={s(SEAL[0])} volume={0.35} pitch={semitones(-7)} />}
       {paper && <Cue sound="knock" at={s(SEAL[1])} volume={0.3} pitch={semitones(7)} />}
+      {chat && <Cue sound="send" at={s(B.line)} volume={0.25} />}
+      {chat && SENDING.map(([a], i) => <Cue key={a} sound="counter-tick" at={s(a)} volume={0.14 - i * 0.02} pitch={semitones(9)} />)}
+      {chat && <Cue sound="counter-tick" at={s(SENT)} volume={0.45} pitch={semitones(12)} />}
+      {chat && REPLIES.map((a, i) => <Cue key={a} sound="pop" at={s(a)} volume={0.3} pitch={semitones([0, 3, 7][i])} />)}
       <Cue sound="bloom" at={s(openAt(gate))} volume={0.5} />
     </>
   );
 }
+
+/** Where a chat's photo lands, in shares of the frame: right-aligned as sent messages are, cropped 4:3. */
+const SENT_PHOTO = { w: 0.62, top: 0.3, h: (0.62 * W) / H * 0.75 };
+
+/**
+ * A chat's payoff: the pressed photo leaves the bubble in the scene as the
+ * photo in a sent message with its new size, its send completes in a quarter
+ * second, and the answers come in, empty bubbles from the left, the last
+ * with a heart.
+ */
+function Chat({ press, p, t }: { press: Press; p: Pose; t: number }) {
+  const k = span(t, B.through - 0.1, B.through + 0.45, ease.glide);
+  // From the bubble's outline in the scene (its bounds in the frame) to the message.
+  const corners = [press.slot.top, press.slot.bottom].flatMap((y) => [-1, 1].map((z) => press.project(p, press.gateX, y, z * press.slot.half)));
+  const [x0, y0] = [Math.min(...corners.map((c) => c[0])), Math.min(...corners.map((c) => c[1]))];
+  const [x1, y1] = [Math.max(...corners.map((c) => c[0])), Math.max(...corners.map((c) => c[1]))];
+  const { w, top, h } = SENT_PHOTO, left = 1 - GUTTER - w;
+  const box = { left: mix(x0, left, k) * W, top: mix(y0, top, k) * H, width: mix(x1 - x0, w, k) * W, height: mix(y1 - y0, h, k) * H };
+  return (
+    <AbsoluteFill>
+      <Img src={press.photos[press.photos.length - 1].after} style={{ position: 'absolute', ...box, objectFit: 'cover', opacity: span(t, B.through - 0.1, B.through + 0.15),
+        borderRadius: px(40), borderBottomRightRadius: px(10) }} />
+      <Size bytes={press.total.to} size={px(36)} style={{ ...at([left + 0.01, top + h + 0.012]), opacity: k }} />
+      <div style={{ position: 'absolute', ...at([1 - GUTTER, top + h + 0.012], [1, 0]), fontFamily: 'var(--font-mono)', fontWeight: 500, fontSize: px(36), letterSpacing: '0.06em', color: 'var(--ink)', opacity: k }}>
+        <Sending t={t} />
+      </div>
+      {REPLIES.map((a, i) => {
+        const r = span(t, a, a + 0.35, ease.entrance);
+        return r > 0 && (
+          <div key={a} style={{ position: 'absolute', ...at([GUTTER, top + h + 0.06 + i * 0.048]), width: px([340, 240, 290][i]), height: px(72), borderRadius: px(36), borderBottomLeftRadius: px(10),
+            background: 'rgb(255 255 255 / 0.1)', boxShadow: `inset 0 0 0 ${px(1.5)}px rgb(255 255 255 / 0.14)`, opacity: r, marginLeft: -(1 - r) * px(420) }}>
+            {i === REPLIES.length - 1 && <Heart k={span(t, a + 0.2, a + 0.45, ease.entrance)} />}
+          </div>
+        );
+      })}
+    </AbsoluteFill>
+  );
+}
+
+/** A chat's send: a ring that fills with the share sent, the share in figures, and a tick once it is all sent. */
+function Sending({ t }: { t: number }) {
+  const stalled = SENDING.reduce((k, [a, share]) => (t >= a ? share : k), 0);
+  const share = mix(stalled, 1, span(t, B.through, SENT, ease.standard));
+  const tick = span(t, SENT, SENT + 0.2, ease.standard);
+  const r = 9, c = 2 * Math.PI * r;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: px(12), fontVariantNumeric: 'tabular-nums' }}>
+      <svg width={px(40)} height={px(40)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r={r} opacity={0.25} />
+        <circle cx="12" cy="12" r={r} strokeDasharray={`${c * share} ${c}`} transform="rotate(-90 12 12)" />
+        {tick > 0 && <path d="M8 12.4 10.9 15.3 16.2 9.6" pathLength={1} strokeDasharray={`${tick} 1`} />}
+      </svg>
+      {Math.round(share * 100)}%
+    </span>
+  );
+}
+
+/** The small heart a reply carries, popping onto its corner. */
+const Heart = ({ k }: { k: number }) => (
+  <div style={{ position: 'absolute', right: -px(14), bottom: -px(18), width: px(44), height: px(44), borderRadius: '50%', background: '#1c1c1e',
+    boxShadow: `0 0 0 ${px(3)}px var(--void)`, display: 'grid', placeItems: 'center', transform: `scale(${k})` }}>
+    <svg width={px(24)} height={px(24)} viewBox="0 0 24 24" fill="#fff"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2Z" /></svg>
+  </div>
+);
 
 /** The focus rack: the press goes soft while the phone is in front of it. */
 const blurAt = (t: number) => {
@@ -227,11 +305,12 @@ function overlay(press: Press, p: Pose, t: number, { limit, gate }: GateShortPro
   const typed = label.slice(0, Math.round(label.length * up(B.line + 0.2, B.line + 0.45)));
   const tagEnd = press.project(p, press.gateX, press.slot.top + 0.14, press.slot.half);
   const tagAt: [number, number] = [mix(line[2], tagEnd[0], k), mix(line[3] - 0.004, tagEnd[1], k)];
-  const tagShown = Math.min(1, (t < B.wide ? 1 : 0) + up(B.wide - 0.5, B.wide) * (1 - up(B.front, B.front + 0.5)) + up(B.flat, B.flat + 0.6) * (1 - up(B.through, B.through + 0.3)));
+  const chat = gate === 'bubble';
+  const tagShown = Math.min(1, (t < B.wide ? (chat ? drop : 1) : 0) + up(B.wide - 0.5, B.wide) * (1 - up(B.front, B.front + 0.5)) + up(B.flat, B.flat + 0.6) * (1 - up(B.through, B.through + 0.3)));
 
   const name = up(B.name, B.name + 0.25) - up(B.lift, B.lift + 0.5);
   const nameAt = press.project(p, 0, -0.62, DEPTH / 2);
-  const slot = press.project(p, press.gateX, (press.slot.top + press.slot.bottom) / 2, 0);
+  const slot = chat ? [1 - GUTTER - SENT_PHOTO.w / 2, SENT_PHOTO.top + SENT_PHOTO.h / 2] : press.project(p, press.gateX, (press.slot.top + press.slot.bottom) / 2, 0);
   const flood = up(openAt(gate), openAt(gate) + 1);
   const phoneY = mix(px(2600), 0, up(B.phone + 0.3, B.app, ease.glide)) + px(2600) * up(B.tap + 0.05, B.tap + 0.6, ease.glide);
   const type = (
@@ -247,7 +326,7 @@ function overlay(press: Press, p: Pose, t: number, { limit, gate }: GateShortPro
       )}
       <div style={{ position: 'absolute', ...at(tagAt, [mix(1, gate === 'envelope' && t < B.lift ? 1 : 0, k), 1]), marginTop: -px(14), fontFamily: 'var(--font-mono)', fontWeight: 500, fontSize: px(36), letterSpacing: '0.06em',
         color: ink, opacity: tagShown, whiteSpace: 'nowrap' }}>
-        {t < B.wide ? typed : label}
+        {chat ? <Sending t={t} /> : t < B.wide ? typed : label}
       </div>
       <Wordmark style={{ ...at([0.5, nameAt[1]], [0.5, 0]), opacity: name, marginTop: (1 - up(B.name, B.name + 0.25)) * px(19) }} />
     </>
@@ -256,6 +335,7 @@ function overlay(press: Press, p: Pose, t: number, { limit, gate }: GateShortPro
   const r = flood * 180;
   const front = (
     <>
+      {chat && t > B.through - 0.1 && <Chat press={press} p={p} t={t} />}
       {flood > 0 && (
         <Img src={press.photos[press.photos.length - 1].after} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
           filter: `blur(${px(70)}px) saturate(1.3) brightness(${1 + 0.08 * Math.sin(Math.max(0, t - B.through - 1) * 2.4)})`, transform: 'scale(1.2)',

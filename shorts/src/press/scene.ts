@@ -47,9 +47,10 @@ export type PressSetup = {
   limit: number;
   /**
    * The gate, left of the press, its opening exactly as tall as the limit: a
-   * slot in a white wall, or the mouth of an envelope lying on a plinth.
+   * slot in a white wall, the mouth of an envelope lying on a plinth, or a
+   * chat bubble drawn in one hairline.
    */
-  gate?: 'slot' | 'envelope';
+  gate?: 'slot' | 'envelope' | 'bubble';
 };
 
 export type Pose = {
@@ -313,7 +314,7 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
       const [x0, x1, d] = [gateX - t, gateX, 1.5];
       box(x0, x1, 0, slot.bottom, -d, d); box(x0, x1, slot.top, GATE_H, -d, d);
       box(x0, x1, slot.bottom, slot.top, -d, -slot.half); box(x0, x1, slot.bottom, slot.top, slot.half, d);
-    } else {
+    } else if (setup.gate === 'envelope') {
       // An envelope lying on a dark plinth, its open mouth towards the press: paper walls round a pocket the limit tall.
       const [x0, p] = [gateX - 2.3, 0.02];
       box(x0, gateX, 0, slot.bottom - p, -slot.half, slot.half, new THREE.MeshPhysicalMaterial({ color: '#1c1c1e', roughness: 0.55, metalness: 0 }));
@@ -334,12 +335,29 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
       flap.position.set(gateX + 0.002, slot.top + p, 0);
       gate.add(flap);
     }
-    // The opening's four edges, and the photo's light inside it.
-    const edge = (y: number, z: number, sy: number, sz: number) => box(gateX - t, gateX + 0.004, y - sy / 2, y + sy / 2, z - sz / 2, z + sz / 2, edges).castShadow = false;
-    edge(slot.bottom + e / 2, 0, e, slot.half * 2); edge(slot.top - e / 2, 0, e, slot.half * 2);
-    edge(slot.bottom + h / 2, -slot.half + e / 2, h, e); edge(slot.bottom + h / 2, slot.half - e / 2, h, e);
-    const pane = new THREE.Mesh(new THREE.PlaneGeometry(slot.half * 2, h), light);
-    pane.rotation.y = Math.PI / 2; pane.position.set(gateX - t - 0.02, slot.bottom + h / 2, 0);
+    // The photo's light inside the opening: a pane across it, or the bubble's own shape.
+    let pane: THREE.Mesh;
+    if (setup.gate === 'bubble') {
+      // Nothing but the bubble's outline round the opening, rounded, its tail at the bottom right, standing in the air.
+      // Drawn in (z, y); the pane turned a quarter about y lays z along the shape's x.
+      const r = Math.min(h / 2, 0.22), [z0, z1, y0, y1] = [-slot.half, slot.half, slot.bottom, slot.top];
+      const outline = new THREE.Shape();
+      outline.moveTo(z0 + r, y1); outline.lineTo(z1 - r, y1); outline.quadraticCurveTo(z1, y1, z1, y1 - r);
+      outline.lineTo(z1, y0 - 0.16); outline.lineTo(z1 - 0.26, y0); // the tail
+      outline.lineTo(z0 + r, y0); outline.quadraticCurveTo(z0, y0, z0, y0 + r);
+      outline.lineTo(z0, y1 - r); outline.quadraticCurveTo(z0, y1, z0 + r, y1);
+      const curve = new THREE.CatmullRomCurve3(outline.getSpacedPoints(400).map((q) => new THREE.Vector3(gateX, q.y, q.x)), true);
+      gate.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 400, e / 2, 8, true), edges));
+      pane = new THREE.Mesh(new THREE.ShapeGeometry(outline, 12), light);
+      pane.rotation.y = -Math.PI / 2; pane.position.x = gateX - 0.01;
+    } else {
+      // The opening's four edges.
+      const edge = (y: number, z: number, sy: number, sz: number) => box(gateX - t, gateX + 0.004, y - sy / 2, y + sy / 2, z - sz / 2, z + sz / 2, edges).castShadow = false;
+      edge(slot.bottom + e / 2, 0, e, slot.half * 2); edge(slot.top - e / 2, 0, e, slot.half * 2);
+      edge(slot.bottom + h / 2, -slot.half + e / 2, h, e); edge(slot.bottom + h / 2, slot.half - e / 2, h, e);
+      pane = new THREE.Mesh(new THREE.PlaneGeometry(slot.half * 2, h), light);
+      pane.rotation.y = Math.PI / 2; pane.position.set(gateX - t - 0.02, slot.bottom + h / 2, 0);
+    }
     gate.add(pane);
     scene.add(gate);
   }
