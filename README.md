@@ -336,6 +336,45 @@ export class ImageUploadComponent {
 </details>
 
 <details>
+<summary><strong>Solid</strong></summary>
+
+```jsx
+import { createSignal, Show } from 'solid-js';
+import { compress, formatBytes } from 'compresso.js';
+
+function ImageUpload() {
+  const [result, setResult] = createSignal(null);
+
+  async function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const optimized = await compress(file, { quality: 0.8, maxWidth: 1920, format: 'auto' });
+    const previous = result();
+    if (previous) URL.revokeObjectURL(previous.url);
+    setResult(optimized);
+  }
+
+  return (
+    <div>
+      <input type="file" accept="image/*" onChange={handleFile} />
+      <Show when={result()} keyed>
+        {(res) => (
+          <div>
+            <img src={res.url} alt="Optimized" />
+            <p>{formatBytes(res.originalSize)} → {formatBytes(res.compressedSize)} ({res.savings}% smaller)</p>
+          </div>
+        )}
+      </Show>
+    </div>
+  );
+}
+```
+
+Full working version: [`examples/solid/App.jsx`](examples/solid/App.jsx).
+
+</details>
+
+<details>
 <summary><strong>Next.js (App Router) — upload recipe</strong></summary>
 
 Compress client-side in a `'use client'` component, then upload the already-optimized file to a route handler:
