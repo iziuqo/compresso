@@ -386,5 +386,37 @@
         }
       }
     }
+  },
+  "airplane-room": {
+    "photo": "living-room",
+    "purpose": "message",
+    "from": 2147730,
+    "to": 193465,
+    "file": "out/airplane-room.jpeg",
+    "flows": {
+      "en": {
+        "flow": "out/airplane-room-en.mp4",
+        "at": {
+          "go": 0.702,
+          "done": 0.953
+        }
+      }
+    }
+  },
+  "tell-fruit": {
+    "photo": "fruit-table",
+    "purpose": "space",
+    "from": 3352126,
+    "to": 679612,
+    "file": "out/tell-fruit.jpeg",
+    "flows": {
+      "en": {
+        "flow": "out/tell-fruit-en.mp4",
+        "at": {
+          "go": 0.702,
+          "done": 1.07
+        }
+      }
+    }
   }
 }
