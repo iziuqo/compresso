@@ -36,6 +36,8 @@ const css = `
   html, body { width: ${W}px; height: ${H}px; background: transparent; color: #fff; font-family: G, 'Noto Sans SC', sans-serif; }
   /* Japanese kanji take Japanese glyph shapes, not Chinese ones. */
   :lang(ja) body { font-family: G, 'Noto Sans JP', 'Noto Sans SC', sans-serif; }
+  /* Japanese has no spaces: break headlines between phrases, never mid-word. */
+  :lang(ja) h1 { word-break: auto-phrase; text-wrap: balance; }
   .mark { width: 132px; height: 132px; }
 `;
 const MARK = '<svg class="mark" viewBox="0 0 512 512"><path d="M104 128H408L332 236H180Z" fill="#fff"/><path d="M104 384H408L332 276H180Z" fill="#fff"/></svg>';

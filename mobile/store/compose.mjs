@@ -42,6 +42,8 @@ const base = `
   body { font-family: G, 'Noto Sans SC', sans-serif; background: ${INK.bg}; color: ${INK.ink}; overflow: hidden; }
   /* Japanese kanji take Japanese glyph shapes, not Chinese ones. */
   :lang(ja) body { font-family: G, 'Noto Sans JP', 'Noto Sans SC', sans-serif; }
+  /* Japanese has no spaces: break headlines between phrases, never mid-word. */
+  :lang(ja) h1 { word-break: auto-phrase; text-wrap: balance; }
 `;
 
 /** One store image: headline block on top, the phone or tablet below. */
