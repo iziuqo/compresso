@@ -36,6 +36,7 @@ const ONE_PRESSES: (OnePressProps & { id: string })[] = [
   { id: 'the-batch', result: 'batch', kind: 'batch' },
   { id: 'the-meter', result: 'harbour', kind: 'meter' },
   { id: 'can-you-tell', result: 'tell-fruit', kind: 'tell' },
+  { id: 'everywhere', result: 'everywhere', kind: 'everywhere' },
   { id: 'airplane-mode', result: 'airplane-room', kind: 'dome' },
 ];
 

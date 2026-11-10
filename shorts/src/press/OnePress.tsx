@@ -1,14 +1,15 @@
-import type { ReactNode } from 'react';
-import { AbsoluteFill, Freeze, Img, Sequence, useCurrentFrame } from 'remotion';
+import type { ReactNode, RefObject } from 'react';
+import { AbsoluteFill, Img, useCurrentFrame } from 'remotion';
 import en from '../../locales/en.json';
 import measured from '../measured.json';
 import { Bed, Cue, semitones, type Sound } from '../sound';
-import { Glyph, Phone, Recording, Signal, Touch } from '../story';
+import { Glyph, Phone, Signal } from '../story';
 import { ease, FPS, formatBytes, px, sec } from '../system';
 import { Chat, CHAT_LIGHT, CHAT_OPEN, REPLIES, SENDING, Sending, SENT } from './chat';
 import { PressCanvas, usePress } from './Press';
 import { ANSWER, Game, Looking, LOOKS, READ, SWAPS, TELL_OUT } from './tell';
 import { STAMPS, stamping } from './batch';
+import { App, Screens } from './screens';
 import { GAUGE_LIGHT, MEET, Meter, TICKS } from './meter';
 import { Flip, FLIPS, flight, LANDED, landing, SHOTS } from './tube';
 import { at, B, type Cam, Find, Grain, GUTTER, jolt, mix, Signature, Size, span, travel, Wordmark } from './ritual';
@@ -44,6 +45,8 @@ import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type P
  *    the original and the print are shuffled like shells, and glass answers.
  * 08 Airplane Mode (dome): a glass dome seals the studio and nothing is
  *    uploaded, ever; the press runs as always and the dome fills with colour.
+ * 10 Everywhere (everywhere): one press on a phone, a tablet and a browser at
+ *    once, in sync to the frame; at dead front the three slide into one.
  */
 export const ONE_PRESS = { duration: sec(30) };
 
@@ -51,7 +54,7 @@ export type Kind = keyof typeof ACTS;
 
 export type OnePressProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
-  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'batch' | 'harbour' | 'airplane-room' | 'tell-fruit';
+  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'batch' | 'harbour' | 'everywhere' | 'airplane-room' | 'tell-fruit';
   kind: Kind;
   /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only): for all the photos, or for each in an `each` act. */
   limit?: number;
@@ -60,7 +63,6 @@ export type OnePressProps = {
 const SHOW = 4.3; // where the light prints stand to face the camera
 const ROOM = 10.5; // the dome's radius: over the whole studio, the camera always outside it
 const SEAL = [B.through + 0.1, B.through + 1.1]; // an envelope's flap swings shut
-const CUT = [{ start: 0, end: 99 }];
 
 type Act = {
   /** The gate the photos must pass, which they try twice and go through. */
@@ -78,6 +80,8 @@ type Act = {
   stamps?: readonly number[];
   /** The prints hold the proof, standing, until the light opens. */
   hold?: boolean;
+  /** The press is shown on three screens, which slide together into the one press for the name. */
+  screens?: boolean;
   /** The camera's stops from the flat beat, if not the slot's one stop at the gate. */
   flat?: [Cam, number, number][];
   /** A glass dome over the studio. */
@@ -126,6 +130,11 @@ const ACTS = {
     open: MEET + 0.05, light: () => GAUGE_LIGHT, out: [MEET + 1, MEET + 1.1],
     cues: [['knock', B.line + 0.2, 0.5, 5], ['counter-tick', B.tries[0], 0.4, -12], ['counter-tick', B.tries[0] + 0.15, 0.4, -12],
       ...TICKS.map((a, i) => ['counter-tick', a + 0.28, 0.12, Math.min(12, i / 3)] as const), ['glass-tick', MEET, 0.4, 5]],
+  },
+  // Three soft arrivals on one beat; three taps as one; the light opens over the three as they show the print.
+  everywhere: {
+    screens: true, hold: true, flat: [], open: B.flat, light: () => [0.5, 0.45], out: [B.flat + 1, B.flat + 1.1],
+    cues: [['glass-tick', B.line + 0.3, 0.3, 0], ['glass-tick', B.line + 0.32, 0.25, 4], ['glass-tick', B.line + 0.34, 0.2, 7], ['tap', B.tap + 0.012, 0.35, 3], ['tap', B.tap + 0.024, 0.3, -3]],
   },
   // Airplane mode switched on, the dome lands and seals, the room closes in.
   dome: {
@@ -234,7 +243,7 @@ export function OnePress({ result, kind, limit = Infinity }: OnePressProps) {
   const st = t >= B.loop ? 0 : t; // the last quarter second is frame 0 again, fading in
   const p = poseAt && !finding ? poseAt(st) : null;
   const shown = t >= B.loop ? span(t, B.loop, 30, ease.standard) : finding ? 0 : 1 - span(t, ...act.out);
-  const over = press.press && p && overlay(press.press, p, st, kind, limit, rec);
+  const over = press.press && p && overlay(press.press, press.canvas, p, st, kind, limit, rec);
   return (
     <AbsoluteFill style={{ background: 'var(--void)' }}>
       <AbsoluteFill style={{ opacity: shown, filter: blurAt(t) }}>
@@ -296,7 +305,7 @@ const blurAt = (t: number) => {
 const phoneY = (t: number) => mix(px(2600), 0, span(t, B.phone + 0.3, B.app, ease.glide)) + px(2600) * span(t, B.tap + 0.05, B.tap + 0.6, ease.glide);
 
 /** The type that rides on the scene (it goes soft with it), and in front of it the light, the act's own payoff and the phone. */
-function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, rec: ReturnType<typeof bandsOf>['rec']) {
+function overlay(press: Press, canvas: RefObject<HTMLCanvasElement | null>, p: Pose, t: number, kind: Kind, limit: number, rec: ReturnType<typeof bandsOf>['rec']) {
   const act: Act = ACTS[kind];
   const up = (a: number, b: number, curve = ease.standard) => span(t, a, b, curve);
   const fanned = press.photos.length > 1 && !act.flip;
@@ -335,16 +344,10 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
       {kind === 'tell' && t < B.phone && <Looking press={press} p={p} t={t} />}
       {kind === 'tell' && t > B.lift && <Game press={press} t={t} />}
       {act.flip && t > B.lift && t < B.shown + 0.2 && <Flip press={press} t={t} />}
+      {act.screens && <Screens source={canvas} t={t} bytes={p.bytes} rec={rec} />}
       {(act.gate || act.light) && <Flood src={press.photos[press.photos.length - 1].after} t={t} open={act.open} from={light} />}
-      {t >= B.phone && t < B.tap + 0.6 && (
-        <Phone k={1.4} y={phoneY(t)} neutral>
-          {/* The recording opens on the purpose already chosen; it holds its first frame until it runs into the tap. */}
-          <Sequence from={sec(B.phone)} durationInFrames={sec(B.tap - rec.at.go - B.phone)} layout="none">
-            <Freeze frame={0}><Recording flow={rec.flow} from={0} cuts={CUT} time="9:41" airplane={kind === 'dome'} /></Freeze>
-          </Sequence>
-          {t >= B.tap - rec.at.go && <Recording flow={rec.flow} from={sec(B.tap - rec.at.go)} cuts={CUT} time="9:41" airplane={kind === 'dome'} />}
-          <Touch x={196} y={813} at={sec(B.tap)} t={sec(t)} />
-        </Phone>
+      {!act.screens && t >= B.phone && t < B.tap + 0.6 && (
+        <Phone k={1.4} y={phoneY(t)} neutral><App rec={rec} t={t} airplane={kind === 'dome'} /></Phone>
       )}
     </>
   );
