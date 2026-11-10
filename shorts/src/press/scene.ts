@@ -37,23 +37,30 @@ const RULER = PLATE.tip / 2 + 0.12;
 
 export const RED = '#FF6369';
 
+/** One photo in the stack: the original and the file the app wrote (URLs), and their sizes in bytes. */
+export type Band = { before: string; after: string; from: number; to: number };
+
 export type PressSetup = {
-  /** The photo before and the file the app wrote, as URLs. */
-  before: string;
-  after: string;
-  /** Sizes in bytes: before, after, and the limit the gate allows. */
-  from: number;
-  to: number;
+  /** The photos, bottom to top: each is a band of glass as tall as its own file. */
+  photos: Band[];
+  /** The size the gate allows, in bytes. */
   limit: number;
-  /** The gate: a white wall left of the press, with a slot as tall as the limit. */
-  gate?: boolean;
+  /**
+   * The gate, left of the press, its opening exactly as tall as the limit: a
+   * slot in a white wall, or the mouth of an envelope lying on a plinth.
+   */
+  gate?: 'slot' | 'envelope';
 };
 
 export type Pose = {
   /** Camera on an orbit round (tx, ty, 0): azimuth and elevation in radians, distance, and a jolt. */
   cam: { az: number; el: number; dist: number; tx?: number; ty: number; shake?: number };
-  /** The stack: height, centre, tilt towards the camera (π/2 faces it), and which photo is on top. */
-  stack: { h: number; x?: number; y: number; tilt?: number; after?: boolean };
+  /**
+   * The stack: height, centre, tilt towards the camera (π/2 faces it), whether
+   * the photos are the app's files yet, and how far its bands fan out like a
+   * hand of cards (0 = stacked).
+   */
+  stack: { h: number; x?: number; y: number; tilt?: number; after?: boolean; fan?: number };
   /** The upper plate's tip, above the lower plate's tip. */
   upper: number;
   /** Studio light, 0 (only the photo glows) to 1. */
@@ -67,6 +74,8 @@ export type Pose = {
   bytes: number;
   /** The slot's glow, 0 to 1, as the photo's light pours through it. */
   pour?: number;
+  /** The envelope's flap, 0 (open) to 1 (sealed). */
+  seal?: number;
   /** The air the press squeezes out: seconds since the plate touched, and how long the squeeze lasts. */
   air?: { age: number; length: number };
 };
@@ -179,11 +188,15 @@ const hairline = (w: number, color: string) =>
  */
 export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) {
   const { width, height } = canvas;
-  const [before, after] = await Promise.all([crop43(setup.before), crop43(setup.after)]);
+  const prints = await Promise.all(setup.photos.map(async (b) => ({ ...b, before: await crop43(b.before), after: await crop43(b.after) })));
+  const sum = (k: 'from' | 'to') => setup.photos.reduce((n, b) => n + b[k], 0);
+  const total = { from: sum('from'), to: sum('to') };
   // Height is file size, to scale: the pressed stack is the logo's gap.
-  const perByte = GAP / setup.to;
+  const perByte = GAP / total.to;
   /** The stack's height for a size in bytes. */
   const heightOf = (bytes: number) => bytes * perByte;
+  /** How far a stack `h` tall is through the press: 0 heavy, 1 pressed. Each band is pressed by the same share. */
+  const pressed = (h: number) => (heightOf(total.from) - h) / (heightOf(total.from) - GAP);
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(1);
@@ -198,16 +211,27 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
   scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
   const camera = new THREE.PerspectiveCamera(FOV, width / height, 1, 300);
 
-  // The stack: the photo on top, its colours down the sides.
+  // The stack: a band of glass per photo, each with its photo on top and its colours down its sides.
+  // The group is the whole stack (its centre, tilt); a band sits inside it on a pivot at its front edge, for the fan.
   const glow = (map: THREE.Texture, k = 1.7) => new THREE.MeshBasicMaterial({ map, color: new THREE.Color(k, k, k) });
-  const faces = { before: texture(before), after: texture(after) };
-  const top = glow(faces.before, 1);
-  const stack = new THREE.Mesh(new THREE.BoxGeometry(PLATE.tip, 1, DEPTH), [
-    glow(sideTexture(before, 'right')), glow(sideTexture(before, 'left')), top,
-    new THREE.MeshBasicMaterial({ color: '#000' }), glow(sideTexture(before, 'bottom')), glow(sideTexture(before, 'top')),
-  ]);
+  const stack = new THREE.Group();
+  const bands = prints.map((print) => {
+    const faces = { before: texture(print.before), after: texture(print.after) };
+    const top = glow(faces.before, 1);
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(PLATE.tip, 1, DEPTH), [
+      glow(sideTexture(print.before, 'right')), glow(sideTexture(print.before, 'left')), top,
+      new THREE.MeshBasicMaterial({ color: '#000' }), glow(sideTexture(print.before, 'bottom')), glow(sideTexture(print.before, 'top')),
+    ]);
+    mesh.position.z = -DEPTH / 2;
+    const pivot = new THREE.Group();
+    pivot.add(mesh);
+    stack.add(pivot);
+    return { ...print, faces, top, mesh, pivot };
+  });
   scene.add(stack);
-  const tint = { all: average(before, 0, 0, 1600, 1200), left: average(before, 0, 300, 500, 900), right: average(before, 1100, 300, 500, 900), front: average(before, 300, 800, 1000, 400) };
+  // The light the stack throws is the top photo's.
+  const lit = prints[prints.length - 1].before;
+  const tint = { all: average(lit, 0, 0, 1600, 1200), left: average(lit, 0, 300, 500, 900), right: average(lit, 1100, 300, 500, 900), front: average(lit, 300, 800, 1000, 400) };
 
   // The plates: matte white ceramic. The upper one is the lower one flipped.
   const ceramic = new THREE.MeshPhysicalMaterial({ color: '#f6f5f2', roughness: 0.42, metalness: 0, clearcoat: 0.35, clearcoatRoughness: 0.35 });
@@ -257,45 +281,65 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
   // The gauge, right of the stack: a tick per megabyte, every other one long.
   const gauge = new THREE.Group();
   const ticks: { bar: ReturnType<typeof hairline>; opacity: number }[] = [];
-  for (let mb = 0; mb <= Math.floor(setup.from / 1e6); mb++) {
+  for (let mb = 0; mb <= Math.floor(total.from / 1e6); mb++) {
     const long = mb % 2 === 0, w = long ? 0.24 : 0.13;
     const bar = hairline(w, '#fff');
     bar.position.set(RULER + w / 2, PLATE.tall + heightOf(mb * 1e6), DEPTH / 2);
     gauge.add(bar);
     ticks.push({ bar, opacity: long ? 0.9 : 0.5 });
   }
-  // The gate, left of the press: a matte white wall with a slot cut through it,
-  // exactly as tall as the limit, its edges red until the stack is under.
+  // The gate, left of the press, its opening exactly as tall as the limit and
+  // edged red until the stack is under. The photo's light waits behind it.
   const limitY = PLATE.tall + heightOf(setup.limit);
   const gateX = -2.7;
   const slot = { bottom: PLATE.tall, top: limitY, half: DEPTH / 2 + 0.07 };
   const gate = new THREE.Group();
   const edges = new THREE.MeshBasicMaterial({ color: RED });
-  const light = new THREE.MeshBasicMaterial({ color: tint.all, transparent: true, opacity: 0 });
-  const WALL = { h: 2.9, d: 3, t: 0.14 };
+  const light = new THREE.MeshBasicMaterial({ color: tint.all, transparent: true, opacity: 0, side: THREE.DoubleSide });
+  const flap = new THREE.Group();
+  const GATE_H = 2.9; // how far the gate sinks into the floor
   if (setup.gate) {
-    const matte = new THREE.MeshPhysicalMaterial({ color: '#f2f1ee', roughness: 0.7, metalness: 0 });
-    const block = (y0: number, y1: number, z0: number, z1: number) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(WALL.t, y1 - y0, z1 - z0), matte);
-      m.position.set(gateX - WALL.t / 2, (y0 + y1) / 2, (z0 + z1) / 2);
+    const matte = new THREE.MeshPhysicalMaterial({ color: '#f2f1ee', roughness: 0.7, metalness: 0, side: THREE.DoubleSide });
+    const box = (x0: number, x1: number, y0: number, y1: number, z0: number, z1: number, material: THREE.Material = matte) => {
+      const m = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0, y1 - y0, z1 - z0), material);
+      m.position.set((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2);
       m.castShadow = m.receiveShadow = true;
       gate.add(m);
+      return m;
     };
-    block(0, slot.bottom, -WALL.d / 2, WALL.d / 2);
-    block(slot.top, WALL.h, -WALL.d / 2, WALL.d / 2);
-    block(slot.bottom, slot.top, -WALL.d / 2, -slot.half);
-    block(slot.bottom, slot.top, slot.half, WALL.d / 2);
-    // The slot's four edges, lining the cut; and the photo's light, behind it.
-    const h = slot.top - slot.bottom, e = 0.022;
-    const edge = (y: number, z: number, sy: number, sz: number) => {
-      const m = new THREE.Mesh(new THREE.BoxGeometry(WALL.t + 0.004, sy, sz), edges);
-      m.position.set(gateX - WALL.t / 2, y, z);
-      gate.add(m);
-    };
+    const h = slot.top - slot.bottom, e = 0.022, t = 0.14;
+    if (setup.gate === 'slot') {
+      // A wall with the slot cut through it.
+      const [x0, x1, d] = [gateX - t, gateX, 1.5];
+      box(x0, x1, 0, slot.bottom, -d, d); box(x0, x1, slot.top, GATE_H, -d, d);
+      box(x0, x1, slot.bottom, slot.top, -d, -slot.half); box(x0, x1, slot.bottom, slot.top, slot.half, d);
+    } else {
+      // An envelope lying on a dark plinth, its open mouth towards the press: paper walls round a pocket the limit tall.
+      const [x0, p] = [gateX - 2.3, 0.02];
+      box(x0, gateX, 0, slot.bottom - p, -slot.half, slot.half, new THREE.MeshPhysicalMaterial({ color: '#1c1c1e', roughness: 0.55, metalness: 0 }));
+      box(x0, gateX, slot.bottom - p, slot.bottom, -slot.half - p, slot.half + p);
+      box(x0, gateX, slot.top, slot.top + p, -slot.half - p, slot.half + p);
+      box(x0, gateX, slot.bottom, slot.top, -slot.half - p, -slot.half);
+      box(x0, gateX, slot.bottom, slot.top, slot.half, slot.half + p);
+      box(x0 - p, x0, slot.bottom, slot.top, -slot.half, slot.half);
+      // The flap, hinged on the mouth's top edge: open it lies back over the envelope; sealing, it swings over and down across the mouth.
+      // An envelope's flap: square shoulders, then a point that reaches the mouth's bottom edge.
+      const [w, l] = [slot.half + p, h + 2 * p];
+      const shape = new THREE.Shape();
+      shape.moveTo(-w, 0); shape.lineTo(w, 0); shape.lineTo(w, l * 0.7); shape.lineTo(0, l); shape.lineTo(-w, l * 0.7); shape.closePath();
+      const leaf = new THREE.Mesh(new THREE.ShapeGeometry(shape), matte);
+      leaf.rotation.y = Math.PI / 2; // the flap's plane faces along x, like the mouth
+      leaf.castShadow = true;
+      flap.add(leaf);
+      flap.position.set(gateX + 0.002, slot.top + p, 0);
+      gate.add(flap);
+    }
+    // The opening's four edges, and the photo's light inside it.
+    const edge = (y: number, z: number, sy: number, sz: number) => box(gateX - t, gateX + 0.004, y - sy / 2, y + sy / 2, z - sz / 2, z + sz / 2, edges).castShadow = false;
     edge(slot.bottom + e / 2, 0, e, slot.half * 2); edge(slot.top - e / 2, 0, e, slot.half * 2);
     edge(slot.bottom + h / 2, -slot.half + e / 2, h, e); edge(slot.bottom + h / 2, slot.half - e / 2, h, e);
     const pane = new THREE.Mesh(new THREE.PlaneGeometry(slot.half * 2, h), light);
-    pane.rotation.y = Math.PI / 2; pane.position.set(gateX - WALL.t - 0.02, slot.bottom + h / 2, 0);
+    pane.rotation.y = Math.PI / 2; pane.position.set(gateX - t - 0.02, slot.bottom + h / 2, 0);
     gate.add(pane);
     scene.add(gate);
   }
@@ -317,9 +361,20 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
   }
 
   function pose(p: Pose) {
-    const { h, x = 0, y, tilt = 0 } = p.stack;
-    stack.scale.y = h; stack.position.set(x, y, 0); stack.rotation.x = tilt;
-    top.map = p.stack.after ? faces.after : faces.before;
+    const { h, x = 0, y, tilt = 0, fan = 0 } = p.stack;
+    stack.position.set(x, y, 0); stack.rotation.x = tilt;
+    // Each band is pressed by the same share, so the bands always add up to the stack.
+    const k = pressed(h), mid0 = (bands.length - 1) / 2;
+    let base = -h / 2;
+    bands.forEach((b, i) => {
+      const bh = heightOf(mix(b.from, b.to, k));
+      b.mesh.scale.y = bh;
+      // Fanned, the bands spread like cards from their front edges and separate a hair, so each photo shows.
+      b.pivot.position.set((i - mid0) * 0.34 * fan, base + bh / 2 + i * 0.03 * fan, DEPTH / 2);
+      b.pivot.rotation.y = -(i - mid0) * 0.2 * fan;
+      b.top.map = p.stack.after ? b.faces.after : b.faces.before;
+      base += bh;
+    });
     upper.position.y = PLATE.tall + p.upper + PLATE.tall; // flipped, its tip is `tall` below its origin
     key.intensity = 1.8 * p.studio; rim.intensity = 0.6 * p.studio; fill.intensity = (setup.gate ? 0.9 : 0) * p.studio; scene.environmentIntensity = 0.3 * p.studio;
     // The photo's light, stronger on the plate as it closes in, gone once the photo stands up.
@@ -339,9 +394,10 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
     // The wall rises out of the floor and sinks back into it; the edges flare when the stack hits them.
     const rise = p.gate ?? 0;
     gate.visible = rise > 0.001;
-    gate.position.y = -(WALL.h + 0.05) * (1 - rise);
+    gate.position.y = -(GATE_H + 0.05) * (1 - rise);
     edges.color.set(ink).multiplyScalar(1 + 1.6 * (p.glint ?? 0));
     light.opacity = p.pour ?? 0;
+    flap.rotation.z = mix(1.45, 0.06 - Math.PI, p.seal ?? 0); // open: back over the envelope, just raised; sealed: down over the mouth
 
     // Air leaves at the seam while the press travels, fastest at the start.
     const P = airGeo.attributes.position.array as Float32Array, C = airGeo.attributes.color.array as Float32Array;
@@ -363,6 +419,9 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
   const v = new THREE.Vector3();
   return {
     heightOf,
+    /** The bands' sizes, bottom to top, and their sum. */
+    photos: setup.photos,
+    total,
     /** The size a stack `h` tall stands for: the count is read off the height, so the two never disagree. */
     bytesOf: (h: number) => h / perByte,
     limitY,
@@ -381,11 +440,16 @@ export async function createPress(canvas: HTMLCanvasElement, setup: PressSetup) 
       v.set(x, y, z).project(camera);
       return [v.x * 0.5 + 0.5, -v.y * 0.5 + 0.5];
     },
-    /** A point on the stack, as fractions of its width, height and depth from its centre (±0.5 are its faces), in the frame. */
-    onStack(p: Pose, x: number, y: number, z: number): [number, number] {
+    /**
+     * A point on the stack, or on one band of it (top band by default), as
+     * fractions of its width, height and depth from its centre (±0.5 are its
+     * faces), in the frame.
+     */
+    onStack(p: Pose, x: number, y: number, z: number, band = bands.length - 1): [number, number] {
       pose(p);
-      stack.updateMatrixWorld();
-      v.set(x * PLATE.tip, y, z * DEPTH).applyMatrix4(stack.matrixWorld).project(camera);
+      stack.updateMatrixWorld(true);
+      const m = bands[band].mesh;
+      v.set(x * PLATE.tip, y, z * DEPTH).applyMatrix4(m.matrixWorld).project(camera);
       return [v.x * 0.5 + 0.5, -v.y * 0.5 + 0.5];
     },
     dispose() { renderer.dispose(); },

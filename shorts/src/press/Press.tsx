@@ -15,7 +15,7 @@ export function usePress(setup: PressSetup) {
   const [handle] = useState(() => delayRender('the press'));
   useEffect(() => {
     let built: Press | undefined;
-    createPress(canvas.current!, { ...setup, before: staticFile(setup.before), after: staticFile(setup.after) })
+    createPress(canvas.current!, { ...setup, photos: setup.photos.map((b) => ({ ...b, before: staticFile(b.before), after: staticFile(b.after) })) })
       .then((p) => { built = p; setPress(p); continueRender(handle); })
       .catch(cancelRender);
     return () => built?.dispose();

@@ -13,7 +13,7 @@ import { FileTooLarge, TOO_LARGE } from './shorts/FileTooLarge';
 import { GRANDMA, Grandma } from './shorts/Grandma';
 import { ONE_BAR, OneBar } from './shorts/OneBar';
 import { PRESS, ThePress } from './shorts/ThePress';
-import { LIMIT, TheLimit } from './shorts/TheLimit';
+import { GATE_SHORT, GateShort } from './press/GateShort';
 import { FPS, H, W } from './system';
 
 const frame = { fps: FPS, width: W, height: H };
@@ -32,7 +32,8 @@ const TELLS = [
  * The first wave. The Press and Can you tell? are wordless series, one
  * master per episode for every market. File too large. gets one cut per
  * language, from locales/. On the App Store announces the iPhone and iPad
- * app, in English.
+ * app, in English. The second wave is the three stories after it; the
+ * third is the one press, each gate Short a limit a photo must pass.
  */
 export function Root() {
   return (
@@ -52,7 +53,10 @@ export function Root() {
       <Composition id="the-2mb-limit" component={Deadline} durationInFrames={DEADLINE.duration} {...frame} />
       <Composition id="photos-for-grandma" component={Grandma} durationInFrames={GRANDMA.duration} {...frame} />
       <Composition id="one-bar" component={OneBar} durationInFrames={ONE_BAR.duration} {...frame} />
-      <Composition id="the-limit" component={TheLimit} durationInFrames={LIMIT.duration} {...frame} />
+      <Composition id="the-limit" component={GateShort} durationInFrames={GATE_SHORT.duration} {...frame}
+        defaultProps={{ result: 'limit-lake', limit: 1e6, gate: 'slot' }} />
+      <Composition id="the-envelope" component={GateShort} durationInFrames={GATE_SHORT.duration} {...frame}
+        defaultProps={{ result: 'envelope', limit: 5e6, gate: 'envelope' }} />
     </>
   );
 }

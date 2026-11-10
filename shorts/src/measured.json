@@ -331,5 +331,44 @@
         }
       }
     }
+  },
+  "envelope": {
+    "photos": [
+      "milky-way",
+      "jagged",
+      "reflect"
+    ],
+    "purpose": "email",
+    "from": 65338703,
+    "to": 2350445,
+    "items": [
+      {
+        "photo": "milky-way",
+        "from": 34145966,
+        "to": 644495,
+        "file": "out/envelope-1.jpeg"
+      },
+      {
+        "photo": "jagged",
+        "from": 13774353,
+        "to": 760518,
+        "file": "out/envelope-2.jpeg"
+      },
+      {
+        "photo": "reflect",
+        "from": 17418384,
+        "to": 945432,
+        "file": "out/envelope-3.jpeg"
+      }
+    ],
+    "flows": {
+      "en": {
+        "flow": "out/envelope-en.mp4",
+        "at": {
+          "go": 0.696,
+          "done": 3.113
+        }
+      }
+    }
   }
 }
