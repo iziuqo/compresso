@@ -68,6 +68,7 @@
     "airplane-room": { "photo": "living-room", "purpose": "message", "preselected": true, "recording": ["en"] },
     "tell-fruit": { "photo": "fruit-table", "purpose": "space", "preselected": true, "recording": ["en"] },
     "trip": { "photos": ["trip-desert", "trip-canyon", "trip-coast", "trip-forest", "trip-waterfall", "trip-night"], "purpose": "message", "preselected": true, "recording": ["en"] },
-    "harbour": { "photo": "dusk-harbour", "purpose": "message", "preselected": true, "recording": ["en"] }
+    "harbour": { "photo": "dusk-harbour", "purpose": "message", "preselected": true, "recording": ["en"] },
+    "batch": { "photos": ["lake", "cat", "milky-way", "jagged", "reflect", "couscous", "edie", "trip-coast", "desk-night", "fruit-table", "living-room", "beach-dusk", "golden-gate", "cake", "dim-sum", "stormy-sunset", "happy-dog", "palm-sunset", "venice-palms", "tropic-beach", "dog-run", "roll-01", "roll-02", "roll-03", "roll-04", "roll-05", "roll-06", "roll-07", "roll-08", "roll-09", "roll-10", "roll-11", "roll-12", "roll-13", "roll-14", "roll-15", "roll-16", "roll-17", "roll-18", "roll-19"], "purpose": "message", "preselected": true, "recording": ["en"] }
   }
 }

@@ -494,5 +494,303 @@
         }
       }
     }
+  },
+  "batch": {
+    "photos": [
+      "lake",
+      "cat",
+      "milky-way",
+      "jagged",
+      "reflect",
+      "couscous",
+      "edie",
+      "trip-coast",
+      "desk-night",
+      "fruit-table",
+      "living-room",
+      "beach-dusk",
+      "golden-gate",
+      "cake",
+      "dim-sum",
+      "stormy-sunset",
+      "happy-dog",
+      "palm-sunset",
+      "venice-palms",
+      "tropic-beach",
+      "dog-run",
+      "roll-01",
+      "roll-02",
+      "roll-03",
+      "roll-04",
+      "roll-05",
+      "roll-06",
+      "roll-07",
+      "roll-08",
+      "roll-09",
+      "roll-10",
+      "roll-11",
+      "roll-12",
+      "roll-13",
+      "roll-14",
+      "roll-15",
+      "roll-16",
+      "roll-17",
+      "roll-18",
+      "roll-19"
+    ],
+    "purpose": "message",
+    "from": 260723082,
+    "to": 9884142,
+    "items": [
+      {
+        "photo": "lake",
+        "from": 14142277,
+        "to": 287249,
+        "file": "out/batch-1.jpeg"
+      },
+      {
+        "photo": "cat",
+        "from": 9253734,
+        "to": 294532,
+        "file": "out/batch-2.jpeg"
+      },
+      {
+        "photo": "milky-way",
+        "from": 34145966,
+        "to": 225131,
+        "file": "out/batch-3.jpeg"
+      },
+      {
+        "photo": "jagged",
+        "from": 13774353,
+        "to": 321753,
+        "file": "out/batch-4.jpeg"
+      },
+      {
+        "photo": "reflect",
+        "from": 17418384,
+        "to": 398490,
+        "file": "out/batch-5.jpeg"
+      },
+      {
+        "photo": "couscous",
+        "from": 4159755,
+        "to": 203501,
+        "file": "out/batch-6.jpeg"
+      },
+      {
+        "photo": "edie",
+        "from": 4830248,
+        "to": 393682,
+        "file": "out/batch-7.jpeg"
+      },
+      {
+        "photo": "trip-coast",
+        "from": 3068239,
+        "to": 330397,
+        "file": "out/batch-8.jpeg"
+      },
+      {
+        "photo": "desk-night",
+        "from": 4357727,
+        "to": 136003,
+        "file": "out/batch-9.jpeg"
+      },
+      {
+        "photo": "fruit-table",
+        "from": 3352126,
+        "to": 198160,
+        "file": "out/batch-10.jpeg"
+      },
+      {
+        "photo": "living-room",
+        "from": 2147730,
+        "to": 193465,
+        "file": "out/batch-11.jpeg"
+      },
+      {
+        "photo": "beach-dusk",
+        "from": 823313,
+        "to": 131468,
+        "file": "out/batch-12.jpeg"
+      },
+      {
+        "photo": "golden-gate",
+        "from": 9508880,
+        "to": 151983,
+        "file": "out/batch-13.jpeg"
+      },
+      {
+        "photo": "cake",
+        "from": 5113282,
+        "to": 170424,
+        "file": "out/batch-14.jpeg"
+      },
+      {
+        "photo": "dim-sum",
+        "from": 2084871,
+        "to": 170165,
+        "file": "out/batch-15.jpeg"
+      },
+      {
+        "photo": "stormy-sunset",
+        "from": 8177775,
+        "to": 205128,
+        "file": "out/batch-16.jpeg"
+      },
+      {
+        "photo": "happy-dog",
+        "from": 11297303,
+        "to": 91292,
+        "file": "out/batch-17.jpeg"
+      },
+      {
+        "photo": "palm-sunset",
+        "from": 3726064,
+        "to": 261015,
+        "file": "out/batch-18.jpeg"
+      },
+      {
+        "photo": "venice-palms",
+        "from": 2997769,
+        "to": 132435,
+        "file": "out/batch-19.jpeg"
+      },
+      {
+        "photo": "tropic-beach",
+        "from": 20514948,
+        "to": 260152,
+        "file": "out/batch-20.jpeg"
+      },
+      {
+        "photo": "dog-run",
+        "from": 3584020,
+        "to": 136791,
+        "file": "out/batch-21.jpeg"
+      },
+      {
+        "photo": "roll-01",
+        "from": 8158895,
+        "to": 190629,
+        "file": "out/batch-22.jpeg"
+      },
+      {
+        "photo": "roll-02",
+        "from": 1987285,
+        "to": 371750,
+        "file": "out/batch-23.jpeg"
+      },
+      {
+        "photo": "roll-03",
+        "from": 7397333,
+        "to": 157216,
+        "file": "out/batch-24.jpeg"
+      },
+      {
+        "photo": "roll-04",
+        "from": 3301643,
+        "to": 231963,
+        "file": "out/batch-25.jpeg"
+      },
+      {
+        "photo": "roll-05",
+        "from": 3690643,
+        "to": 359329,
+        "file": "out/batch-26.jpeg"
+      },
+      {
+        "photo": "roll-06",
+        "from": 1007050,
+        "to": 251193,
+        "file": "out/batch-27.jpeg"
+      },
+      {
+        "photo": "roll-07",
+        "from": 4561144,
+        "to": 108122,
+        "file": "out/batch-28.jpeg"
+      },
+      {
+        "photo": "roll-08",
+        "from": 1810788,
+        "to": 265196,
+        "file": "out/batch-29.jpeg"
+      },
+      {
+        "photo": "roll-09",
+        "from": 7252345,
+        "to": 394559,
+        "file": "out/batch-30.jpeg"
+      },
+      {
+        "photo": "roll-10",
+        "from": 1951456,
+        "to": 239849,
+        "file": "out/batch-31.jpeg"
+      },
+      {
+        "photo": "roll-11",
+        "from": 2947886,
+        "to": 170660,
+        "file": "out/batch-32.jpeg"
+      },
+      {
+        "photo": "roll-12",
+        "from": 3264469,
+        "to": 218294,
+        "file": "out/batch-33.jpeg"
+      },
+      {
+        "photo": "roll-13",
+        "from": 6915416,
+        "to": 326429,
+        "file": "out/batch-34.jpeg"
+      },
+      {
+        "photo": "roll-14",
+        "from": 2084338,
+        "to": 332860,
+        "file": "out/batch-35.jpeg"
+      },
+      {
+        "photo": "roll-15",
+        "from": 8846139,
+        "to": 388134,
+        "file": "out/batch-36.jpeg"
+      },
+      {
+        "photo": "roll-16",
+        "from": 4454707,
+        "to": 393402,
+        "file": "out/batch-37.jpeg"
+      },
+      {
+        "photo": "roll-17",
+        "from": 4335655,
+        "to": 385761,
+        "file": "out/batch-38.jpeg"
+      },
+      {
+        "photo": "roll-18",
+        "from": 5571352,
+        "to": 217508,
+        "file": "out/batch-39.jpeg"
+      },
+      {
+        "photo": "roll-19",
+        "from": 2705774,
+        "to": 188072,
+        "file": "out/batch-40.jpeg"
+      }
+    ],
+    "flows": {
+      "en": {
+        "flow": "out/batch-en.mp4",
+        "at": {
+          "go": 0.699,
+          "done": 13.96
+        }
+      }
+    }
   }
 }

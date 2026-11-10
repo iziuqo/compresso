@@ -8,6 +8,7 @@ import { ease, FPS, formatBytes, px, sec } from '../system';
 import { Chat, CHAT_LIGHT, CHAT_OPEN, REPLIES, SENDING, Sending, SENT } from './chat';
 import { PressCanvas, usePress } from './Press';
 import { ANSWER, Game, Looking, LOOKS, READ, SWAPS, TELL_OUT } from './tell';
+import { GAUGE_LIGHT, MEET, Meter, TICKS } from './meter';
 import { Flip, FLIPS, flight, LANDED, landing, SHOTS } from './tube';
 import { at, B, type Cam, Find, Grain, GUTTER, jolt, mix, Signature, Size, span, travel, Wordmark } from './ritual';
 import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type Press, type PressSetup } from './scene';
@@ -33,6 +34,9 @@ import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type P
  * 04 One Bar (tube): six photos for a chat on one bar of signal, a glass duct
  *    with a sliver of a mouth; the proof a flip book, then the prints shoot
  *    through one per 8th note and land as a stack at the far end.
+ * 06 The Meter (meter): one photo on a mobile data meter, its ghost needle
+ *    showing what sending it would leave; pressed, it goes in, and a whole
+ *    roll's light prints follow until the needle meets the ghost.
  * 07 Can You Tell? (tell): a loupe reads the photo before the press; after,
  *    the original and the print are shuffled like shells, and glass answers.
  * 08 Airplane Mode (dome): a glass dome seals the studio and nothing is
@@ -44,7 +48,7 @@ export type Kind = keyof typeof ACTS;
 
 export type OnePressProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
-  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'airplane-room' | 'tell-fruit';
+  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'harbour' | 'airplane-room' | 'tell-fruit';
   kind: Kind;
   /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only): for all the photos, or for each in an `each` act. */
   limit?: number;
@@ -104,6 +108,12 @@ const ACTS = {
     open: LANDED + 0.1, light: landing, out: [LANDED + 1.1, LANDED + 1.2],
     cues: [...FLIPS.map((a, i) => ['flick', a, 0.28, i] as const), ...SHOTS.map((a, i) => ['send', a, 0.3, 2 * i] as const), ['thud', LANDED, 0.3, 5]],
   },
+  // A thin dial lands with the limit's clack; a low double warning as its ghost swings; a tiny tick per print in; a soft click as the needles meet.
+  meter: {
+    open: MEET + 0.05, light: () => GAUGE_LIGHT, out: [MEET + 1, MEET + 1.1],
+    cues: [['knock', B.line + 0.2, 0.5, 5], ['counter-tick', B.tries[0], 0.4, -12], ['counter-tick', B.tries[0] + 0.15, 0.4, -12],
+      ...TICKS.map((a, i) => ['counter-tick', a + 0.28, 0.12, Math.min(12, i / 3)] as const), ['glass-tick', MEET, 0.4, 5]],
+  },
   // Airplane mode switched on, the dome lands and seals, the room closes in.
   dome: {
     dome: true, open: B.flat + 0.6, out: [B.sink, B.find],
@@ -140,7 +150,7 @@ function choreography(press: Press, kind: Kind) {
   const wallX = press.gateX + PLATE.tip / 2; // the tower's centre when it touches the gate
   const near = NEAR * (fanned ? 1.45 : 1); // a fanned hand needs more width
   // Under a dome the upper plate goes up only as far as the glass.
-  const leave = act.gate ? 12 : ROOM - 3.1 - GAP;
+  const leave = act.dome ? ROOM - 3.1 - GAP : 12;
   const framed = Math.max(top + 1, 7.5); // what the tap's shot holds: a short tower still leaves room for its size
 
   const gx = act.gate ? 1 : 0; // the studio shots look a little left, to hold the gate too
@@ -156,7 +166,7 @@ function choreography(press: Press, kind: Kind) {
     ...(act.flat ?? [act.gate
       ? [{ az: 0.82, el: 0.3, dist: 19, tx: -1.5, ty: 1.45 }, B.flat, B.flat + 0.6] // to the gate
       : [{ az: 0.35, el: 0.22, dist: 20, ty: PLATE.tall }, B.flat, B.flat + 0.6]] as [Cam, number, number][]), // down with the print as it lies back on the plate
-    ...(act.gate ? [] : [[{ az: 0.6, el: 0.32, dist: distanceFor(ROOM * 1.25, 0.8), ty: ROOM * 0.45 }, B.flat + 0.6, B.sink] as [Cam, number, number]]), // then out, slowly, to see the whole dome
+    ...(!act.dome ? [] : [[{ az: 0.6, el: 0.32, dist: distanceFor(ROOM * 1.25, 0.8), ty: ROOM * 0.45 }, B.flat + 0.6, B.sink] as [Cam, number, number]]), // then out, slowly, to see the whole dome
   ];
 
   return (t: number): Pose => {
@@ -234,7 +244,7 @@ function Score({ act, many }: { act: Act; many: boolean }) {
   const paper = act.gate === 'envelope';
   const tail: [number, number][] = [[s(B.find) + 1, -50], [s(B.loop), -50], [s(30), -40]];
   // Under a dome the room's tone drops once it is down.
-  const room: [number, number][] = act.gate ? [[0, -40], [s(B.find), -40], ...tail] : [[0, -40], [s(B.wide + 3), -40], [s(B.wide + 3.5), -46], [s(B.find), -46], ...tail];
+  const room: [number, number][] = act.dome ? [[0, -40], [s(B.wide + 3), -40], [s(B.wide + 3.5), -46], [s(B.find), -46], ...tail] : [[0, -40], [s(B.find), -40], ...tail];
   return (
     <>
       <Bed sound="room" levels={room} />
@@ -304,10 +314,11 @@ function overlay(press: Press, p: Pose, t: number, kind: Kind, limit: number, re
     <>
       {kind === 'bubble' && t > B.through - 0.1 && <Chat press={press} p={p} t={t} />}
       {kind === 'dome' && <Offline t={t} />}
+      {kind === 'meter' && <Meter press={press} p={p} t={t} />}
       {kind === 'tell' && t < B.phone && <Looking press={press} p={p} t={t} />}
       {kind === 'tell' && t > B.lift && <Game press={press} t={t} />}
       {act.flip && t > B.lift && t < B.shown + 0.2 && <Flip press={press} t={t} />}
-      {act.gate && <Flood src={press.photos[press.photos.length - 1].after} t={t} open={act.open} from={light} />}
+      {(act.gate || act.light) && <Flood src={press.photos[press.photos.length - 1].after} t={t} open={act.open} from={light} />}
       {t >= B.phone && t < B.tap + 0.6 && (
         <Phone k={1.4} y={phoneY(t)} neutral>
           {/* The recording opens on the purpose already chosen; it holds its first frame until it runs into the tap. */}
