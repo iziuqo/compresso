@@ -8,7 +8,7 @@
 import type { CSSProperties } from 'react';
 import { AbsoluteFill, Img } from 'remotion';
 import { ease, H, px, ui, W } from '../system';
-import { B, mix, Size, span } from './ritual';
+import { B, Glass, mix, Size, span } from './ritual';
 import type { Pose, Press } from './scene';
 
 /** Details worth a close look, as shares of the photo's 4:3 frame: an orange's skin, a leaf, a banana's tip. */
@@ -91,14 +91,7 @@ export function Game({ press, t }: { press: Press; t: number }) {
         <div key={src}>
           <Img src={src} style={{ ...card(x, y, w), transform: `scale(${mix(0.92, 1, shown)})` }} />
           <div style={{ position: 'absolute', left: (x + w / 2) * W, top: (top - 0.045) * H, transform: 'translate(-50%, -50%)', fontFamily: ui, fontWeight: 600, fontSize: px(84), color: 'var(--ink)', opacity: ask }}>?</div>
-          {block > 0.001 && (
-            <div style={{ position: 'absolute', left: x * W, top: (floor - block) * H, width: w * W, height: block * H, borderRadius: px(10), overflow: 'hidden',
-              boxShadow: `inset 0 0 0 ${px(1.5)}px rgb(255 255 255 / 0.4), inset 0 ${px(2)}px 0 rgb(255 255 255 / 0.6)` }}>
-              {/* Glass the photo's own colours, as the tower is in the studio. */}
-              <Img src={src} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill', filter: `blur(${px(24)}px) saturate(1.3)`, transform: 'scale(1.3)', opacity: 0.85 }} />
-              <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgb(255 255 255 / 0.22), transparent 30%, transparent 70%, rgb(255 255 255 / 0.12))' }} />
-            </div>
-          )}
+          {block > 0.001 && <Glass src={src} style={{ left: x * W, top: (floor - block) * H, width: w * W, height: block * H }} />}
           <Size bytes={bytes} size={px(52)} style={{ left: (x + w / 2) * W, top: (floor + 0.018) * H, transform: 'translateX(-50%)', opacity: span(t, ANSWER + 1.2, ANSWER + 1.6) }} />
         </div>
       ))}

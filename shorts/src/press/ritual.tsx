@@ -45,6 +45,17 @@ export const B = {
 /** The frame's side margin, as a share of its width. */
 export const GUTTER = 96 / 1080;
 
+/** A block of glass the photo's own colours, as the tower is in the studio; `style` places and sizes it. */
+export function Glass({ src, style }: { src: string; style: CSSProperties }) {
+  return (
+    <div style={{ position: 'absolute', borderRadius: px(10), overflow: 'hidden',
+      boxShadow: `inset 0 0 0 ${px(1.5)}px rgb(255 255 255 / 0.4), inset 0 ${px(2)}px 0 rgb(255 255 255 / 0.6)`, ...style }}>
+      <Img src={src} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'fill', filter: `blur(${px(24)}px) saturate(1.3)`, transform: 'scale(1.3)', opacity: 0.85 }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, rgb(255 255 255 / 0.22), transparent 30%, transparent 70%, rgb(255 255 255 / 0.12))' }} />
+    </div>
+  );
+}
+
 /** A size as the app prints it: the figure, and its unit smaller and dimmer. */
 export function Size({ bytes, size, style }: { bytes: number; size: number; style?: CSSProperties }) {
   const [n, unit] = formatBytes('en', bytes).split(' ');

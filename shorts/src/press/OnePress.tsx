@@ -12,6 +12,7 @@ import { STAMPS, stamping } from './batch';
 import { App, Screens } from './screens';
 import { GAUGE_LIGHT, MEET, Meter, TICKS } from './meter';
 import { Flip, FLIPS, flight, LANDED, landing, SHOTS } from './tube';
+import { onScreen, Question, SWEEPS, TAPS } from './question';
 import { at, B, type Cam, Find, Grain, GUTTER, jolt, mix, Signature, Size, span, travel, Wordmark } from './ritual';
 import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type Press, type PressSetup } from './scene';
 
@@ -45,6 +46,9 @@ import { type Band, DEPTH, distanceFor, GAP, NEAR, PLATE, RED, type Pose, type P
  *    the original and the print are shuffled like shells, and glass answers.
  * 08 Airplane Mode (dome): a glass dome seals the studio and nothing is
  *    uploaded, ever; the press runs as always and the dome fills with colour.
+ * 09 One Question (question): the app holds the frame, one real take: five
+ *    purposes tapped on five beats, a glass slice beside it snapping to each
+ *    one's result; the studio for the press, then the app's result screen.
  * 10 Everywhere (everywhere): one press on a phone, a tablet and a browser at
  *    once, in sync to the frame; at dead front the three slide into one.
  */
@@ -54,7 +58,7 @@ export type Kind = keyof typeof ACTS;
 
 export type OnePressProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
-  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'batch' | 'harbour' | 'everywhere' | 'airplane-room' | 'tell-fruit';
+  result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'batch' | 'harbour' | 'everywhere' | 'airplane-room' | 'tell-fruit' | 'question';
   kind: Kind;
   /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only): for all the photos, or for each in an `each` act. */
   limit?: number;
@@ -88,6 +92,8 @@ type Act = {
   dome?: boolean;
   /** No crane at the start: the photo fills the frame until the phone comes. */
   still?: boolean;
+  /** The app holds the frame, before the press and after it, instead of the phone that comes for the tap. */
+  app?: boolean;
   /** When the light opens: beyond the gate, from `light` (a point in the frame) if it isn't the gate's opening; or in the dome's glass. */
   open: number;
   light?: (press: Press, p: Pose) => [number, number];
@@ -146,6 +152,12 @@ const ACTS = {
     still: true, open: B.sink, out: [TELL_OUT, TELL_OUT + 0.4],
     cues: [...LOOKS.map((a) => ['glass-tick', a, 0.25, 7] as const), ...SWAPS.map((a, i) => ['flick', a, 0.32, 2 * i] as const),
       ...READ.map((a) => ['glass-tick', a, 0.25, 7] as const), ['rise', ANSWER + 0.5, 0.35], ['glass-tick', ANSWER + 0.75, 0.3, -5]],
+  },
+  // A tap on each purpose, the glass ticking as the slice snaps; a soft zip on each sweep of the slider.
+  question: {
+    still: true, app: true, hold: true, flat: [], open: B.sink, out: [B.sink, B.find],
+    cues: [...TAPS.flatMap(({ at: a }, i) => [['tap', a, 0.4, i] as const, ['glass-tick', a + 0.05, 0.2, 2 * i] as const]),
+      ...SWEEPS.map((a, i) => ['zip', a, 0.2, i % 2 ? 3 : 0] as const)],
   },
 } satisfies Record<string, Act>;
 
@@ -246,7 +258,7 @@ export function OnePress({ result, kind, limit = Infinity }: OnePressProps) {
   const over = press.press && p && overlay(press.press, press.canvas, p, st, kind, limit, rec);
   return (
     <AbsoluteFill style={{ background: 'var(--void)' }}>
-      <AbsoluteFill style={{ opacity: shown, filter: blurAt(t) }}>
+      <AbsoluteFill style={{ opacity: shown * (act.app ? 1 - 0.8 * onScreen(t) : 1), filter: blurAt(t, act) }}>
         <PressCanvas {...press} pose={p} />
         {over?.type}
       </AbsoluteFill>
@@ -296,8 +308,8 @@ function Score({ act, many }: { act: Act; many: boolean }) {
 }
 
 /** The focus rack: the press goes soft while the phone is in front of it. */
-const blurAt = (t: number) => {
-  const soft = span(t, B.phone + 0.5, B.app, ease.glide) - span(t, B.tap, B.tap + 0.6, ease.glide);
+const blurAt = (t: number, act: Act) => {
+  const soft = act.app ? onScreen(t) : span(t, B.phone + 0.5, B.app, ease.glide) - span(t, B.tap, B.tap + 0.6, ease.glide);
   return soft > 0.001 ? `blur(${px(22) * soft}px)` : undefined;
 };
 
@@ -346,7 +358,8 @@ function overlay(press: Press, canvas: RefObject<HTMLCanvasElement | null>, p: P
       {act.flip && t > B.lift && t < B.shown + 0.2 && <Flip press={press} t={t} />}
       {act.screens && <Screens source={canvas} t={t} bytes={p.bytes} rec={rec} />}
       {(act.gate || act.light) && <Flood src={press.photos[press.photos.length - 1].after} t={t} open={act.open} from={light} />}
-      {!act.screens && t >= B.phone && t < B.tap + 0.6 && (
+      {act.app && <Question t={t} src={press.photos[0].after} from={press.total.from} />}
+      {!act.screens && !act.app && t >= B.phone && t < B.tap + 0.6 && (
         <Phone k={1.4} y={phoneY(t)} neutral><App rec={rec} t={t} airplane={kind === 'dome'} /></Phone>
       )}
     </>

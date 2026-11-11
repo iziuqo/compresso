@@ -808,5 +808,59 @@
         }
       }
     }
+  },
+  "question": {
+    "photo": "orzo",
+    "purpose": "message",
+    "from": 8123162,
+    "to": 194442,
+    "file": "out/question.jpeg",
+    "flows": {
+      "en": {
+        "flow": "out/question-en.mp4",
+        "at": {
+          "tap0": 2.497,
+          "tap1": 3.497,
+          "tap2": 4.496,
+          "tap3": 5.496,
+          "tap4": 6.495,
+          "tap5": 7.997,
+          "go": 8.997,
+          "done": 9.879,
+          "compare0": 21.996,
+          "compare1": 22.998,
+          "compare2": 23.997,
+          "compare3": 24.996
+        }
+      }
+    }
+  },
+  "question-email": {
+    "photo": "orzo",
+    "purpose": "email",
+    "from": 8123162,
+    "to": 521548,
+    "file": "out/question-email.jpeg"
+  },
+  "question-upload": {
+    "photo": "orzo",
+    "purpose": "upload",
+    "from": 8123162,
+    "to": 565077,
+    "file": "out/question-upload.jpeg"
+  },
+  "question-space": {
+    "photo": "orzo",
+    "purpose": "space",
+    "from": 8123162,
+    "to": 1251958,
+    "file": "out/question-space.jpeg"
+  },
+  "question-web": {
+    "photo": "orzo",
+    "purpose": "web",
+    "from": 8123162,
+    "to": 152216,
+    "file": "out/question-web.webp"
   }
 }

@@ -70,6 +70,12 @@
     "trip": { "photos": ["trip-desert", "trip-canyon", "trip-coast", "trip-forest", "trip-waterfall", "trip-night"], "purpose": "message", "preselected": true, "recording": ["en"] },
     "harbour": { "photo": "dusk-harbour", "purpose": "message", "preselected": true, "recording": ["en"] },
     "batch": { "photos": ["lake", "cat", "milky-way", "jagged", "reflect", "couscous", "edie", "trip-coast", "desk-night", "fruit-table", "living-room", "beach-dusk", "golden-gate", "cake", "dim-sum", "stormy-sunset", "happy-dog", "palm-sunset", "venice-palms", "tropic-beach", "dog-run", "roll-01", "roll-02", "roll-03", "roll-04", "roll-05", "roll-06", "roll-07", "roll-08", "roll-09", "roll-10", "roll-11", "roll-12", "roll-13", "roll-14", "roll-15", "roll-16", "roll-17", "roll-18", "roll-19"], "purpose": "message", "preselected": true, "recording": ["en"] },
-    "everywhere": { "photo": "lofoten", "purpose": "message", "preselected": true, "recording": ["en"] }
+    "everywhere": { "photo": "lofoten", "purpose": "message", "preselected": true, "recording": ["en"] },
+    "question": { "photo": "orzo", "purpose": "message", "app": "http://localhost:8766/", "recording": ["en"],
+      "tour": { "from": "web", "taps": [["message", 2.5], ["email", 3.5], ["upload", 4.5], ["space", 5.5], ["web", 6.5], ["message", 8]], "go": 9, "compare": [22, 23, 24, 25], "end": 27 } },
+    "question-email": { "photo": "orzo", "purpose": "email", "app": "http://localhost:8766/" },
+    "question-upload": { "photo": "orzo", "purpose": "upload", "app": "http://localhost:8766/" },
+    "question-space": { "photo": "orzo", "purpose": "space", "app": "http://localhost:8766/" },
+    "question-web": { "photo": "orzo", "purpose": "web", "app": "http://localhost:8766/" }
   }
 }

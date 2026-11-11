@@ -38,6 +38,7 @@ const ONE_PRESSES: (OnePressProps & { id: string })[] = [
   { id: 'can-you-tell', result: 'tell-fruit', kind: 'tell' },
   { id: 'everywhere', result: 'everywhere', kind: 'everywhere' },
   { id: 'airplane-mode', result: 'airplane-room', kind: 'dome' },
+  { id: 'one-question', result: 'question', kind: 'question' },
 ];
 
 /**
