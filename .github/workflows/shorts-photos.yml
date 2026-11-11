@@ -30,12 +30,15 @@ jobs:
         if: hashFiles('shorts/candidates.json') != ''
       - run: node shorts/scripts/photos.mjs $(cat shorts/fetch.txt)
         if: hashFiles('shorts/fetch.txt') != ''
+      # Google's own Get it on Google Play badge, as Google serves it, for the endings once Play is public.
+      - run: curl -fsSL -o shorts/public/badges/google-play-en.png https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png
+        if: hashFiles('shorts/public/badges/google-play-en.png') == ''
       - name: Commit what was fetched
         env:
           BRANCH: ${{ github.ref_name }}
         run: |
-          for d in shorts/public/candidates shorts/public/photos; do [ -d "$d" ] && git add -f "$d"; done
+          for d in shorts/public/candidates shorts/public/photos shorts/public/badges; do [ -d "$d" ] && git add -f "$d"; done
           git diff --cached --quiet && exit 0
           git -c user.name='github-actions[bot]' -c user.email='41898299+github-actions[bot]@users.noreply.github.com' \
-            commit -m 'Fetch Shorts photos from Wikimedia Commons'
+            commit -m 'Fetch Shorts photos from Wikimedia Commons, and the Play badge'
           git push origin "HEAD:$BRANCH"
