@@ -36,7 +36,7 @@ const ONE_PRESSES: (OnePressProps & { id: string })[] = [
   { id: 'the-batch', result: 'batch', kind: 'batch' },
   { id: 'the-meter', result: 'harbour', kind: 'meter' },
   { id: 'can-you-tell', result: 'tell-fruit', kind: 'tell' },
-  { id: 'everywhere', result: 'everywhere', kind: 'everywhere' }, // add play: true for its master on Play launch day
+  { id: 'everywhere', result: 'everywhere', kind: 'everywhere', play: true }, // published on Play launch day, so it ends on both badges
   { id: 'airplane-mode', result: 'airplane-room', kind: 'dome' },
   { id: 'one-question', result: 'question', kind: 'question' },
 ];
