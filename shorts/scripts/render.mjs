@@ -45,8 +45,9 @@ for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) 
   await renderMedia({
     ...options, composition, codec: 'h264', outputLocation: mix, scale,
     crf: scale === 1 ? 14 : 20, audioCodec: 'aac', audioBitrate: '320k', pixelFormat: 'yuv420p',
-    // Every core: the wave-three press draws in software, one frame per tab at a time.
-    concurrency: availableParallelism(),
+    // Every core: the wave-three press draws in software, one frame per tab at a time. CONCURRENCY
+    // lowers it where the tabs together run out of memory: 05's forty photos lose their WebGL context.
+    concurrency: Number(process.env.CONCURRENCY) || availableParallelism(),
     onProgress: ({ renderedFrames }) => {
       if (renderedFrames % 60 === 0) console.log(`${composition.id}: ${renderedFrames}/${composition.durationInFrames} frames, ${((Date.now() - started) / 1000).toFixed(0)} s`);
     },
