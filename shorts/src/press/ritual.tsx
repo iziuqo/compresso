@@ -105,6 +105,10 @@ export function Icon({ size, style }: { size: number; style?: CSSProperties }) {
   return <Img src={icon} style={{ width: size, height: size, borderRadius: size * 0.225, boxShadow: `0 0 0 ${px(1.5)}px rgb(255 255 255 / 0.14)`, ...style }} />;
 }
 
+/** A store badge's height in Find. Google's file carries its clear space round the art (41 of 250 px each side), which may overlap Apple's. */
+const BADGE = px(92);
+const PLAY = { h: 250, art: 168, pad: 41 };
+
 /** Find's clock, in seconds from its start: a letter every 16th note, then the row, then the badge. */
 export const FIND = { letters: 0.25, letter: 0.125, row: 1.5, badge: 2, out: 3, length: 3.5 };
 
@@ -112,10 +116,11 @@ export const FIND = { letters: 0.25, letter: 0.125, row: 1.5, badge: 2, out: 3, 
  * Find (the last 3.5 s, from black): "Compresso" typed letter by letter into
  * a search field with no one's branding, then the row it finds, the icon with
  * the name, and the App Store badge as Apple draws it, with Apple's credit
- * line. `t` is seconds since Find began. It starts from black and ends in
- * black, so it splices onto any Short.
+ * line; given Google's credit line in `play` (once Play is public), Google's
+ * badge too, after Apple's, at the same height. `t` is seconds since Find
+ * began. It starts from black and ends in black, so it splices onto any Short.
  */
-export function Find({ t, legal }: { t: number; legal: string }) {
+export function Find({ t, legal, play }: { t: number; legal: string; play?: string }) {
   const typed = 'Compresso'.slice(0, Math.max(0, Math.floor((t - FIND.letters) / FIND.letter) + 1));
   const show = span(t, 0, 0.25, ease.standard);
   const row = span(t, FIND.row, FIND.row + 0.25, ease.standard);
@@ -140,8 +145,11 @@ export function Find({ t, legal }: { t: number; legal: string }) {
         <div style={{ fontWeight: 600, fontSize: px(62), letterSpacing: '-0.02em', color: 'var(--ink)' }}>Compresso</div>
       </div>
       <AbsoluteFill style={{ top: top + px(480), alignItems: 'center', opacity: badge }}>
-        <Img src={staticFile('badges/app-store-en.svg')} style={{ height: px(92) }} />
-        <div style={{ marginTop: px(64), width: px(820), textAlign: 'center', textWrap: 'balance', fontSize: px(17), lineHeight: 1.45, color: 'var(--ink-3)' }}>{legal}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: px(32) }}>
+          <Img src={staticFile('badges/app-store-en.svg')} style={{ height: BADGE }} />
+          {play && <Img src={staticFile('badges/google-play-en.png')} style={{ height: BADGE * PLAY.h / PLAY.art, margin: -BADGE * PLAY.pad / PLAY.art }} />}
+        </div>
+        <div style={{ marginTop: px(64), width: px(820), textAlign: 'center', textWrap: 'balance', fontSize: px(17), lineHeight: 1.45, color: 'var(--ink-3)' }}>{play ? `${legal} ${play}` : legal}</div>
       </AbsoluteFill>
     </AbsoluteFill>
   );

@@ -60,6 +60,8 @@ export type OnePressProps = {
   /** A result in measured.json, measured with a `preselected` purpose and an English recording. */
   result: 'limit-lake' | 'envelope' | 'bubble-cat' | 'trip' | 'batch' | 'harbour' | 'everywhere' | 'airplane-room' | 'tell-fruit' | 'question';
   kind: Kind;
+  /** Google Play is public: the ending shows its badge beside the App Store's. */
+  play?: boolean;
   /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only): for all the photos, or for each in an `each` act. */
   limit?: number;
 };
@@ -243,7 +245,7 @@ function choreography(press: Press, kind: Kind) {
   };
 }
 
-export function OnePress({ result, kind, limit = Infinity }: OnePressProps) {
+export function OnePress({ result, kind, limit = Infinity, play = false }: OnePressProps) {
   const frame = useCurrentFrame();
   const t = frame / FPS;
   const act: Act = ACTS[kind];
@@ -263,7 +265,7 @@ export function OnePress({ result, kind, limit = Infinity }: OnePressProps) {
         {over?.type}
       </AbsoluteFill>
       {over?.front}
-      {finding && <Find t={t - B.find} legal={en.appStore.legal} />}
+      {finding && <Find t={t - B.find} legal={en.appStore.legal} play={play ? en.googlePlay.legal : undefined} />}
       <Grain seed={frame} />
       <Score act={act} many={bands.length > 1} />
     </AbsoluteFill>

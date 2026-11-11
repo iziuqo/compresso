@@ -15,6 +15,9 @@
     "devices": "for iPhone and iPad",
     "legal": "Apple, the Apple logo, iPhone and iPad are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc., registered in the U.S. and other countries."
   },
+  "googlePlay": {
+    "legal": "Google Play and the Google Play logo are trademarks of Google LLC."
+  },
   "youtube": {
     "tooLarge": "File too large.",
     "appStore": "Compresso is on the App Store.",
