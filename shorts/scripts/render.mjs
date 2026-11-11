@@ -8,12 +8,15 @@
 // hit is the loudness, so the limiter takes some back and they land between
 // -16 and -17.5 LUFS: flattening the press to reach -14 would cost the sound
 // its point. Each master is measured again after encoding and must stay at or
-// below -1 dBTP. Set REMOTION_BROWSER to an installed Chrome headless shell to
+// below -1 dBTP. The picture renders in parts of PART frames, each kept as it
+// finishes, so a render started again (the cloud container restarts every few
+// hours) picks up at the first missing part; the sound renders whole, then
+// the parts are joined without re-encoding. Set REMOTION_BROWSER to an installed Chrome headless shell to
 // skip the download.
 import { bundle } from '@remotion/bundler';
 import { getCompositions, renderMedia } from '@remotion/renderer';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { availableParallelism } from 'node:os';
 import { join } from 'node:path';
 import { root } from './shared.mjs';
@@ -21,6 +24,7 @@ import { root } from './shared.mjs';
 const LUFS = -14;
 const LIMIT = 10 ** (-1.5 / 20); // sample peaks; AAC adds a little, the check below holds -1 dBTP
 const MAX_TRUE_PEAK = -1;
+const PART = 300; // frames: a 4K part is about twenty minutes
 
 /** Integrated loudness and true peak, from ffmpeg's ebur128 summary (on stderr). */
 function loudness(file) {
@@ -41,17 +45,36 @@ const all = await getCompositions(serveUrl, options);
 for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) {
   const mix = join(out, `${composition.id}.mix.mp4`);
   const file = join(out, `${composition.id}${scale === 1 ? '' : `@${scale}`}.mp4`);
+  const parts = join(out, 'parts', `${composition.id}@${scale}`);
+  mkdirSync(parts, { recursive: true });
   const started = Date.now();
-  await renderMedia({
-    ...options, composition, codec: 'h264', outputLocation: mix, scale,
-    crf: scale === 1 ? 14 : 20, audioCodec: 'aac', audioBitrate: '320k', pixelFormat: 'yuv420p',
-    // Every core: the wave-three press draws in software, one frame per tab at a time. CONCURRENCY
-    // lowers it where the tabs together run out of memory: 05's forty photos lose their WebGL context.
-    concurrency: Number(process.env.CONCURRENCY) || availableParallelism(),
-    onProgress: ({ renderedFrames }) => {
-      if (renderedFrames % 60 === 0) console.log(`${composition.id}: ${renderedFrames}/${composition.durationInFrames} frames, ${((Date.now() - started) / 1000).toFixed(0)} s`);
-    },
-  });
+  // Each part goes to a temporary name first, so only a finished one counts.
+  const keep = async (name, render) => {
+    const done = join(parts, name);
+    if (existsSync(done)) return done;
+    const doing = join(parts, `doing-${name}`);
+    await render(doing);
+    renameSync(doing, done);
+    return done;
+  };
+  const pictures = [];
+  for (let from = 0; from < composition.durationInFrames; from += PART) {
+    const to = Math.min(from + PART, composition.durationInFrames) - 1;
+    pictures.push(await keep(`${String(from).padStart(5, '0')}.mp4`, (outputLocation) => renderMedia({
+      ...options, composition, codec: 'h264', outputLocation, scale, frameRange: [from, to], muted: true,
+      crf: scale === 1 ? 14 : 20, pixelFormat: 'yuv420p',
+      // Every core: the wave-three press draws in software, one frame per tab at a time. CONCURRENCY
+      // lowers it where the tabs together run out of memory: 05's forty photos lose their WebGL context.
+      concurrency: Number(process.env.CONCURRENCY) || availableParallelism(),
+      onProgress: ({ renderedFrames }) => {
+        if (renderedFrames % 60 === 0) console.log(`${composition.id}: ${from + renderedFrames}/${composition.durationInFrames} frames, ${((Date.now() - started) / 1000).toFixed(0)} s`);
+      },
+    })));
+  }
+  const sound = await keep('sound.m4a', (outputLocation) => renderMedia({ ...options, composition, codec: 'aac', outputLocation, audioBitrate: '320k' }));
+  const list = join(parts, 'parts.txt');
+  writeFileSync(list, pictures.map((f) => `file '${f}'\n`).join(''));
+  execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', list, '-i', sound, '-map', '0:v', '-map', '1:a', '-c', 'copy', '-shortest', mix]);
   const before = loudness(mix);
   // A quiet mix raised a long way can overshoot the limiter's ceiling once
   // encoded; then master again with the ceiling lowered by the overshoot.
@@ -65,6 +88,7 @@ for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) 
     ceiling *= 10 ** ((MAX_TRUE_PEAK - after.peak - 0.3) / 20);
   }
   rmSync(mix);
+  rmSync(parts, { recursive: true });
   console.log(file, `${before.lufs.toFixed(1)} → ${after.lufs.toFixed(1)} LUFS, ${after.peak.toFixed(1)} dBTP`);
   if (after.peak > MAX_TRUE_PEAK) throw new Error(`${composition.id}: true peak ${after.peak} dBTP is over ${MAX_TRUE_PEAK}`);
 }
