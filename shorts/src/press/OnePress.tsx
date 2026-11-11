@@ -64,6 +64,8 @@ export type OnePressProps = {
   play?: boolean;
   /** What the gate allows, in bytes, as the app's purpose defines it (a gate's act only): for all the photos, or for each in an `each` act. */
   limit?: number;
+  /** Only the sound: render.mjs renders it apart from the picture, without drawing the press for every frame. */
+  sound?: boolean;
 };
 
 const SHOW = 4.3; // where the light prints stand to face the camera
@@ -245,7 +247,11 @@ function choreography(press: Press, kind: Kind) {
   };
 }
 
-export function OnePress({ result, kind, limit = Infinity, play = false }: OnePressProps) {
+export function OnePress(props: OnePressProps) {
+  return props.sound ? <Score act={ACTS[props.kind]} many={bandsOf(props.result).bands.length > 1} /> : <Pressing {...props} />;
+}
+
+function Pressing({ result, kind, limit = Infinity, play = false }: OnePressProps) {
   const frame = useCurrentFrame();
   const t = frame / FPS;
   const act: Act = ACTS[kind];

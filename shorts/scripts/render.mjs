@@ -39,7 +39,9 @@ const out = join(root, 'out');
 mkdirSync(out, { recursive: true });
 const serveUrl = await bundle({ entryPoint: join(root, 'src/index.ts') });
 // The press builds its scene in software in every tab before its first frame, which can take minutes.
-const options = { serveUrl, browserExecutable: process.env.REMOTION_BROWSER ?? null, chromiumOptions: { darkMode: true, gl: 'swangle' }, timeoutInMilliseconds: 300000 };
+const options = { serveUrl, browserExecutable: process.env.REMOTION_BROWSER ?? null, chromiumOptions: { darkMode: true, gl: 'swangle' }, timeoutInMilliseconds: 300000,
+  // The recordings' frames cache below what the tabs leave free: unbounded, it grew until the compositor was killed (09).
+  offthreadVideoCacheSizeInBytes: 1e9 };
 const all = await getCompositions(serveUrl, options);
 
 for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) {
@@ -71,7 +73,9 @@ for (const composition of all.filter((c) => !ids.length || ids.includes(c.id))) 
       },
     })));
   }
-  const sound = await keep('sound.m4a', (outputLocation) => renderMedia({ ...options, composition, codec: 'aac', outputLocation, audioBitrate: '320k' }));
+  // A Short that can play its sound alone (`sound`) skips drawing every frame for it.
+  const alone = { ...composition.props, sound: true };
+  const sound = await keep('sound.m4a', (outputLocation) => renderMedia({ ...options, composition: { ...composition, props: alone }, inputProps: alone, codec: 'aac', outputLocation, audioBitrate: '320k' }));
   const list = join(parts, 'parts.txt');
   writeFileSync(list, pictures.map((f) => `file '${f}'\n`).join(''));
   execFileSync('ffmpeg', ['-v', 'error', '-y', '-f', 'concat', '-safe', '0', '-i', list, '-i', sound, '-map', '0:v', '-map', '1:a', '-c', 'copy', '-shortest', mix]);
