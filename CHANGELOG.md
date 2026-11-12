@@ -6,6 +6,10 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+## [1.1.0-beta.0] — 2026-11-12
+
+Beta on the `next` tag (`npm i compresso.js@next`); `latest` stays 1.0.3.
+
 ### Added
 - **`compresso.js/plan`, the photo planner.** The decisions of `compress()`
   without the pixels, for hosts with their own encoder (the Compresso apps,
