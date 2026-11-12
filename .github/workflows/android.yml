@@ -1,0 +1,79 @@
+name: Android
+
+# Builds the Android app on GitHub's machines, so no Mac needs the Android
+# SDK, Gradle or Java. Ubuntu runners ship the SDK and NDK; Java 17 is set up
+# below.
+#
+# - Run it by hand (Actions > Android > Run workflow) and pick an EAS build
+#   profile. With the EXPO_TOKEN secret set, it runs `eas build --local`,
+#   which signs with the keystore stored on Expo, exactly as on the Mac.
+# - A pull request that changes this file builds an unsigned release APK
+#   (debug key) to prove the toolchain still works; no secrets needed.
+#
+# The built APK or AAB is attached to the run as an artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: EAS build profile (preview = APK, production = AAB)
+        type: choice
+        options: [preview, production]
+        default: preview
+  pull_request:
+    branches: [main]
+    paths: ['.github/workflows/android.yml']
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: mobile
+    env:
+      PROFILE: ${{ inputs.profile || 'preview' }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      - name: Signed build (eas build --local)
+        if: env.EXPO_TOKEN != ''
+        run: |
+          ext=$([ "$PROFILE" = production ] && echo aab || echo apk)
+          npx --yes eas-cli@latest build --local --non-interactive \
+            --platform android --profile "$PROFILE" --output "build/compresso-$PROFILE.$ext"
+
+      - name: Unsigned check build (no EXPO_TOKEN)
+        if: env.EXPO_TOKEN == ''
+        env:
+          EAS_BUILD_PROFILE: ${{ env.PROFILE }}
+        run: |
+          npx expo prebuild --platform android --no-install
+          (cd android && ./gradlew :app:assembleRelease --no-daemon)
+          mkdir -p build && cp android/app/build/outputs/apk/release/*.apk build/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: compresso-android-${{ env.PROFILE }}
+          path: mobile/build/*
+          if-no-files-found: error
