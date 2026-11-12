@@ -6,17 +6,20 @@
 #      or publish a release with a new vX.Y.Z tag on main from GitHub's Releases page.
 #
 # The job checks the tag against the package version and main, builds, tests and
-# size-checks, then publishes with npm trusted publishing: npm trusts this
-# workflow through GitHub's OIDC token, so no npm token is stored anywhere and
-# every version carries a provenance statement linking it to this repo and run.
+# size-checks, then stages the version on npm with trusted publishing: npm
+# trusts this workflow through GitHub's OIDC token, so no npm token is stored
+# anywhere, and every version carries a provenance statement linking it to this
+# repo and run. A staged version goes live only when a maintainer approves it
+# with 2FA on npmjs.com (or `npm stage approve <id>`).
 # A prerelease version (1.1.0-beta.1) goes to the `next` dist-tag, not `latest`.
 #
 # Run it by hand (Actions → Release → Run workflow) for a dry run: every step
-# up to `npm publish --dry-run`, with nothing published or released.
+# up to `npm stage publish --dry-run`, with nothing staged or released.
 #
 # One-time setup, outside this file:
 #   - npmjs.com → compresso.js → Settings → Trusted publishing: GitHub Actions,
-#     owner iziuqo, repo compresso, workflow release.yml, environment npm.
+#     owner iziuqo, repo compresso, workflow release.yml, environment npm,
+#     permission "npm stage publish".
 #   - GitHub → Settings → Environments → npm: add a required reviewer, so each
 #     publish waits for a maintainer's approval.
 # App tags (app-vX.Y.Z) don't match `v*`, so they never trigger this.
@@ -58,8 +61,8 @@ jobs:
           registry-url: https://registry.npmjs.org
           cache: npm
 
-      # Trusted publishing needs npm 11.5.1 or newer.
-      - run: npm install --global npm@^11.5.1
+      # Staged publishing needs npm 11.21 or newer.
+      - run: npm install --global npm@^11.21.2
 
       - name: Check the version
         id: version
@@ -87,8 +90,8 @@ jobs:
       - run: npm test
       - run: npm run size
 
-      - name: Publish to npm
-        run: npm publish --access public --tag "${{ steps.version.outputs.dist-tag }}" $([ "$DRY_RUN" = true ] && echo --dry-run)
+      - name: Stage on npm for a maintainer's approval
+        run: npm stage publish . --access public --tag "${{ steps.version.outputs.dist-tag }}" $([ "$DRY_RUN" = true ] && echo --dry-run)
 
       # A release published from GitHub's web page makes the tag itself, so the
       # release may already exist: then only its title and notes are set.
