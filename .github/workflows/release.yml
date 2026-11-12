@@ -2,7 +2,8 @@
 #
 #   1. Move the CHANGELOG's [Unreleased] notes under "## [X.Y.Z] — date" and
 #      bump packages/compresso/package.json to X.Y.Z, in a PR to main.
-#   2. After it merges, tag that commit on main: git tag vX.Y.Z && git push origin vX.Y.Z
+#   2. After it merges, tag that commit on main: git tag vX.Y.Z && git push origin vX.Y.Z,
+#      or publish a release with a new vX.Y.Z tag on main from GitHub's Releases page.
 #
 # The job checks the tag against the package version and main, builds, tests and
 # size-checks, then publishes with npm trusted publishing: npm trusts this
@@ -89,11 +90,15 @@ jobs:
       - name: Publish to npm
         run: npm publish --access public --tag "${{ steps.version.outputs.dist-tag }}" $([ "$DRY_RUN" = true ] && echo --dry-run)
 
-      - name: Create the GitHub Release
+      # A release published from GitHub's web page makes the tag itself, so the
+      # release may already exist: then only its title and notes are set.
+      - name: Create or update the GitHub Release
         if: env.DRY_RUN == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" \
+          action=create
+          gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1 && action=edit
+          gh release "$action" "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" \
             --notes-file "$RUNNER_TEMP/notes.md" \
             $([ "${{ steps.version.outputs.dist-tag }}" = next ] && echo --prerelease)
