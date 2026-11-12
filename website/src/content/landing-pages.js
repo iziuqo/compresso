@@ -4,6 +4,7 @@
  */
 import { LANDING_STUB_LOCALES } from './landing-stubs-locales';
 import { TIER_BC_PAGES, TIER_BC_SLUGS } from './landing-tier-bc';
+import { PHONE_PAGES, PHONE_SLUGS } from './landing-phone';
 
 /** @type {Record<string, Record<string, object>>} */
 export const LANDING_PAGES = {
@@ -498,7 +499,7 @@ for (const slug of Object.keys(PAGE_STUBS)) {
   }
 }
 
-Object.assign(LANDING_PAGES, TIER_BC_PAGES);
+Object.assign(LANDING_PAGES, TIER_BC_PAGES, PHONE_PAGES);
 
 export const LANDING_PAGE_SLUGS = [
   'compress-images-online-free',
@@ -512,10 +513,27 @@ export const LANDING_PAGE_SLUGS = [
   'offline-image-compressor',
   'batch-compress-images',
   ...TIER_BC_SLUGS,
+  ...PHONE_SLUGS,
 ];
+
+/**
+ * The locales a page has its own copy in. A locale without one serves the
+ * English copy, so search engines are told the English page is the original
+ * (canonical) and that locale is left out of hreflang and the sitemap:
+ * the same text under seven addresses reads as duplicate content.
+ */
+export function landingLocales(slug) {
+  const page = LANDING_PAGES[slug];
+  if (!page) return [];
+  return Object.keys(page).filter(
+    (locale) => locale === 'en' || page[locale].metaTitle !== page.en.metaTitle,
+  );
+}
 
 export const LANDING_UI = {
   en: {
+    appTitle: 'On iPhone or iPad?',
+    appBody: 'Get the free Compresso app. It does the same on your phone, and nothing is uploaded.',
     howTitle: 'How it works',
     faqTitle: 'Common questions',
     relatedTitle: 'Related',
@@ -524,6 +542,8 @@ export const LANDING_UI = {
     devBody: 'Embed compression in your upload flow:',
   },
   es: {
+    appTitle: '¿En iPhone o iPad?',
+    appBody: 'Descarga gratis la app Compresso. Hace lo mismo en tu teléfono y no sube nada.',
     howTitle: 'Cómo funciona',
     faqTitle: 'Preguntas comunes',
     relatedTitle: 'Relacionado',
@@ -532,6 +552,8 @@ export const LANDING_UI = {
     devBody: 'Integra la compresión en tu flujo de subida:',
   },
   fr: {
+    appTitle: 'Sur iPhone ou iPad ?',
+    appBody: 'Téléchargez l’app Compresso, gratuite. Elle fait la même chose sur votre téléphone, sans rien envoyer.',
     howTitle: 'Comment ça marche',
     faqTitle: 'Questions courantes',
     relatedTitle: 'Associé',
@@ -540,6 +562,8 @@ export const LANDING_UI = {
     devBody: 'Intégrez la compression dans votre flux d’envoi :',
   },
   de: {
+    appTitle: 'Auf iPhone oder iPad?',
+    appBody: 'Hol dir die kostenlose Compresso-App. Sie macht dasselbe auf deinem Handy und lädt nichts hoch.',
     howTitle: 'So funktioniert’s',
     faqTitle: 'Häufige Fragen',
     relatedTitle: 'Verwandt',
@@ -548,6 +572,8 @@ export const LANDING_UI = {
     devBody: 'Komprimierung in den Upload-Flow einbinden:',
   },
   it: {
+    appTitle: 'Su iPhone o iPad?',
+    appBody: 'Scarica gratis l’app Compresso. Fa lo stesso sul telefono e non carica niente.',
     howTitle: 'Come funziona',
     faqTitle: 'Domande comuni',
     relatedTitle: 'Correlati',
@@ -556,6 +582,8 @@ export const LANDING_UI = {
     devBody: 'Integra la compressione nel flusso di upload:',
   },
   'pt-BR': {
+    appTitle: 'No iPhone ou iPad?',
+    appBody: 'Baixe grátis o app Compresso. Ele faz o mesmo no seu celular e não envia nada.',
     howTitle: 'Como funciona',
     faqTitle: 'Perguntas comuns',
     relatedTitle: 'Relacionado',
@@ -564,6 +592,8 @@ export const LANDING_UI = {
     devBody: 'Integre a compressão no fluxo de upload:',
   },
   'zh-Hans': {
+    appTitle: '在用 iPhone 或 iPad？',
+    appBody: '免费下载 Compresso 应用。在手机上就能完成，什么都不会上传。',
     howTitle: '使用方法',
     faqTitle: '常见问题',
     relatedTitle: '相关页面',

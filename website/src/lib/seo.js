@@ -1,4 +1,5 @@
 import { getTranslations, locales } from '../i18n';
+import { APP_STORE_URL } from '../components/marketing/links';
 import {
   APP_URL,
   LOCALE_SLUGS,
@@ -37,16 +38,16 @@ export const HREFLANG_TAGS = {
 export const LOCALE_SLUG_LIST = Object.values(LOCALE_SLUGS);
 
 /** ISO date for sitemap lastModified (updated at build). */
-export const BUILD_DATE = new Date('2026-08-19T00:00:00.000Z');
+export const BUILD_DATE = new Date();
 
 export function absoluteUrl(path) {
   const normalized = path.startsWith('/') ? path : `/${path}`;
   return `${SITE_URL}${normalized}`;
 }
 
-export function buildLanguageAlternates(pathTail = '') {
+export function buildLanguageAlternates(pathTail = '', pageLocales = locales) {
   const languages = {};
-  for (const locale of locales) {
+  for (const locale of pageLocales) {
     const hreflang = HREFLANG_TAGS[locale];
     languages[hreflang] = absoluteUrl(localePath(locale, pathTail));
   }
@@ -62,11 +63,21 @@ const DEFAULT_OG_IMAGE = {
 /** `image` ({ url, alt }, 1200×630) replaces the site-wide link preview. */
 export function buildPageMetadata(
   locale,
-  { pathTail = '', title, description, ogTitle, ogDescription, image = DEFAULT_OG_IMAGE } = {},
+  {
+    pathTail = '',
+    title,
+    description,
+    ogTitle,
+    ogDescription,
+    image = DEFAULT_OG_IMAGE,
+    pageLocales = locales,
+  } = {},
 ) {
   const t = getTranslations(locale);
-  const canonical = absoluteUrl(localePath(locale, pathTail));
-  const languages = buildLanguageAlternates(pathTail);
+  /* A locale the page has no copy in shows English, so English is canonical. */
+  const canonicalLocale = pageLocales.includes(locale) ? locale : 'en';
+  const canonical = absoluteUrl(localePath(canonicalLocale, pathTail));
+  const languages = buildLanguageAlternates(pathTail, pageLocales);
 
   return {
     title: title || t.meta.title,
@@ -134,6 +145,17 @@ export const SITE_SCHEMA = {
       description:
         'Free online image compressor that runs entirely in your browser. Compress, resize, and convert JPEG, PNG, WebP, AVIF, and HEIC images with zero server upload.',
       url: APP_URL,
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    },
+    {
+      '@type': 'MobileApplication',
+      name: 'Compresso: Photo Compressor',
+      applicationCategory: 'PhotographyApplication',
+      operatingSystem: 'iOS, iPadOS',
+      description:
+        'Make photos smaller for messages, email and upload forms. Everything happens on the iPhone: no upload, no account, no ads.',
+      url: APP_STORE_URL,
+      installUrl: APP_STORE_URL,
       offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
     },
   ],

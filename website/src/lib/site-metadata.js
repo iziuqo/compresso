@@ -4,6 +4,8 @@
  * from this. Page metadata is merged over it shallowly, the same way Next
  * merges a child segment's metadata over its parent's.
  */
+import { APP_STORE_ID } from '../components/marketing/links';
+
 export const SITE_METADATA = {
   title: 'Compresso: Free Image Compressor That Runs In Your Browser',
   description:
@@ -26,6 +28,9 @@ export const SITE_METADATA = {
     'batch image compression javascript',
   ],
   metadataBase: new URL('https://compresso.izaias.xyz'),
+  /* Safari on iPhone and iPad shows Apple's Smart App Banner ("Get" or
+     "Open") above every page. Other browsers ignore the tag. */
+  itunes: { appId: APP_STORE_ID },
   ...(process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
     ? { verification: { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION } }
     : {}),

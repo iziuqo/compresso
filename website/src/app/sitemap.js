@@ -5,11 +5,15 @@ import {
   SITE_URL,
   localePath,
 } from '../lib/seo';
-import { LANDING_PAGE_SLUGS } from '../content/landing-pages';
+import { LANDING_PAGE_SLUGS, landingLocales } from '../content/landing-pages';
 
 export const dynamic = 'force-static';
 
-const STATIC_PATHS = ['faq', 'compare', 'examples', 'privacy', ...LANDING_PAGE_SLUGS];
+/** Each path with the locales it has its own copy in. */
+const STATIC_PATHS = [
+  ...['faq', 'compare', 'examples', 'privacy'].map((pathTail) => ({ pathTail, pathLocales: locales })),
+  ...LANDING_PAGE_SLUGS.map((pathTail) => ({ pathTail, pathLocales: landingLocales(pathTail) })),
+];
 
 export default function sitemap() {
   const lastModified = BUILD_DATE;
@@ -26,8 +30,8 @@ export default function sitemap() {
   }
 
   // FAQ, compare, and programmatic landing pages × locales
-  for (const pathTail of STATIC_PATHS) {
-    for (const locale of locales) {
+  for (const { pathTail, pathLocales } of STATIC_PATHS) {
+    for (const locale of pathLocales) {
       entries.push({
         url: `${SITE_URL}${localePath(locale, pathTail)}`,
         lastModified,
