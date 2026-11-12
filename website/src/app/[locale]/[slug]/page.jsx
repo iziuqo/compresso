@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import LandingClient from '../../../components/seo/LandingClient';
-import { LANDING_PAGE_SLUGS, LANDING_PAGES } from '../../../content/landing-pages';
+import { LANDING_PAGE_SLUGS, LANDING_PAGES, landingLocales } from '../../../content/landing-pages';
 import {
   buildPageMetadata,
   generateLocaleStaticParams,
@@ -29,6 +29,7 @@ export async function generateMetadata({ params }) {
     description: page.metaDescription,
     ogTitle: page.metaTitle,
     ogDescription: page.metaDescription,
+    pageLocales: landingLocales(pageSlug),
   });
 }
 

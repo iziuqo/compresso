@@ -179,6 +179,12 @@ export function Tabs<T extends string>({
 
 /* ------------------------------------------------------------- number field */
 
+/** The number typed so far, or null while there is none ("", "." or "1.2.3"). */
+function toNumber(text: string): number | null {
+  const n = Number(text);
+  return text === '' || text === '.' || !Number.isFinite(n) ? null : n;
+}
+
 export function NumberField({
   label, value, placeholder, suffix, onChange,
 }: {
@@ -186,6 +192,14 @@ export function NumberField({
   onChange: (v: number | null) => void;
 }) {
   const id = useId();
+  /* The field keeps its own text so a number can be typed one key at a time:
+     "0." has to stay on screen on the way to "0.5", although its value is 0.
+     A comma counts as the decimal point, the way most of Europe and Brazil
+     write it, so "0,5" means half, not five. */
+  const [text, setText] = useState(value == null ? '' : String(value));
+  useEffect(() => {
+    if (toNumber(text) !== value) setText(value == null ? '' : String(value));
+  }, [value]); // text follows value, not the reverse
   return (
     <div className="nf">
       <label className="nf__label label" htmlFor={id}>{label}</label>
@@ -193,12 +207,13 @@ export function NumberField({
         <input
           id={id}
           className="nf__input mono"
-          inputMode="numeric"
-          value={value ?? ''}
+          inputMode="decimal"
+          value={text}
           placeholder={placeholder}
           onChange={(e) => {
-            const raw = e.target.value.replace(/[^\d.]/g, '');
-            onChange(raw === '' ? null : Number(raw));
+            const raw = e.target.value.replace(/,/g, '.').replace(/[^\d.]/g, '');
+            setText(raw);
+            onChange(toNumber(raw));
           }}
         />
         {suffix && <span className="nf__suffix mono">{suffix}</span>}

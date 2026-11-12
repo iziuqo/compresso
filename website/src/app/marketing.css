@@ -490,8 +490,10 @@
 .mk-seo__article { max-width: 46rem; margin: 0 auto; }
 .mk-seo__h1 {
   --fs: clamp(2rem, 5vw, 2.75rem);
+  font-size: var(--fs);
   font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 800; letter-spacing: -0.03em; line-height: 1.1;
+  text-wrap: balance;
   margin: 0 0 1rem;
 }
 .mk-seo__h2 {
@@ -508,13 +510,19 @@
 .mk-seo__faq-item { margin-bottom: 1.75rem; }
 .mk-seo__faq-q { font-weight: 700; font-size: 1rem; margin: 0 0 0.35rem; color: var(--ink); }
 .mk-seo__faq-a { margin: 0; font-size: 0.9375rem; line-height: 1.65; color: var(--ink-2); }
-.mk-seo__steps { margin: 0; padding-left: 1.25rem; color: var(--ink-2); line-height: 1.65; }
+.mk-seo__steps { list-style: decimal; margin: 0; padding-left: 1.25rem; color: var(--ink-2); line-height: 1.65; }
 .mk-seo__steps li { margin-bottom: 0.5rem; }
 .mk-seo__table-wrap { overflow-x: auto; margin: 1.5rem 0; }
 .mk-seo__table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
 .mk-seo__table th, .mk-seo__table td { border: 1px solid var(--line); padding: 0.5rem 0.65rem; text-align: left; }
 .mk-seo__table thead th { background: var(--cream); font-weight: 700; }
 .mk-seo__table tbody th { font-weight: 600; color: var(--ink); }
+.mk-seo__app {
+  margin: 0 0 2rem; padding: 1.25rem 1.5rem 1rem;
+  background: var(--cream); border: 1px solid var(--line); border-radius: 0.75rem;
+}
+.mk-seo__app .mk-seo__h2 { margin-top: 0; }
+.mk-seo__app .mk-stores { justify-content: flex-start; }
 .mk-seo__dev { margin-top: 2.5rem; padding-top: 2rem; border-top: 1px solid var(--line); }
 .mk-seo__code {
   background: var(--cream); border: 1px solid var(--line); border-radius: 0.5rem;

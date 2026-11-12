@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { NPM_URL } from '../marketing/links';
 import { appUrlWithUtm, localePath } from '../../lib/locale-routes';
 import { getLandingPage, landingJsonLd } from '../../content/landing-pages';
+import StoreBadges from '../marketing/StoreBadges';
+import { getTranslations } from '../../i18n';
 import JsonLd from './JsonLd';
 import SeoPageShell from './SeoPageShell';
 
@@ -24,6 +26,12 @@ export default function LandingClient({ locale, slug }) {
         <div className="mk-seo__actions">
           <a className="mk-pill" href={appHref}>{ui.cta}</a>
         </div>
+
+        <aside className="mk-seo__app">
+          <h2 className="mk-seo__h2">{ui.appTitle}</h2>
+          <p className="mk-seo__p">{ui.appBody}</p>
+          <StoreBadges t={getTranslations(locale)} locale={locale} />
+        </aside>
 
         <h2 className="mk-seo__h2">{ui.howTitle}</h2>
         <ol className="mk-seo__steps">
@@ -46,6 +54,8 @@ export default function LandingClient({ locale, slug }) {
           </>
         )}
 
+        {/* Pages written for people with a photo to send skip the developer pitch. */}
+        {content.audience !== 'people' && (
         <div className="mk-seo__dev">
           <h2 className="mk-seo__h2">{ui.devTitle}</h2>
           <p className="mk-seo__p">{ui.devBody}</p>
@@ -54,6 +64,7 @@ export default function LandingClient({ locale, slug }) {
           {' · '}
           <Link className="mk-seo__text-link" href="/docs/">Docs</Link>
         </div>
+        )}
 
         {content.related?.length > 0 && (
           <>
@@ -61,7 +72,9 @@ export default function LandingClient({ locale, slug }) {
             <ul className="mk-seo__related">
               {content.related.map((rel) => (
                 <li key={rel}>
-                  <Link href={localePath(locale, rel)}>{rel.replace(/-/g, ' ')}</Link>
+                  <Link href={localePath(locale, rel)}>
+                    {getLandingPage(rel, locale)?.content.h1 ?? rel.replace(/-/g, ' ')}
+                  </Link>
                 </li>
               ))}
             </ul>
