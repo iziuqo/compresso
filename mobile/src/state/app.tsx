@@ -96,7 +96,14 @@ let seq = 0;
 const nextId = () => `${Date.now().toString(36)}-${(seq++).toString(36)}`;
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [prefs, setPrefsState] = useState<Prefs>(() => ({ ...DEFAULT_PREFS, ...loadPrefs() }));
+  // Loading the prefs is the app starting, so this is where launches count
+  // (the rating prompt skips a first session).
+  const [prefs, setPrefsState] = useState<Prefs>(() => {
+    const loaded = { ...DEFAULT_PREFS, ...loadPrefs() };
+    const next = { ...loaded, launches: loaded.launches + 1 };
+    savePrefs(next);
+    return next;
+  });
   const [selection, setSelection] = useState<Source[]>([]);
   const [tweaks, setTweaks] = useState<Tweaks>({});
   const [own, setOwnState] = useState<Record<string, Tweaks>>({});

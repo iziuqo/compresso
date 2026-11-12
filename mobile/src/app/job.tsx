@@ -6,6 +6,7 @@ import {
 
 import { useI18n, type Key } from '../i18n';
 import { useApp, useJob, type Item, type Job } from '../state/app';
+import { appVersion, askForReview, isGoodMoment } from '../state/review';
 import { canOpenLibrary, openLibrary, saveToPhotos, share, success, tick } from '../state/save';
 import { font, fontScale, space, type, useTheme } from '../theme';
 import { Develop } from '../ui/Develop';
@@ -44,7 +45,7 @@ export default function JobScreen() {
 function JobView({ job }: { job: Job }) {
   const { t, bytes, count, percent } = useI18n();
   const { c } = useTheme();
-  const { cancel, clear, retry } = useApp();
+  const { cancel, clear, retry, prefs, setPrefs } = useApp();
   const reduceMotion = useReduceMotion();
   const short = useWindowDimensions().height < 720; // small phones give the photo the space
   const [selected, setSelected] = useState<string | null>(null);
@@ -109,10 +110,21 @@ function JobView({ job }: { job: Job }) {
       }
       setSaving('done');
       AccessibilityInfo.announceForAccessibility(t(WHERE));
+      rateIfHappy();
     } catch {
       setSaving('idle');
       Alert.alert(t('error.generic'));
     }
+  };
+
+  // A save that clearly worked may be the moment to ask for a store rating,
+  // after the "Saved" line has landed. Counted per run, not per photo.
+  const rateIfHappy = () => {
+    const saves = prefs.saves + 1;
+    const version = appVersion();
+    const ask = isGoodMoment({ ...prefs, saves }, version, saved, original);
+    setPrefs(ask ? { saves, reviewAskedFor: version } : { saves });
+    if (ask) setTimeout(askForReview, 1200);
   };
 
   const open = () => {
