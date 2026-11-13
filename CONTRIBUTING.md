@@ -7,7 +7,7 @@ Thank you for considering a contribution to Compresso! This project exists to ma
 1. Fork and clone the repository
 2. Install dependencies: `npm install`
 3. Build the library: `npm run build:lib`
-4. Start the website dev server: `npm run dev`
+4. Rebuild the library on every change: `npm run dev`
 
 ## Project Structure
 
@@ -18,7 +18,6 @@ compresso/
 │   ├── types/             # TypeScript declarations
 │   ├── test/              # Unit tests (Node) + test/browser/ (Playwright)
 │   └── dist/              # Built output (generated)
-├── website/               # Next.js marketing site + docs
 ├── examples/              # Framework integration examples
 ├── benchmark/             # Public benchmark image corpus (see benchmark/README.md)
 └── _articles/             # Research papers
@@ -45,13 +44,6 @@ Node has no implementation of `Image`/`createImageBitmap`/`OffscreenCanvas` at a
 those can only be tested in an actual engine. See `packages/compresso/test/browser/README.md`
 for how the two suites relate, and how the personal-photo corpus at `_assets/`
 (gitignored, local-only) adds optional extra coverage on top of the committed fixtures.
-
-### Website
-
-```bash
-npm run dev              # Start Next.js dev server
-npm run build:web        # Production build
-```
 
 ## Pull Request Guidelines
 

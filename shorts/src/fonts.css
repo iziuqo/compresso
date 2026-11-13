@@ -1,8 +1,0 @@
-/* The one face the web tokens don't ship: the app's wordmark is Geist
-   SemiBold (mobile/src/app/index.tsx). */
-@font-face {
-  font-family: 'Geist';
-  src: url('../../mobile/assets/fonts/Geist-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-  font-style: normal;
-}
