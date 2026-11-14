@@ -41,8 +41,9 @@ const againstDist = {
  * engines, required for anything that touches actual image decode/encode,
  * which Node has no implementation of at all; `dist` runs the same suite
  * against the build. `bundlers` builds the packed tarball with seven bundlers
- * and drives each app in Chromium. See test/browser/README.md and
- * test/bundlers/README.md.
+ * and drives each app in Chromium. `lab` opens the device lab page (lab/) in
+ * all three engines and asserts each of its checks. See test/browser/README.md,
+ * test/bundlers/README.md and lab/README.md.
  */
 export default defineConfig({
   // The optional, personal-photo corpus at the monorepo's `_assets/` (gitignored,
@@ -64,6 +65,8 @@ export default defineConfig({
       browserSuite('browser'),
       browserSuite('dist', [againstDist]),
       { test: { name: 'bundlers', include: ['test/bundlers/*.test.js'], environment: 'node', testTimeout: 120_000, hookTimeout: 600_000 } },
+      // The device lab page (lab/), opened in each engine; the page has its own per-check timeouts.
+      { test: { name: 'lab', include: ['test/lab/*.test.js'], environment: 'node', hookTimeout: 900_000 } },
     ],
   },
 });

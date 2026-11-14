@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>compresso.js device lab</title>
+<!-- The main-thread HEIC path imports the bare specifier 'heic-to'; with no
+     bundler, an import map is how a host points it at a file. dist/heic-to.js
+     is the build's own copy of heic-to's worker-safe variant. -->
+<script type="importmap">{ "imports": { "heic-to": "../dist/heic-to.js" } }</script>
+<style>
+  body { margin: 0 auto; padding: 16px; max-width: 72rem; font: 14px/1.45 -apple-system, system-ui, "Segoe UI", sans-serif; color: #1b1b1f; background: #fff; }
+  h1 { font-size: 1.4rem; margin: 0 0 4px; }
+  h2 { font-size: 1.05rem; margin: 24px 0 8px; }
+  p { margin: 4px 0; }
+  .lede { color: #55565c; }
+  #status { margin: 12px 0; font-weight: 600; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid #8a8b92; background: #f3f3f5; color: inherit; cursor: pointer; }
+  dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; margin: 0; }
+  dt { color: #55565c; }
+  dd { margin: 0; overflow-wrap: anywhere; }
+  .table { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid #dcdce0; }
+  td:last-child { font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+  td:nth-child(3) { white-space: nowrap; }
+  tr.pass td:nth-child(2) { color: #17753a; font-weight: 600; }
+  tr.fail td:nth-child(2) { color: #b3261e; font-weight: 700; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+  @media (prefers-color-scheme: dark) {
+    body { color: #e6e6ea; background: #141416; }
+    .lede, dt { color: #a3a4ab; }
+    button { background: #26262a; border-color: #5d5e65; }
+    th, td { border-color: #33343a; }
+    tr.pass td:nth-child(2) { color: #6fd08f; }
+    tr.fail td:nth-child(2) { color: #ff8a80; }
+  }
+</style>
+</head>
+<body>
+<h1>compresso.js device lab</h1>
+<p class="lede">Runs compresso.js's conformance checks in this browser, on images it draws itself. Nothing is sent anywhere unless the page is opened with <code>?report=&lt;url&gt;</code>.</p>
+<p id="status">Starting…</p>
+<button id="copy" type="button">Copy report</button>
+
+<h2>This browser</h2>
+<dl id="env"></dl>
+
+<h2>Checks</h2>
+<div class="table">
+<table>
+  <thead><tr><th>Check</th><th>Result</th><th>Finding</th><th>Details</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+</div>
+<p class="lede">Not checked here: the two pool timing smoke tests in test/browser/pool.test.js (pool against serial, warm against cold). One run on one device is too noisy to pass or fail on; pool-parallel records its batch time instead.</p>
+
+<details id="full">
+  <summary>Full report (JSON)</summary>
+  <pre id="json"></pre>
+</details>
+
+<script src="lab.js"></script>
+<script type="module" src="checks.mjs"></script>
+</body>
+</html>
