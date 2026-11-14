@@ -60,6 +60,9 @@ for how the two suites relate, and how the personal-photo corpus at `_assets/`
 - Run `npm run test:lib` and `npm run test:lib:browser` when touching compression
   logic — CI runs both (Chromium, Firefox, and WebKit) plus a bundle-size check on
   every push, but catching a regression locally first is faster for everyone
+- A pull request can merge once the `ci-ok` check passes: it waits for every job in
+  `.github/workflows/ci.yml` and fails if any of them failed. A new job goes in its
+  `needs` list, or `ci-ok` fails and names it
 - Write clear commit messages
 
 ## Reporting Issues
