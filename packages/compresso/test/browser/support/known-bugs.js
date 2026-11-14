@@ -11,14 +11,13 @@
 import { it } from 'vitest';
 import { server } from 'vitest/browser';
 
-const ALL = ['chromium', 'firefox', 'webkit'];
-
 /** Case key → the findings it exposes and the engines where they still reproduce. */
 export const KNOWN_FAILURES = {
-  // COR-06: a returned source keeps its own bytes, but the result names another format.
-  'corpus/animated.gif': { findings: ['COR-06'], engines: ALL },
-  'corpus/vector.svg': { findings: ['COR-06'], engines: ALL },
-  'corpus/sample.heic': { findings: ['COR-06'], engines: ALL },
+  // COR-06: a returned source keeps its own bytes, but the result names another
+  // format. Firefox re-encodes these small sources instead of returning them.
+  'corpus/animated.gif': { findings: ['COR-06'], engines: ['chromium', 'webkit'] },
+  'corpus/vector.svg': { findings: ['COR-06'], engines: ['chromium', 'webkit'] },
+  'corpus/sample.heic': { findings: ['COR-06'], engines: ['chromium', 'webkit'] },
   'compress/untyped-heic': { findings: ['COR-06'], engines: ['chromium', 'webkit'] },
   'benchmark/untyped-heic': { findings: ['COR-06'], engines: ['chromium', 'webkit'] },
 };
