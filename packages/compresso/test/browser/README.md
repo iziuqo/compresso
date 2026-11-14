@@ -13,27 +13,32 @@ Run with `npm run test:browser`.
 
 ## The honesty check and the known-failure list
 
-Every test passes each result it gets to `expectHonestResult(result, source)`
+Every test passes each result it inspects to `expectHonestResult(result, source)`
 (`support/honest.js`). It re-reads the output from scratch, its magic bytes, a
-fresh decode and the object URL, and compares every field the result claims
-(format, MIME types, file name, sizes, dimensions, savings) with what the
-bytes really are, in one assertion that lists every mismatch.
+fresh decode, the `file` and the object URL, and compares every field the
+result claims (format, MIME types, file name, contents, sizes, dimensions,
+savings) with what the bytes really are, in one assertion that lists every
+mismatch. Only the pool timing tests skip it, so it never sits inside a
+measured span.
 
 A case that exposes a confirmed finding is not skipped. It goes in
-`KNOWN_FAILURES` (`support/known-bugs.js`), keyed by case and engine, and
-`itTracked()` runs it as `it.fails` there, with the finding ID in its title.
-Such a test passes while the bug exists and fails once it is fixed, so the
-pull request that fixes a finding deletes its entries and the cases must
-then pass for real.
+`KNOWN_FAILURES` (`support/known-bugs.js`), keyed by case, with the engines
+where it reproduces and how it fails (`failsWith`, for example
+`liesAbout('format')`). `itTracked()` puts the finding ID in the title and,
+in those engines, requires the case to fail that exact way; a different
+error still fails the test. When a fix lands, the case stops failing and the
+test fails with a message to delete the entry, so the fixing pull request
+deletes it and the case must then pass for real.
 
 Fixtures come from `support/fixtures.js`: `fixture(name)` loads anything in
-`test/fixtures/` (see its README and manifest), and `generatedImage(w, h)`
+`test/fixtures/` (see its README and manifest) and checks its checksum on arrival, and `generatedImage(w, h)`
 draws large photo-like images on the device.
 
 ## The files
 
 - `fixtures.test.js` runs every committed fixture through `compress()` and
-  checks the result is honest; the pixel flood must be refused.
+  checks the result is honest and reports the manifest's size; the eight
+  orientation fixtures must come out upright; the pixel flood must be refused.
 - `compress.test.js` — always runs; uses the small, committed, synthetic `sample.*`
   fixtures in `test/fixtures/` so CI has real coverage without depending on personal
   photos.

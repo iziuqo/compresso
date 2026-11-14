@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { sniffFormat } from './browser/support/honest.js';
+import { FORMATS, sniffFormat } from './support/formats.js';
 
 /**
  * Keeps the committed corpus honest: every image in test/fixtures/ is in the
@@ -13,8 +13,6 @@ const DIR = new URL('./fixtures/', import.meta.url);
 const { files } = JSON.parse(readFileSync(new URL('manifest.json', DIR)));
 const MAX_CORPUS_BYTES = 3 * 1024 * 1024;
 const NOT_FIXTURES = new Set(['README.md', 'manifest.json', 'generate.py']);
-const MIME_OF = { jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
-  avif: 'image/avif', heic: 'image/heic', svg: 'image/svg+xml' };
 
 describe('test/fixtures manifest', () => {
   it('lists every committed fixture, and nothing else', () => {
@@ -34,7 +32,7 @@ describe('test/fixtures manifest', () => {
       expect(entry.width * entry.height).toBeGreaterThan(0);
       expect(bytes.length).toBe(entry.bytes);
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(entry.sha256);
-      expect(MIME_OF[sniffFormat(new Uint8Array(bytes))]).toBe(entry.type);
+      expect(FORMATS[sniffFormat(new Uint8Array(bytes))]?.mime).toBe(entry.type);
     });
   }
 });

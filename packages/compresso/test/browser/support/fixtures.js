@@ -5,8 +5,10 @@
  */
 import manifest from '../../fixtures/manifest.json';
 
+// `no-inline` keeps Vite from rewriting small files (the SVG) into data: URLs,
+// so the browser gets exactly the committed, checksummed bytes.
 const urls = import.meta.glob('../../fixtures/*.{jpg,png,webp,avif,heic,gif,svg}', {
-  query: '?url',
+  query: '?url&no-inline',
   import: 'default',
   eager: true,
 });
@@ -18,13 +20,20 @@ export const FIXTURES = Object.fromEntries(manifest.files.map((entry) => [entry.
  * A fixture as a `File`, the way an upload arrives. `type: ''` mimics an
  * untyped upload (iPhone HEIC files often have none); `name` renames it.
  */
-export function fixture(file, { type = FIXTURES[file].type, name = file } = {}) {
-  return fileFrom(urls[`../../fixtures/${file}`], name, type);
+export async function fixture(file, { type = FIXTURES[file]?.type, name = file } = {}) {
+  const url = urls[`../../fixtures/${file}`];
+  if (!FIXTURES[file] || !url) throw new Error(`No fixture ${file} in test/fixtures/manifest.json`);
+  const loaded = await fileFrom(url, name, type);
+  const digest = await crypto.subtle.digest('SHA-256', await loaded.arrayBuffer());
+  const hex = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+  if (hex !== FIXTURES[file].sha256) throw new Error(`${file} reached the browser altered (checksum mismatch)`);
+  return loaded;
 }
 
 /** Any served URL as a `File`, for corpora outside `test/fixtures/`. */
 export async function fileFrom(url, name, type) {
   const response = await fetch(url);
+  if (!response.ok) throw new Error(`Fixture ${url} failed to load: HTTP ${response.status}`);
   return new File([await response.arrayBuffer()], name, { type });
 }
 
