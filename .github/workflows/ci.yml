@@ -70,6 +70,7 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
+      - run: "echo 'TEMPORARY: types fails on purpose, to show ci-ok blocks it'; exit 1"
       - run: npm run test:types
 
   test-browser:
