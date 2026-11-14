@@ -36,12 +36,13 @@ export const KNOWN_FAILURES = {
 
   // The rest: one case per finding, from test/browser/findings.test.js and the unit tests.
   'COR-01/webp-past-16383': {
-    findings: ['COR-01'], where: ['chromium', 'firefox'],
-    // Chromium cuts the image and reports the full size; Firefox refuses the encode.
+    findings: ['COR-01'], where: BROWSERS,
+    // Chromium cuts the image and reports the full size; Firefox and WebKit refuse the encode.
     failsWith: (error) => liesAbout('width', 'height')(error) || /Failed to encode/.test(error?.message),
   },
   'COR-02/avif-where-unsupported': { findings: ['COR-02'], where: BROWSERS, failsWith: liesAbout('format') },
   'COR-03/format': { findings: ['COR-03'], where: BROWSERS },
+  'COR-03/quality': { findings: ['COR-03'], where: ['firefox', 'webkit'] },
   'COR-03/maxSizeMB': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/backgroundColor': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxInputPixels': { findings: ['COR-03'], where: BROWSERS },
@@ -54,6 +55,10 @@ export const KNOWN_FAILURES = {
   'COR-14/png': { findings: ['COR-14'], where: BROWSERS },
   'COR-15/signal-type': { findings: ['COR-15'], where: BROWSERS },
   'COR-15/formatBytes': { findings: ['COR-15'], where: ['node'] },
+  // Firefox re-encodes small animated sources to a still WebP.
+  'COR-16/animated.gif': { findings: ['COR-16'], where: ['firefox'] },
+  'COR-16/animated.png': { findings: ['COR-16'], where: ['firefox'] },
+  'COR-16/animated.webp': { findings: ['COR-16'], where: ['firefox'] },
   'COR-16/svg-both-paths': { findings: ['COR-16'], where: BROWSERS },
   'COR-18/long-screenshot': { findings: ['COR-18'], where: BROWSERS },
   'CMP-16/fake-avif-label': { findings: ['CMP-16'], where: BROWSERS },
