@@ -1,5 +1,5 @@
 import { defineConfig } from 'vitest/config';
-import { searchForWorkspaceRoot } from 'vite';
+import { normalizePath, searchForWorkspaceRoot } from 'vite';
 import { playwright } from '@vitest/browser-playwright';
 import { existsSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
@@ -17,13 +17,16 @@ const browserSuite = (name, plugins = []) => ({
   },
 });
 
+/** The library's source folder, as Vite writes module ids. */
+const SRC = `${normalizePath(resolve(import.meta.dirname, 'src'))}/`;
 /** The built file that ships each source module the tests import. */
 const SHIPPED = { 'pool.js': 'dist/compresso.pool.mjs', 'plan.js': 'dist/compresso.plan.mjs' };
 
 /**
  * Points the tests' imports of `src/` at `dist/`, so the same suite runs
  * against what npm users get (every other source module ships in the main
- * entry). Run `npm run build` first.
+ * entry), and fails on any module still loaded from `src/`, so a new kind
+ * of import can't fall back to the source unnoticed. Run `npm run build` first.
  */
 const againstDist = {
   name: 'compresso:against-dist',
@@ -33,6 +36,9 @@ const againstDist = {
     const file = resolve(import.meta.dirname, SHIPPED[basename(source)] ?? 'dist/compresso.mjs');
     if (!existsSync(file)) this.error(`${file} is missing: run \`npm run build\` first`);
     return file;
+  },
+  load(id) {
+    if (id.startsWith(SRC)) this.error(`${id} was loaded from src/ by the dist project: map its import to dist/`);
   },
 };
 

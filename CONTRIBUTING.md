@@ -38,6 +38,9 @@ npm run test:types        # Type-check the hand-written declarations against doc
 npm run size:lib          # Check the built bundle against its size-limit budget
 ```
 
+Run tests through these scripts: a bare `vitest run` runs every project, and `dist` and
+`bundlers` fail without a build (and, for `bundlers`, `npm ci --prefix test/bundlers`).
+
 `test:lib:browser` needs Playwright's browsers installed once per machine:
 `npx playwright install chromium firefox webkit` (run inside `packages/compresso`).
 
