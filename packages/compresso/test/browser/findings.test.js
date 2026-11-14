@@ -269,10 +269,30 @@ describe('packaging and performance findings', () => {
   itTracked('PERF-01/slow-but-progressing', 'a pool job that keeps reporting progress is not timed out', async () => {
     const source = await generatedImage(4000, 3000);
     const options = { format: 'jpeg', maxSizeMB: 0.03 };
-    const started = performance.now();
-    await compress(source, options);
-    // Half the whole job's time on the main thread: shorter than the job, longer than any one step.
-    const timeoutMs = Math.max(500, Math.round((performance.now() - started) / 2));
+    // Measure the job on a warm pool with no timeout: how long it takes in
+    // all, and the longest silence between its progress reports.
+    const probe = createPool({ size: 1, timeoutMs: Infinity });
+    let job;
+    let silence = 0;
+    try {
+      await probe.compress(source, options);
+      const started = performance.now();
+      let last = started;
+      const heard = () => {
+        const now = performance.now();
+        silence = Math.max(silence, now - last);
+        last = now;
+      };
+      await probe.compress(source, { ...options, onProgress: heard });
+      heard();
+      job = performance.now() - started;
+    } finally {
+      probe.destroy();
+    }
+    // A timeout between the two: a pool that restarts its clock on progress
+    // finishes, one that times the whole job doesn't.
+    expect(job, 'the job reports progress often enough to tell the two apart').toBeGreaterThan(2 * silence);
+    const timeoutMs = Math.round((job + silence) / 2);
     const pool = createPool({ size: 1, timeoutMs });
     try {
       const outcome = await settled(pool.compress(source, options));
