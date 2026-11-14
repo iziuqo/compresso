@@ -160,3 +160,31 @@ jobs:
       - run: npm ci
       - run: npm run build:lib
       - run: npm run size:lib
+
+  # The one check the "Protect main" ruleset requires. It passes only when
+  # every other job in this file passed, so adding, renaming or splitting a
+  # job (a new Node version, say) needs no ruleset change. Its first step
+  # fails if a job here is missing from `needs`.
+  ci-ok:
+    if: always()
+    needs: [build, test, types, test-browser, test-dist, test-lab, test-bundlers, size]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          sparse-checkout: .github/workflows/ci.yml
+          sparse-checkout-cone-mode: false
+      - name: ci-ok waits for every job
+        run: |
+          set -o pipefail
+          missing=$(yq -o=json '.' .github/workflows/ci.yml | jq -r '(.jobs | keys) - ["ci-ok"] - .jobs["ci-ok"].needs | join(", ")')
+          if [ -n "$missing" ]; then
+            echo "::error::ci-ok does not wait for: $missing"
+            exit 1
+          fi
+      - name: Every job passed
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<< "$NEEDS"
+          jq -e 'all(.[]; .result == "success")' <<< "$NEEDS" > /dev/null
