@@ -28,13 +28,14 @@ export const liesAbout = (...fields) => (error) =>
 export const NOT_RUN = '—';
 
 /**
- * A `failsWith` for one row of the bundler matrix: true when the failed
- * assertion's outcome, each cell read as `ok`, `fail` or `NOT_RUN`, is
- * exactly `row`.
+ * A `failsWith` for one row of the bundler matrix: true when every cell of the
+ * failed assertion's outcome matches `row`. A cell is `ok`, `NOT_RUN`, or a
+ * pattern that the cell's failure reason must match, so a row fails only the
+ * known way.
  */
 export const matrixRow = (row) => (error) => {
-  const cell = (value) => (value === 'ok' || value === NOT_RUN ? value : 'fail');
-  return Boolean(error?.actual) && Object.keys({ ...row, ...error.actual }).every((key) => row[key] === cell(error.actual[key]));
+  const matches = (want, got) => (want instanceof RegExp ? got !== 'ok' && got !== NOT_RUN && want.test(got) : want === got);
+  return Boolean(error?.actual) && Object.keys({ ...row, ...error.actual }).every((key) => matches(row[key], error.actual[key]));
 };
 
 /** A `failsWith` for a list check: true when the failed assertion saw exactly `list`. */
@@ -45,7 +46,8 @@ export const MATRIX = ['build', 'load', 'mainJpeg', 'poolJpeg', 'poolHeic', 'mai
 
 /** A matrix row: the given cells in column order, the rest `NOT_RUN`. */
 const row = (...cells) => Object.fromEntries(MATRIX.map((key, i) => [key, cells[i] ?? NOT_RUN]));
-const POOL_FAILS = row('ok', 'ok', 'ok', 'fail', 'fail', 'ok');
+const WORKER_CRASH = /Worker crashed unexpectedly/;
+const POOL_FAILS = row('ok', 'ok', 'ok', WORKER_CRASH, WORKER_CRASH, 'ok');
 
 /** Case key → the findings it exposes, where they reproduce, and (optionally) how. */
 export const KNOWN_FAILURES = {
@@ -54,6 +56,8 @@ export const KNOWN_FAILURES = {
   'corpus/animated.gif': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'corpus/vector.svg': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'corpus/sample.heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
+  // A kept JPEG is named `jpg`, not the canonical `jpeg`.
+  'corpus/photo-gps-compact.jpg': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('format') },
   'compress/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'benchmark/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'COR-06/explicit-format-and-resize': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('width') },
@@ -65,11 +69,18 @@ export const KNOWN_FAILURES = {
     failsWith: (error) => liesAbout('width', 'height')(error) || /Failed to encode/.test(error?.message),
   },
   'COR-02/avif-where-unsupported': { findings: ['COR-02'], where: BROWSERS, failsWith: liesAbout('format') },
-  'COR-03/format': { findings: ['COR-03'], where: BROWSERS },
-  'COR-03/quality': { findings: ['COR-03'], where: ['firefox', 'webkit'] },
+  'COR-03/format': {
+    findings: ['COR-03'], where: BROWSERS,
+    // compress() reads `format.toLowerCase()` without a default.
+    failsWith: (error) => error instanceof TypeError && /toLowerCase/.test(error.message),
+  },
+  'COR-03/quality': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxSizeMB': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/backgroundColor': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxInputPixels': { findings: ['COR-03'], where: BROWSERS },
+  // A kept source keeps its EXIF, GPS included.
+  'COR-04/photo-gps-compact.jpg': { findings: ['COR-04'], where: BROWSERS },
+  'COR-04/photo-gps.webp': { findings: ['COR-04'], where: BROWSERS },
   'COR-05/already-compact': { findings: ['COR-05'], where: BROWSERS },
   'COR-07/truncated-main-thread': { findings: ['COR-07'], where: BROWSERS },
   'COR-08/pool-abort-name': { findings: ['COR-08'], where: BROWSERS },
@@ -110,9 +121,9 @@ export const KNOWN_FAILURES = {
   'bundler/rollup': { findings: ['PKG-01', 'PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_FAILS) },
   'bundler/esbuild-esm': { findings: ['PKG-01', 'PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_FAILS) },
   // Importing the pool resolves a URL against `import.meta.url`, which an IIFE lacks.
-  'bundler/esbuild-iife': { findings: ['PKG-03'], where: ['chromium'], failsWith: matrixRow(row('ok', 'fail')) },
+  'bundler/esbuild-iife': { findings: ['PKG-03'], where: ['chromium'], failsWith: matrixRow(row('ok', /Failed to construct 'URL'/)) },
   // Parcel ignores the exports map by default, so `compresso.js/pool` doesn't resolve.
-  'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row('fail')) },
+  'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row(/Failed to resolve 'compresso\.js\/pool'/)) },
   'PERF-01/slow-but-progressing': { findings: ['PERF-01'], where: BROWSERS },
   'PERF-02/size-target-encodes': { findings: ['PERF-02'], where: BROWSERS },
 

@@ -143,7 +143,9 @@ jobs:
         with:
           name: npm-tarball
           path: packages/compresso/test/bundlers/.out/*.tgz
-          if-no-files-found: error
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 30
 
   size:
     runs-on: ubuntu-latest

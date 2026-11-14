@@ -1,10 +1,10 @@
 import { defineConfig } from 'vitest/config';
-import { searchForWorkspaceRoot } from 'vite';
+import { normalizePath, searchForWorkspaceRoot } from 'vite';
 import { playwright } from '@vitest/browser-playwright';
 import { existsSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 
-const BROWSERS = [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }];
+const BROWSERS = ['chromium', 'firefox', 'webkit'];
 
 /** The browser suite, in real engines via Playwright, with `plugins` applied. */
 const browserSuite = (name, plugins = []) => ({
@@ -12,17 +12,21 @@ const browserSuite = (name, plugins = []) => ({
   test: {
     name,
     include: ['test/browser/**/*.test.js'],
-    browser: { enabled: true, provider: playwright(), headless: true, instances: BROWSERS },
+    // Fresh instance objects per project: Vitest names them in place.
+    browser: { enabled: true, provider: playwright(), headless: true, instances: BROWSERS.map((browser) => ({ browser })) },
   },
 });
 
+/** The library's source folder, as Vite writes module ids. */
+const SRC = `${normalizePath(resolve(import.meta.dirname, 'src'))}/`;
 /** The built file that ships each source module the tests import. */
 const SHIPPED = { 'pool.js': 'dist/compresso.pool.mjs', 'plan.js': 'dist/compresso.plan.mjs' };
 
 /**
  * Points the tests' imports of `src/` at `dist/`, so the same suite runs
  * against what npm users get (every other source module ships in the main
- * entry). Run `npm run build` first.
+ * entry), and fails on any module still loaded from `src/`, so a new kind
+ * of import can't fall back to the source unnoticed. Run `npm run build` first.
  */
 const againstDist = {
   name: 'compresso:against-dist',
@@ -32,6 +36,9 @@ const againstDist = {
     const file = resolve(import.meta.dirname, SHIPPED[basename(source)] ?? 'dist/compresso.mjs');
     if (!existsSync(file)) this.error(`${file} is missing: run \`npm run build\` first`);
     return file;
+  },
+  load(id) {
+    if (id.startsWith(SRC)) this.error(`${id} was loaded from src/ by the dist project: map its import to dist/`);
   },
 };
 
@@ -53,12 +60,15 @@ export default defineConfig({
   test: {
     // Coverage over the unit tests and Chromium together (V8 coverage needs a
     // Chromium engine): `npm run test:coverage`. The thresholds are the floor
-    // the suite has reached; raise them as coverage rises, never lower them.
+    // the suite has reached, less one point so one moved line can't fail CI;
+    // raise them as coverage rises, never lower them. worker.js runs only
+    // inside Workers, which V8 browser coverage can't see.
     coverage: {
       provider: 'v8',
       include: ['src/**/*.js'],
+      exclude: ['src/worker.js'],
       reporter: ['text-summary', 'text'],
-      thresholds: { statements: 86, branches: 83, functions: 91 },
+      thresholds: { statements: 89, branches: 85, functions: 92, lines: 90 },
     },
     projects: [
       { test: { name: 'unit', include: ['test/*.test.js'], environment: 'node' } },

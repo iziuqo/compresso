@@ -16,6 +16,7 @@ Pillow and pillow-heif are needed only to regenerate, never to run the tests.
 import hashlib
 import io
 import json
+import random
 import struct
 import zlib
 from pathlib import Path
@@ -147,7 +148,11 @@ def from_photo():
     save("photo.heic", encoded(photo, "HEIF", quality=50))
     save("photo-truncated.jpg", PHOTO.read_bytes()[: PHOTO.stat().st_size // 3])
     save("photo-gps.jpg", encoded(small, "JPEG", quality=85, exif=exif_with_gps()))
-    save("photo-gps.webp", encoded(small, "WEBP", quality=30, exif=exif_with_gps()))
+    # Seeded per-pixel noise at the lowest qualities: every re-encode at the library's
+    # qualities comes out larger, so these sources are kept as they are.
+    noise = Image.frombytes("RGB", (400, 300), random.Random(4).randbytes(400 * 300 * 3))
+    save("photo-gps.webp", encoded(noise, "WEBP", quality=0, method=6, exif=exif_with_gps()))
+    save("photo-gps-compact.jpg", encoded(noise, "JPEG", quality=5, exif=exif_with_gps()))
     return {
         "photo.heic": {"licence": DERIVED, "stresses": "a real HEVC-coded HEIC photo, decoded natively or by heic-to"},
         "photo-truncated.jpg": {"licence": DERIVED, "width": photo.width, "height": photo.height,
@@ -155,7 +160,9 @@ def from_photo():
         "photo-gps.jpg": {"licence": DERIVED, "gps": True,
                           "stresses": "EXIF with GPS: what a re-encode strips and a kept source leaks (COR-04)"},
         "photo-gps.webp": {"licence": DERIVED, "gps": True,
-                           "stresses": "a compact WebP with GPS EXIF that a re-encode can't beat, so it is kept (COR-04)"},
+                           "stresses": "a compact WebP with GPS EXIF that no re-encode beats, so it is kept (COR-04, COR-05)"},
+        "photo-gps-compact.jpg": {"licence": DERIVED, "gps": True,
+                                  "stresses": "a compact JPEG with GPS EXIF that no re-encode beats, so it is kept (COR-04)"},
     }
 
 

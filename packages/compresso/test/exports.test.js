@@ -6,8 +6,14 @@ import { tracked } from './support/known-failures.js';
 
 const itTracked = tracked(it, 'node');
 
-/** Name → typeof, so an added, removed or retyped export shows in review. */
-const surface = (entry) => Object.fromEntries(Object.keys(entry).sort().map((name) => [name, typeof entry[name]]));
+/**
+ * Name → typeof, so an added, removed or retyped export shows in review.
+ * `__`-prefixed names are internal hooks (for the worker and the tests),
+ * left out of the typings and free to change, so they are not part of it.
+ */
+const surface = (entry) => Object.fromEntries(
+  Object.keys(entry).filter((name) => !name.startsWith('__')).sort().map((name) => [name, typeof entry[name]])
+);
 
 /**
  * The public API, entry by entry. A 1.x release may only add to this list
@@ -17,9 +23,6 @@ const surface = (entry) => Object.fromEntries(Object.keys(entry).sort().map((nam
 describe('public API snapshot', () => {
   it("'compresso.js'", () => {
     expect(surface(main)).toEqual({
-      __resetCapabilities: 'function',
-      __setCapabilities: 'function',
-      __setHeicToUrl: 'function',
       compress: 'function',
       compressFile: 'function',
       compressMultiple: 'function',
