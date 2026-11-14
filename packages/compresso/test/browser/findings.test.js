@@ -270,45 +270,55 @@ describe('packaging and performance findings', () => {
     const source = await generatedImage(4000, 3000);
     const options = { format: 'jpeg', maxSizeMB: 0.03 };
     const warmUp = await generatedImage(200, 150);
-    // Measure the job on a pool with no timeout, warmed on the job itself
-    // (its first full-size run is slower): the fastest of two runs, and the
-    // longest silence between progress reports.
+    /** One job on `pool`: its outcome, its length, and its longest silence between progress reports. */
+    const watched = async (pool) => {
+      const started = performance.now();
+      let last = started;
+      let silence = 0;
+      const heard = () => {
+        const now = performance.now();
+        silence = Math.max(silence, now - last);
+        last = now;
+      };
+      const outcome = await settled(pool.compress(source, { ...options, onProgress: heard }));
+      heard();
+      return { outcome, job: performance.now() - started, silence };
+    };
+    // A warm pool with no timeout gives the job and its longest silence.
     const probe = createPool({ size: 1, timeoutMs: Infinity });
-    let job = Infinity;
-    let silence = 0;
+    let timeoutMs;
     try {
       await probe.compress(source, options);
-      for (let run = 0; run < 2; run++) {
-        const started = performance.now();
-        let last = started;
-        const heard = () => {
-          const now = performance.now();
-          silence = Math.max(silence, now - last);
-          last = now;
-        };
-        await probe.compress(source, { ...options, onProgress: heard });
-        heard();
-        job = Math.min(job, performance.now() - started);
-      }
+      const { job, silence } = await watched(probe);
+      timeoutMs = Math.sqrt(job * silence);
     } finally {
       probe.destroy();
     }
-    // Under the job and over any silence by the same factor (their geometric
-    // mean): a pool that restarts its clock on progress finishes, one that
-    // times the whole job doesn't. The first report comes after two encodes
-    // and the canvas draw, so the job is only 2 to 4 times its longest
-    // silence (about 2 in Firefox).
-    expect(job / silence, `the job, ${Math.round(job)} ms, against its longest silence, ${Math.round(silence)} ms`).toBeGreaterThan(1.5);
-    const timeoutMs = Math.round(Math.sqrt(job * silence));
-    const pool = createPool({ size: 1, timeoutMs });
-    try {
-      // Warm, so the worker's start-up doesn't count against the job.
-      await pool.compress(warmUp, options);
-      const outcome = await settled(pool.compress(source, options));
-      expect(outcome, `PERF-01 timed out at ${timeoutMs} ms`).not.toBeInstanceOf(Error);
-    } finally {
-      pool.destroy();
+    // A run tells only when its timeout fell between its longest silence and
+    // its length: then a pool that restarts its clock on progress finishes,
+    // and one that times the whole job doesn't. Timings move on shared
+    // runners, so a run that misses moves the timeout toward the side it
+    // missed and tries again.
+    for (let run = 0; run < 4; run++) {
+      const pool = createPool({ size: 1, timeoutMs: Math.round(timeoutMs) });
+      let seen;
+      try {
+        // Warm, so the worker's start-up doesn't count against the job.
+        await pool.compress(warmUp, options);
+        seen = await watched(pool);
+      } finally {
+        pool.destroy();
+      }
+      // Any failure but the pool's timeout is a failure of its own.
+      if (seen.outcome instanceof Error && !/timed out/.test(seen.outcome.message)) throw seen.outcome;
+      const quiet = seen.silence < 0.9 * timeoutMs;
+      if (quiet && (seen.outcome instanceof Error || seen.job > 1.1 * timeoutMs)) {
+        expect(seen.outcome, `PERF-01 timed out at ${Math.round(timeoutMs)} ms, though no silence reached ${Math.round(seen.silence)} ms`).not.toBeInstanceOf(Error);
+        return;
+      }
+      timeoutMs *= quiet ? 0.8 : 1.25;
     }
+    throw new Error('no timeout fell between the job and its longest silence in 4 runs');
   }, 60000);
 
   itTracked('PERF-02/size-target-encodes', 'a size target costs four encodes at most, and is met', async () => {
