@@ -99,12 +99,3 @@ export async function expectHonestResult(result, source) {
   }
   expect(claimed, 'every result field must describe the bytes it carries').toEqual(actual);
 }
-
-/**
- * A `failsWith` predicate for `KNOWN_FAILURES`: true when `error` is the
- * honesty check failing on at least one of `fields`, so any other failure
- * (a timeout, a missing fixture, a codec that didn't load) is not mistaken
- * for the known bug.
- */
-export const liesAbout = (...fields) => (error) =>
-  fields.some((field) => error?.actual && error?.expected && !Object.is(error.actual[field], error.expected[field]));

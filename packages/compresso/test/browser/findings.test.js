@@ -1,0 +1,280 @@
+/**
+ * One test per confirmed finding, written as the behaviour the fix must
+ * deliver (see the quality plan's pull request rows). While a finding still
+ * reproduces, its case is listed in test/support/known-failures.js and must
+ * fail the known way; the fixing pull request deletes the entry.
+ */
+import { afterEach, describe, expect, it } from 'vitest';
+import { compress } from '../../src/compress.js';
+import { getBestFormat, __resetCapabilities, __setCapabilities } from '../../src/index.js';
+import { createPool } from '../../src/pool.js';
+import { fixture, generatedImage, fileFrom } from './support/fixtures.js';
+import { expectHonestResult } from './support/honest.js';
+import { itTracked } from './support/known-bugs.js';
+import transparentUrl from '../../../../benchmark/corpus/transparent-graphic.png?url';
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+/** The value or the error a promise settles with, so tests can assert on either. */
+const settled = (promise) => promise.then((value) => value, (error) => error);
+const bytesOf = async (blob) => new Uint8Array(await blob.arrayBuffer());
+const latin1 = async (blob) => new TextDecoder('latin1').decode(await bytesOf(blob));
+
+/** Runs `fn` and counts the canvas encodes it makes on the main thread. */
+async function countEncodes(fn) {
+  const targets = [[HTMLCanvasElement.prototype, 'toBlob'], [globalThis.OffscreenCanvas?.prototype, 'convertToBlob']]
+    .filter(([proto]) => proto);
+  const originals = targets.map(([proto, name]) => proto[name]);
+  let encodes = 0;
+  targets.forEach(([proto, name], i) => {
+    proto[name] = function (...args) { encodes++; return originals[i].apply(this, args); };
+  });
+  try {
+    return { value: await fn(), encodes: () => encodes };
+  } finally {
+    targets.forEach(([proto, name], i) => { proto[name] = originals[i]; });
+  }
+}
+
+/** A 64 × 64 uncompressed 24-bit BMP: decodable everywhere, encodable nowhere. */
+function bmp(size = 64) {
+  const rowBytes = size * 3;
+  const pixels = rowBytes * size;
+  const buffer = new ArrayBuffer(54 + pixels);
+  const view = new DataView(buffer);
+  view.setUint16(0, 0x4d42, true); // "BM"
+  view.setUint32(2, buffer.byteLength, true);
+  view.setUint32(10, 54, true);
+  view.setUint32(14, 40, true);
+  view.setInt32(18, size, true);
+  view.setInt32(22, size, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  view.setUint32(34, pixels, true);
+  const data = new Uint8Array(buffer, 54);
+  for (let i = 0; i < pixels; i++) data[i] = (i * 7) % 256;
+  return new File([buffer], 'photo.bmp', { type: 'image/bmp' });
+}
+
+afterEach(() => __resetCapabilities());
+
+describe('correctness findings', () => {
+  itTracked('COR-01/webp-past-16383', 'WebP output taller than 16,383 px reports the size it really has', async () => {
+    const source = await generatedImage(800, 20000);
+    await expectHonestResult(await compress(source, { format: 'webp' }), source);
+  }, 60000);
+
+  itTracked('COR-02/avif-where-unsupported', "format: 'avif' where AVIF can't be encoded gives a labelled WebP or JPEG", async () => {
+    const source = bmp();
+    const result = await compress(source, { format: 'avif' });
+    if (result.format === 'avif') return expectHonestResult(result, source); // a real AVIF encoder
+    expect(['webp', 'jpeg'], 'COR-02 falls back to an encodable format').toContain(result.format);
+    await expectHonestResult(result, source);
+  });
+
+  describe('COR-03: an explicit undefined option behaves like an omitted one', () => {
+    const same = async (options, source) => {
+      const plain = await compress(source);
+      const result = await settled(compress(source, options));
+      expect(result, `COR-03 ${Object.keys(options)} must not throw`).not.toBeInstanceOf(Error);
+      expect([result.format, result.compressedSize], `COR-03 ${Object.keys(options)}`).toEqual([plain.format, plain.compressedSize]);
+    };
+    for (const option of ['format', 'quality', 'maxSizeMB', 'maxWidth']) {
+      itTracked(`COR-03/${option}`, `{ ${option}: undefined }`, async () => same({ [option]: undefined }, await fixture('photo.jpg')));
+    }
+    itTracked('COR-03/backgroundColor', '{ backgroundColor: undefined } still fills transparency white', async () => {
+      const source = await fileFrom(transparentUrl, 'transparent.png', 'image/png');
+      const plain = await compress(source, { format: 'jpeg' });
+      const result = await compress(source, { format: 'jpeg', backgroundColor: undefined });
+      expect(await bytesOf(result.blob), 'COR-03 backgroundColor').toEqual(await bytesOf(plain.blob));
+    });
+    itTracked('COR-03/maxInputPixels', '{ maxInputPixels: undefined } keeps the pixel-flood guard on', async () => {
+      const error = await settled(compress(await fixture('pixel-flood.png'), { maxInputPixels: undefined }));
+      expect(error?.kind, 'COR-03 maxInputPixels').toBe('too-large');
+    });
+  });
+
+  for (const file of ['photo-gps.jpg', 'photo-gps.webp']) {
+    itTracked(`COR-04/${file}`, `${file}: no EXIF or GPS survives, re-encoded or kept`, async () => {
+      const result = await compress(await fixture(file));
+      expect(/Exif\0\0|EXIF/.test(await latin1(result.blob)), 'COR-04 metadata in the output').toBe(false);
+    });
+  }
+
+  itTracked('COR-05/already-compact', 'a source no encode can beat comes back after one encode', async () => {
+    const { value: result, encodes } = await countEncodes(async () => compress(await fixture('photo-gps.webp')));
+    expect(encodes(), 'COR-05 encodes').toBeLessThanOrEqual(1);
+    await expectHonestResult(result);
+  });
+
+  itTracked('COR-06/explicit-format-and-resize', 'an explicit format with a resize reports the size it returns', async () => {
+    const source = await fixture('sample.avif');
+    await expectHonestResult(await compress(source, { format: 'jpeg', maxWidth: 60 }), source);
+  });
+
+  itTracked('COR-07/truncated-main-thread', 'a truncated JPEG is rejected on the main thread, as in the pool', async () => {
+    const outcome = await settled(compress(await fixture('photo-truncated.jpg')));
+    expect(outcome, 'COR-07 a truncated JPEG must reject').toBeInstanceOf(Error);
+  });
+
+  itTracked('COR-08/pool-abort-name', 'a pool cancel is an AbortError, as from compress()', async () => {
+    const pool = createPool({ size: 1 });
+    try {
+      const controller = new AbortController();
+      controller.abort();
+      const error = await settled(pool.compress(await fixture('sample.jpg'), { signal: controller.signal }));
+      expect(error?.name, 'COR-08 pool abort name').toBe('AbortError');
+    } finally {
+      pool.destroy();
+    }
+  });
+
+  itTracked('COR-08/decode-error-kind', 'an undecodable file fails with the same kind on both paths', async () => {
+    const garbage = new File([new Uint8Array(512).fill(7)], 'broken.jpg', { type: 'image/jpeg' });
+    const pool = createPool({ size: 1 });
+    try {
+      const [main, worker] = [await settled(compress(garbage)), await settled(pool.compress(garbage))];
+      expect(worker.kind, 'COR-08 pool decode kind').toBeTruthy();
+      expect(main.kind, 'COR-08 same kind on both paths').toBe(worker.kind);
+    } finally {
+      pool.destroy();
+    }
+  });
+
+  itTracked('COR-10/after-destroy', 'compress() after destroy() rejects at once', async () => {
+    const pool = createPool({ size: 1 });
+    pool.destroy();
+    const outcome = await Promise.race([settled(pool.compress(await fixture('sample.jpg'))), sleep(1000).then(() => 'pending')]);
+    expect(outcome, 'COR-10 after destroy').toBeInstanceOf(Error);
+  });
+
+  for (const format of ['jpeg', 'png']) {
+    itTracked(`COR-14/${format}`, `a missed maxSizeMB target is flagged (${format})`, async () => {
+      const maxSizeMB = 0.001;
+      const result = await compress(await fixture('photo.jpg'), { format, maxSizeMB });
+      const met = result.compressedSize <= maxSizeMB * 1024 * 1024;
+      expect(met || result.missedTarget === true, 'COR-14 target met or flagged').toBe(true);
+    });
+  }
+
+  itTracked('COR-15/signal-type', 'a signal that is not an AbortSignal is refused on the main thread, as in the pool', async () => {
+    const outcome = await settled(compress(await fixture('sample.jpg'), { signal: {} }));
+    expect(outcome, 'COR-15 signal: {}').toBeInstanceOf(TypeError);
+  });
+
+  for (const file of ['animated.gif', 'animated.png', 'animated.webp']) {
+    itTracked(`COR-16/${file}`, `${file} comes back untouched, still animated`, async () => {
+      const source = await fixture(file);
+      const result = await compress(source);
+      expect(await bytesOf(result.blob), 'COR-16 animation kept').toEqual(await bytesOf(source));
+    });
+  }
+
+  itTracked('COR-16/svg-both-paths', 'an SVG comes back untouched on the main thread and in the pool', async () => {
+    const source = await fixture('vector.svg');
+    const pool = createPool({ size: 1 });
+    try {
+      for (const outcome of [await settled(compress(source)), await settled(pool.compress(source))]) {
+        expect(outcome, 'COR-16 SVG must not be rejected').not.toBeInstanceOf(Error);
+        expect(await bytesOf(outcome.blob), 'COR-16 SVG kept').toEqual(await bytesOf(source));
+      }
+    } finally {
+      pool.destroy();
+    }
+  });
+
+  describe('the JPEG fallback cap (no WebP or AVIF encoder)', () => {
+    it('still caps an ordinary 4000 × 3000 photo at 2048 × 1536', async () => {
+      __setCapabilities({ avif: false, webp: false });
+      const result = await compress(await generatedImage(4000, 3000));
+      expect([result.width, result.height]).toEqual([2048, 1536]);
+    });
+
+    itTracked('COR-18/long-screenshot', 'keeps an 800 × 20000 screenshot at least 720 px wide', async () => {
+      __setCapabilities({ avif: false, webp: false });
+      const result = await compress(await generatedImage(800, 20000));
+      expect(Math.min(result.width, result.height), 'COR-18 short edge').toBeGreaterThanOrEqual(720);
+    }, 60000);
+  });
+});
+
+describe('compatibility findings', () => {
+  itTracked('CMP-16/fake-avif-label', 'an encoder that only labels its output AVIF is not believed', async () => {
+    const png = await new Promise((resolve) => Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).toBlob(resolve, 'image/png'));
+    const proto = HTMLCanvasElement.prototype;
+    const { toDataURL, toBlob } = proto;
+    proto.toDataURL = function (type, ...rest) {
+      return type === 'image/avif' ? toDataURL.call(this, 'image/png', ...rest).replace('image/png', 'image/avif') : toDataURL.call(this, type, ...rest);
+    };
+    proto.toBlob = function (callback, type, ...rest) {
+      if (type !== 'image/avif') return toBlob.call(this, callback, type, ...rest);
+      setTimeout(() => callback(new Blob([png], { type: 'image/avif' })));
+    };
+    try {
+      __resetCapabilities();
+      expect(getBestFormat(), 'CMP-16 a mislabelled encoder').not.toBe('avif');
+    } finally {
+      Object.assign(proto, { toDataURL, toBlob });
+    }
+  });
+
+  itTracked('CMP-17/decoded-smaller', 'a photo the browser decodes smaller still reports its real original size', async () => {
+    const source = await generatedImage(800, 600);
+    const proto = HTMLImageElement.prototype;
+    const descriptors = ['naturalWidth', 'naturalHeight'].map((name) => [name, Object.getOwnPropertyDescriptor(proto, name)]);
+    const realBitmap = globalThis.createImageBitmap;
+    for (const [name, descriptor] of descriptors) {
+      Object.defineProperty(proto, name, { configurable: true, get() { return Math.round(descriptor.get.call(this) * 0.75); } });
+    }
+    globalThis.createImageBitmap = async (image, options = {}) => {
+      const full = await realBitmap(image, options);
+      return realBitmap(full, { ...options, resizeWidth: Math.round(full.width * 0.75), resizeHeight: Math.round(full.height * 0.75) });
+    };
+    let result;
+    try {
+      result = await compress(source);
+    } finally {
+      for (const [name, descriptor] of descriptors) Object.defineProperty(proto, name, descriptor);
+      globalThis.createImageBitmap = realBitmap;
+    }
+    expect([result.originalWidth, result.originalHeight], 'CMP-17 original size').toEqual([800, 600]);
+  });
+});
+
+describe('packaging and performance findings', () => {
+  itTracked('PKG-01/unreachable-worker', 'an unreachable worker file stops respawning, and jobs still finish', async () => {
+    const pool = createPool({ size: 2, workerUrl: '/no-such-worker.js' });
+    try {
+      await sleep(2000);
+      expect(pool.stats().recoveries, 'PKG-01 respawns').toBeLessThanOrEqual(2);
+      const outcome = await Promise.race([settled(pool.compress(await fixture('sample.jpg'))), sleep(5000).then(() => 'pending')]);
+      expect(outcome, 'PKG-01 a job still finishes').not.toBeInstanceOf(Error);
+      expect(outcome, 'PKG-01 a job still finishes').not.toBe('pending');
+    } finally {
+      pool.destroy();
+    }
+  }, 15000);
+
+  itTracked('PERF-01/slow-but-progressing', 'a pool job that keeps reporting progress is not timed out', async () => {
+    const source = await generatedImage(6000, 4000);
+    const options = { format: 'jpeg', maxSizeMB: 0.05 };
+    const started = performance.now();
+    await compress(source, options);
+    // Half the whole job's time on the main thread: shorter than the job, longer than any one step.
+    const timeoutMs = Math.max(500, Math.round((performance.now() - started) / 2));
+    const pool = createPool({ size: 1, timeoutMs });
+    try {
+      const outcome = await settled(pool.compress(source, options));
+      expect(outcome, `PERF-01 timed out at ${timeoutMs} ms`).not.toBeInstanceOf(Error);
+    } finally {
+      pool.destroy();
+    }
+  }, 60000);
+
+  itTracked('PERF-02/size-target-encodes', 'a size target costs four encodes at most, and is met', async () => {
+    const source = await generatedImage(3000, 2000);
+    const maxSizeMB = 0.3;
+    const { value: result, encodes } = await countEncodes(() => compress(source, { format: 'jpeg', maxSizeMB }));
+    expect(result.compressedSize).toBeLessThanOrEqual(maxSizeMB * 1024 * 1024);
+    expect(encodes(), 'PERF-02 encodes').toBeLessThanOrEqual(4);
+  }, 60000);
+});
