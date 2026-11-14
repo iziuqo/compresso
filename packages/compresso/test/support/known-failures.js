@@ -2,7 +2,8 @@
  * The one list of known failures: which test cases still expose a confirmed
  * finding, in which environments, and how the failure shows. Finding IDs are
  * the assessment's (see the quality plan's appendix). Environments are the
- * browser engines (`chromium`, `firefox`, `webkit`) and `node` for unit tests.
+ * browser engines (`chromium`, `firefox`, `webkit`) and `node` for unit tests;
+ * test/bundlers runs as `chromium`.
  *
  * A listed case must fail where listed, and fail the known way: by default an
  * assertion whose message names one of its findings (tests write
@@ -22,6 +23,31 @@ const BROWSERS = ['chromium', 'firefox', 'webkit'];
  */
 export const liesAbout = (...fields) => (error) =>
   Boolean(error?.actual && error?.expected) && fields.some((f) => !Object.is(error.actual[f], error.expected[f]));
+
+/** A matrix cell for a step that never ran because an earlier one failed (test/bundlers). */
+export const NOT_RUN = '—';
+
+/**
+ * A `failsWith` for one row of the bundler matrix: true when every cell of the
+ * failed assertion's outcome matches `row`. A cell is `ok`, `NOT_RUN`, or a
+ * pattern that the cell's failure reason must match, so a row fails only the
+ * known way.
+ */
+export const matrixRow = (row) => (error) => {
+  const matches = (want, got) => (want instanceof RegExp ? got !== 'ok' && got !== NOT_RUN && want.test(got) : want === got);
+  return Boolean(error?.actual) && Object.keys({ ...row, ...error.actual }).every((key) => matches(row[key], error.actual[key]));
+};
+
+/** A `failsWith` for a list check: true when the failed assertion saw exactly `list`. */
+export const saw = (list) => (error) => JSON.stringify(error?.actual) === JSON.stringify(list);
+
+/** The bundler matrix's columns: the build, the page load, then each check in test/bundlers/app.js. */
+export const MATRIX = ['build', 'load', 'mainJpeg', 'poolJpeg', 'poolHeic', 'mainHeic'];
+
+/** A matrix row: the given cells in column order, the rest `NOT_RUN`. */
+const row = (...cells) => Object.fromEntries(MATRIX.map((key, i) => [key, cells[i] ?? NOT_RUN]));
+const WORKER_CRASH = /Worker crashed unexpectedly/;
+const POOL_FAILS = row('ok', 'ok', 'ok', WORKER_CRASH, WORKER_CRASH, 'ok');
 
 /** Case key → the findings it exposes, where they reproduce, and (optionally) how. */
 export const KNOWN_FAILURES = {
@@ -73,6 +99,31 @@ export const KNOWN_FAILURES = {
   'CMP-16/fake-avif-label': { findings: ['CMP-16'], where: BROWSERS },
   'CMP-17/decoded-smaller': { findings: ['CMP-17'], where: BROWSERS },
   'PKG-01/unreachable-worker': { findings: ['PKG-01'], where: BROWSERS },
+
+  // test/bundlers: the packed tarball and the seven bundler apps, in Chromium.
+  'package/publint': {
+    findings: ['PKG-07'], where: ['chromium'],
+    failsWith: saw(['.', './plan', './pool'].map((entry) => `EXPORTS_TYPES_SHOULD_BE_FIRST exports ${entry} types`)),
+  },
+  'package/attw': {
+    findings: ['PKG-07'], where: ['chromium'],
+    failsWith: saw([
+      'CJSResolvesToESM ./pool node16-cjs',
+      'FallbackCondition . bundler', 'FallbackCondition . node16-cjs', 'FallbackCondition . node16-esm',
+      'FallbackCondition ./plan bundler', 'FallbackCondition ./plan node16-cjs', 'FallbackCondition ./plan node16-esm',
+      'FallbackCondition ./pool bundler', 'FallbackCondition ./pool node16-esm',
+      'FalseESM types/index.d.ts', 'FalseESM types/plan.d.ts',
+      'InternalResolutionError types/pool.d.ts',
+      'NoResolution ./plan node10', 'NoResolution ./pool node10',
+    ]),
+  },
+  // The pool can't find its worker file, so it never gets a real worker.
+  'bundler/rollup': { findings: ['PKG-01', 'PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_FAILS) },
+  'bundler/esbuild-esm': { findings: ['PKG-01', 'PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_FAILS) },
+  // Importing the pool resolves a URL against `import.meta.url`, which an IIFE lacks.
+  'bundler/esbuild-iife': { findings: ['PKG-03'], where: ['chromium'], failsWith: matrixRow(row('ok', /Failed to construct 'URL'/)) },
+  // Parcel ignores the exports map by default, so `compresso.js/pool` doesn't resolve.
+  'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row(/Failed to resolve 'compresso\.js\/pool'/)) },
   'PERF-01/slow-but-progressing': { findings: ['PERF-01'], where: BROWSERS },
   'PERF-02/size-target-encodes': { findings: ['PERF-02'], where: BROWSERS },
 };
