@@ -123,6 +123,17 @@
       "height": 32
     },
     {
+      "file": "photo-gps-compact.jpg",
+      "type": "image/jpeg",
+      "bytes": 8696,
+      "sha256": "4a88002f9ec655c2a557ce3b650fdb4ca6efbbbeb9964e4540e0a36d28d55ef0",
+      "licence": "CC0-1.0; derived from photo.jpg by generate.py",
+      "gps": true,
+      "stresses": "a compact JPEG with GPS EXIF that no re-encode beats, so it is kept (COR-04)",
+      "width": 400,
+      "height": 300
+    },
+    {
       "file": "photo-gps.jpg",
       "type": "image/jpeg",
       "bytes": 43118,
@@ -136,13 +147,13 @@
     {
       "file": "photo-gps.webp",
       "type": "image/webp",
-      "bytes": 6856,
-      "sha256": "03e1d35f6a07ca357803613df2e63ee9df3e1d55950c5efee7f3b2335fbe8079",
+      "bytes": 5822,
+      "sha256": "188d8cf9d1ee97827d44b4c1c78c826d6b4c03f6a91ab5520fa4a6f946040509",
       "licence": "CC0-1.0; derived from photo.jpg by generate.py",
       "gps": true,
-      "stresses": "a compact WebP with GPS EXIF that a re-encode can't beat, so it is kept (COR-04)",
-      "width": 800,
-      "height": 534
+      "stresses": "a compact WebP with GPS EXIF that no re-encode beats, so it is kept (COR-04, COR-05)",
+      "width": 400,
+      "height": 300
     },
     {
       "file": "photo-truncated.jpg",

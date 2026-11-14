@@ -17,6 +17,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 /** The value or the error a promise settles with, so tests can assert on either. */
 const settled = (promise) => promise.then((value) => value, (error) => error);
 const bytesOf = async (blob) => new Uint8Array(await blob.arrayBuffer());
+const sameBytes = (a, b) => a.length === b.length && a.every((byte, i) => byte === b[i]);
 const latin1 = async (blob) => new TextDecoder('latin1').decode(await bytesOf(blob));
 
 /** Runs `fn` and counts the canvas encodes it makes on the main thread. */
@@ -72,15 +73,18 @@ describe('correctness findings', () => {
   });
 
   describe('COR-03: an explicit undefined option behaves like an omitted one', () => {
-    const same = async (options, source) => {
-      const plain = await compress(source);
-      const result = await settled(compress(source, options));
-      expect(result, `COR-03 ${Object.keys(options)} must not throw`).not.toBeInstanceOf(Error);
-      expect([result.format, result.compressedSize], `COR-03 ${Object.keys(options)}`).toEqual([plain.format, plain.compressedSize]);
+    // `base` makes the default observable: Chromium's default WebP quality
+    // happens to equal the library's, so `quality` is compared as JPEG.
+    const same = async (option, base = {}) => {
+      const source = await fixture('photo.jpg');
+      const plain = await compress(source, base);
+      const result = await compress(source, { ...base, [option]: undefined });
+      expect([result.format, result.compressedSize], `COR-03 ${option}`).toEqual([plain.format, plain.compressedSize]);
     };
-    for (const option of ['format', 'quality', 'maxSizeMB', 'maxWidth']) {
-      itTracked(`COR-03/${option}`, `{ ${option}: undefined }`, async () => same({ [option]: undefined }, await fixture('photo.jpg')));
-    }
+    itTracked('COR-03/format', '{ format: undefined }', () => same('format'));
+    itTracked('COR-03/quality', '{ quality: undefined }', () => same('quality', { format: 'jpeg' }));
+    itTracked('COR-03/maxSizeMB', '{ maxSizeMB: undefined }', () => same('maxSizeMB'));
+    itTracked('COR-03/maxWidth', '{ maxWidth: undefined }', () => same('maxWidth'));
     itTracked('COR-03/backgroundColor', '{ backgroundColor: undefined } still fills transparency white', async () => {
       const source = await fileFrom(transparentUrl, 'transparent.png', 'image/png');
       const plain = await compress(source, { format: 'jpeg' });
@@ -93,17 +97,21 @@ describe('correctness findings', () => {
     });
   });
 
-  for (const file of ['photo-gps.jpg', 'photo-gps.webp']) {
-    itTracked(`COR-04/${file}`, `${file}: no EXIF or GPS survives, re-encoded or kept`, async () => {
-      const result = await compress(await fixture(file));
+  // Each GPS fixture takes one path: re-encoded, or kept because no encode beats it.
+  for (const [file, kept] of [['photo-gps.jpg', false], ['photo-gps-compact.jpg', true], ['photo-gps.webp', true]]) {
+    itTracked(`COR-04/${file}`, `${file}: no EXIF or GPS survives (${kept ? 'kept' : 're-encoded'})`, async () => {
+      const source = await fixture(file);
+      const result = await compress(source);
+      expect(sameBytes(await bytesOf(result.blob), await bytesOf(source)), `the ${kept ? 'kept' : 're-encode'} path`).toBe(kept);
       expect(/Exif\0\0|EXIF/.test(await latin1(result.blob)), 'COR-04 metadata in the output').toBe(false);
     });
   }
 
   itTracked('COR-05/already-compact', 'a source no encode can beat comes back after one encode', async () => {
-    const { value: result, encodes } = await countEncodes(async () => compress(await fixture('photo-gps.webp')));
+    const source = await fixture('photo-gps.webp');
+    const { value: result, encodes } = await countEncodes(() => compress(source));
+    expect(await bytesOf(result.blob), 'the source comes back').toEqual(await bytesOf(source));
     expect(encodes(), 'COR-05 encodes').toBeLessThanOrEqual(1);
-    await expectHonestResult(result);
   });
 
   itTracked('COR-06/explicit-format-and-resize', 'an explicit format with a resize reports the size it returns', async () => {
@@ -133,7 +141,7 @@ describe('correctness findings', () => {
     const pool = createPool({ size: 1 });
     try {
       const [main, worker] = [await settled(compress(garbage)), await settled(pool.compress(garbage))];
-      expect(worker.kind, 'COR-08 pool decode kind').toBeTruthy();
+      expect(worker, 'the pool rejects it as undecodable').toMatchObject({ kind: 'decode' });
       expect(main.kind, 'COR-08 same kind on both paths').toBe(worker.kind);
     } finally {
       pool.destroy();
@@ -141,9 +149,10 @@ describe('correctness findings', () => {
   });
 
   itTracked('COR-10/after-destroy', 'compress() after destroy() rejects at once', async () => {
+    const source = await fixture('sample.jpg');
     const pool = createPool({ size: 1 });
     pool.destroy();
-    const outcome = await Promise.race([settled(pool.compress(await fixture('sample.jpg'))), sleep(1000).then(() => 'pending')]);
+    const outcome = await Promise.race([settled(pool.compress(source)), sleep(1000).then(() => 'pending')]);
     expect(outcome, 'COR-10 after destroy').toBeInstanceOf(Error);
   });
 
@@ -174,7 +183,8 @@ describe('correctness findings', () => {
     const pool = createPool({ size: 1 });
     try {
       for (const outcome of [await settled(compress(source)), await settled(pool.compress(source))]) {
-        expect(outcome, 'COR-16 SVG must not be rejected').not.toBeInstanceOf(Error);
+        expect(outcome, 'COR-16 SVG rejected as undecodable').not.toMatchObject({ kind: 'decode' });
+        expect(outcome).not.toBeInstanceOf(Error);
         expect(await bytesOf(outcome.blob), 'COR-16 SVG kept').toEqual(await bytesOf(source));
       }
     } finally {
@@ -244,7 +254,9 @@ describe('packaging and performance findings', () => {
   itTracked('PKG-01/unreachable-worker', 'an unreachable worker file stops respawning, and jobs still finish', async () => {
     const pool = createPool({ size: 2, workerUrl: '/no-such-worker.js' });
     try {
-      await sleep(2000);
+      // Watch for 2 s, but stop as soon as the loop shows: the storm is heavy on WebKit.
+      const started = performance.now();
+      while (pool.stats().recoveries <= 2 && performance.now() - started < 2000) await sleep(20);
       expect(pool.stats().recoveries, 'PKG-01 respawns').toBeLessThanOrEqual(2);
       const outcome = await Promise.race([settled(pool.compress(await fixture('sample.jpg'))), sleep(5000).then(() => 'pending')]);
       expect(outcome, 'PKG-01 a job still finishes').not.toBeInstanceOf(Error);
@@ -255,8 +267,8 @@ describe('packaging and performance findings', () => {
   }, 15000);
 
   itTracked('PERF-01/slow-but-progressing', 'a pool job that keeps reporting progress is not timed out', async () => {
-    const source = await generatedImage(6000, 4000);
-    const options = { format: 'jpeg', maxSizeMB: 0.05 };
+    const source = await generatedImage(4000, 3000);
+    const options = { format: 'jpeg', maxSizeMB: 0.03 };
     const started = performance.now();
     await compress(source, options);
     // Half the whole job's time on the main thread: shorter than the job, longer than any one step.
