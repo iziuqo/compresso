@@ -295,9 +295,10 @@ describe('packaging and performance findings', () => {
     }
     // Under the job and over any silence by the same factor (their geometric
     // mean): a pool that restarts its clock on progress finishes, one that
-    // times the whole job doesn't. Firefox reports progress less often, so
-    // the margin on each side is smaller there.
-    expect(job, `the job, ${Math.round(job)} ms, outlasts its longest silence, ${Math.round(silence)} ms, twice`).toBeGreaterThan(2 * silence);
+    // times the whole job doesn't. The first report comes after two encodes
+    // and the canvas draw, so the job is only 2 to 4 times its longest
+    // silence (about 2 in Firefox).
+    expect(job / silence, `the job, ${Math.round(job)} ms, against its longest silence, ${Math.round(silence)} ms`).toBeGreaterThan(1.5);
     const timeoutMs = Math.round(Math.sqrt(job * silence));
     const pool = createPool({ size: 1, timeoutMs });
     try {
