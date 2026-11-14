@@ -1,13 +1,48 @@
 import { defineConfig } from 'vitest/config';
 import { searchForWorkspaceRoot } from 'vite';
 import { playwright } from '@vitest/browser-playwright';
+import { existsSync } from 'node:fs';
+import { basename, resolve } from 'node:path';
+
+const BROWSERS = [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }];
+
+/** The browser suite, in real engines via Playwright, with `plugins` applied. */
+const browserSuite = (name, plugins = []) => ({
+  plugins,
+  test: {
+    name,
+    include: ['test/browser/**/*.test.js'],
+    browser: { enabled: true, provider: playwright(), headless: true, instances: BROWSERS },
+  },
+});
+
+/** The built file that ships each source module the tests import. */
+const SHIPPED = { 'pool.js': 'dist/compresso.pool.mjs', 'plan.js': 'dist/compresso.plan.mjs' };
 
 /**
- * Two projects, deliberately: `unit` runs in plain Node — fast, no browser
- * needed, for pure logic (byte parsing, dimension math, format tables).
- * `browser` runs in real engines via Playwright — required for anything that
- * touches actual image decode/encode, which Node has no implementation of at
- * all. See test/browser/README.md for why these can't be merged into one.
+ * Points the tests' imports of `src/` at `dist/`, so the same suite runs
+ * against what npm users get (every other source module ships in the main
+ * entry). Run `npm run build` first.
+ */
+const againstDist = {
+  name: 'compresso:against-dist',
+  enforce: 'pre',
+  resolveId(source, importer) {
+    if (!importer?.includes('/test/') || !/\/src\/[^/]+\.js$/.test(source)) return null;
+    const file = resolve(import.meta.dirname, SHIPPED[basename(source)] ?? 'dist/compresso.mjs');
+    if (!existsSync(file)) this.error(`${file} is missing: run \`npm run build\` first`);
+    return file;
+  },
+};
+
+/**
+ * `unit` runs in plain Node: fast, no browser needed, for pure logic (byte
+ * parsing, dimension math, format tables). `browser` runs the source in real
+ * engines, required for anything that touches actual image decode/encode,
+ * which Node has no implementation of at all; `dist` runs the same suite
+ * against the build. `bundlers` builds the packed tarball with seven bundlers
+ * and drives each app in Chromium. See test/browser/README.md and
+ * test/bundlers/README.md.
  */
 export default defineConfig({
   // The optional, personal-photo corpus at the monorepo's `_assets/` (gitignored,
@@ -25,29 +60,10 @@ export default defineConfig({
       thresholds: { statements: 86, branches: 83, functions: 91 },
     },
     projects: [
-      {
-        test: {
-          name: 'unit',
-          include: ['test/*.test.js'],
-          environment: 'node',
-        },
-      },
-      {
-        test: {
-          name: 'browser',
-          include: ['test/browser/**/*.test.js'],
-          browser: {
-            enabled: true,
-            provider: playwright(),
-            headless: true,
-            instances: [
-              { browser: 'chromium' },
-              { browser: 'firefox' },
-              { browser: 'webkit' },
-            ],
-          },
-        },
-      },
+      { test: { name: 'unit', include: ['test/*.test.js'], environment: 'node' } },
+      browserSuite('browser'),
+      browserSuite('dist', [againstDist]),
+      { test: { name: 'bundlers', include: ['test/bundlers/*.test.js'], environment: 'node', testTimeout: 120_000, hookTimeout: 600_000 } },
     ],
   },
 });

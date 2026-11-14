@@ -1,0 +1,19 @@
+{
+  "name": "compresso-bundler-apps",
+  "private": true,
+  "description": "Pinned tools for test/bundlers: seven bundlers, plus publint and attw for the packed tarball. Not a workspace; installed with npm ci by npm run test:bundlers.",
+  "devDependencies": {
+    "@arethetypeswrong/core": "0.18.5",
+    "@rollup/plugin-node-resolve": "16.0.3",
+    "@rspack/cli": "2.3.2",
+    "@rspack/core": "2.3.2",
+    "esbuild": "0.28.2",
+    "heic-to": "^1.5.2",
+    "parcel": "2.16.4",
+    "publint": "0.3.25",
+    "rollup": "4.68.3",
+    "vite": "8.3.8",
+    "webpack": "5.112.2",
+    "webpack-cli": "7.3.1"
+  }
+}

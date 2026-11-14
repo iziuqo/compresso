@@ -9,7 +9,10 @@ tests (byte parsing, dimension math, format tables) belong in `test/*.test.js`
 rather than one suite: forcing everything through a real browser would make the
 fast, no-decode-needed tests slow for no reason.
 
-Run with `npm run test:browser`.
+Run with `npm run test:browser`. `npm run test:dist` runs the same suite against
+the build (`npm run build` first): the `dist` project points the tests' imports
+of `src/` at `dist/`, so a build that breaks what the source does fails here.
+The packed tarball and seven bundler apps are tested in `../bundlers/`.
 
 ## The honesty check and the known-failure list
 
