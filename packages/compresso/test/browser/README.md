@@ -11,8 +11,31 @@ fast, no-decode-needed tests slow for no reason.
 
 Run with `npm run test:browser`.
 
-- `compress.test.js` — always runs; uses the small, committed, synthetic fixtures
-  in `test/fixtures/` so CI has real coverage without depending on personal
+## The honesty check and the known-failure list
+
+Every test passes each result it gets to `expectHonestResult(result, source)`
+(`support/honest.js`). It re-reads the output from scratch, its magic bytes, a
+fresh decode and the object URL, and compares every field the result claims
+(format, MIME types, file name, sizes, dimensions, savings) with what the
+bytes really are, in one assertion that lists every mismatch.
+
+A case that exposes a confirmed finding is not skipped. It goes in
+`KNOWN_FAILURES` (`support/known-bugs.js`), keyed by case and engine, and
+`itTracked()` runs it as `it.fails` there, with the finding ID in its title.
+Such a test passes while the bug exists and fails once it is fixed, so the
+pull request that fixes a finding deletes its entries and the cases must
+then pass for real.
+
+Fixtures come from `support/fixtures.js`: `fixture(name)` loads anything in
+`test/fixtures/` (see its README and manifest), and `generatedImage(w, h)`
+draws large photo-like images on the device.
+
+## The files
+
+- `fixtures.test.js` runs every committed fixture through `compress()` and
+  checks the result is honest; the pixel flood must be refused.
+- `compress.test.js` — always runs; uses the small, committed, synthetic `sample.*`
+  fixtures in `test/fixtures/` so CI has real coverage without depending on personal
   photos.
 - `benchmark.test.js` — always runs; uses the public, committed corpus at
   `benchmark/corpus/` (see `benchmark/README.md`) — larger and more varied than
