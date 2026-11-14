@@ -31,6 +31,7 @@ compresso/
 npm run build:lib        # Build the library
 npm run test:lib         # Unit tests (plain Node — pure logic, no browser needed)
 npm run test:lib:browser # Integration tests in real Chromium/Firefox/WebKit via Playwright
+npm run test:lib:coverage # Unit + Chromium coverage, held at or above its thresholds
 npm run test:types       # Type-check the hand-written declarations against documented usage
 npm run size:lib         # Check the built bundle against its size-limit budget
 ```

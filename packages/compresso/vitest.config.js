@@ -15,6 +15,18 @@ export default defineConfig({
   // own root, which Vite's dev server otherwise refuses to serve.
   server: { fs: { allow: [searchForWorkspaceRoot(process.cwd())] } },
   test: {
+    // Coverage over the unit tests and Chromium together (V8 coverage needs a
+    // Chromium engine): `npm run test:coverage`. The thresholds are the floor
+    // the suite has reached, less one point so one moved line can't fail CI;
+    // raise them as coverage rises, never lower them. worker.js runs only
+    // inside Workers, which V8 browser coverage can't see.
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.js'],
+      exclude: ['src/worker.js'],
+      reporter: ['text-summary', 'text'],
+      thresholds: { statements: 89, branches: 85, functions: 92, lines: 90 },
+    },
     projects: [
       {
         test: {

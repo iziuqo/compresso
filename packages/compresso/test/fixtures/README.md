@@ -13,7 +13,8 @@ browser tests draw them on the device with `generatedImage()` in
 | `photo.jpg` | A real photograph, CC0 from Wikimedia Commons (see the manifest for the page), 1600 px wide |
 | `photo.heic` | `photo.jpg` as a real HEVC-coded HEIC |
 | `photo-truncated.jpg` | The first third of `photo.jpg`, like a broken download |
-| `photo-gps.jpg`, `photo-gps.webp` | `photo.jpg` at 800 px with EXIF GPS (a public landmark); the WebP is compact enough that it is kept |
+| `photo-gps.jpg` | `photo.jpg` at 800 px with EXIF GPS (a public landmark), which a re-encode strips |
+| `photo-gps-compact.jpg`, `photo-gps.webp` | seeded noise at the lowest quality with the same GPS EXIF: no re-encode beats them, so they are kept |
 | `orientation-1.jpg` … `orientation-8.jpg` | All eight EXIF orientations; each displays as red, green / blue, white quadrants, 48 × 32 |
 | `animated.gif`, `animated.png`, `animated.webp` | Three frames each (APNG for the PNG) |
 | `vector.svg` | A vector source |

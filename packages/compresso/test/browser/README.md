@@ -13,22 +13,34 @@ Run with `npm run test:browser`.
 
 ## The honesty check and the known-failure list
 
-Every test passes each result it inspects to `expectHonestResult(result, source)`
-(`support/honest.js`). It re-reads the output from scratch, its magic bytes, a
+The corpus, compress, benchmark, pool and export tests pass each result they
+inspect to `expectHonestResult(result, source)` (`support/honest.js`). It re-reads the output from scratch, its magic bytes, a
 fresh decode, the `file` and the object URL, and compares every field the
 result claims (format, MIME types, file name, contents, sizes, dimensions,
 savings) with what the bytes really are, in one assertion that lists every
-mismatch. Only the pool timing tests skip it, so it never sits inside a
-measured span.
+mismatch. The pool timing tests skip it, so it never sits inside a measured
+span, and so do the finding cases, which each assert the one behaviour their
+finding is about.
 
 A case that exposes a confirmed finding is not skipped. It goes in
-`KNOWN_FAILURES` (`support/known-bugs.js`), keyed by case, with the engines
-where it reproduces and how it fails (`failsWith`, for example
-`liesAbout('format')`). `itTracked()` puts the finding ID in the title and,
-in those engines, requires the case to fail that exact way; a different
-error still fails the test. When a fix lands, the case stops failing and the
-test fails with a message to delete the entry, so the fixing pull request
-deletes it and the case must then pass for real.
+`KNOWN_FAILURES` (`test/support/known-failures.js`, shared with the unit
+tests), keyed by case, with the environments where it reproduces (`chromium`,
+`firefox`, `webkit`, or `node`) and how it fails. By default that is an
+assertion whose message names the finding (`expect(value, 'COR-10 …')`); an
+entry can give its own `failsWith` instead, for example `liesAbout('format')`.
+`itTracked()` (`support/known-bugs.js` here) puts the finding ID in the title
+and, in those environments, requires the case to fail that exact way; a
+different error still fails the test. When a fix lands, the case stops
+failing and the test fails with a message to delete the entry, so the fixing
+pull request deletes it and the case must then pass for real.
+
+`findings.test.js` holds one such case for each confirmed finding the
+browser can show. Findings that show in one engine only (COR-18, CMP-16,
+CMP-17) force the capability or fake the encoder or decoder, so their cases
+fail in every engine. A case checks first that it reached the path its
+finding is about, without the finding's ID, so a different failure is never
+taken for the known one. A few cases still differ by engine, because the
+engines take different paths; their entries say where.
 
 Fixtures come from `support/fixtures.js`: `fixture(name)` loads anything in
 `test/fixtures/` (see its README and manifest) and checks its checksum on arrival, and `generatedImage(w, h)`
@@ -36,6 +48,9 @@ draws large photo-like images on the device.
 
 ## The files
 
+- `findings.test.js` — a case per confirmed finding (above), plus the
+  fallback-cap baseline that COR-18's fix must keep.
+- `exports.test.js` — the main entry's convenience exports, run for real.
 - `fixtures.test.js` runs every committed fixture through `compress()` and
   checks the result is honest and reports the manifest's size; the eight
   orientation fixtures must come out upright; the pixel flood must be refused.
