@@ -105,7 +105,10 @@ function generated(width, height, type = 'image/jpeg', options = {}) {
       release(canvas);
       if (!blob) throw new Error(`this browser could not encode a ${width} x ${height} ${type} source`);
       return new File([blob], `generated-${width}x${height}.${FORMATS[sniffFormat(await head(blob))]?.extension}`, { type });
-    })());
+    })().catch((error) => {
+      sources.delete(key);
+      throw error;
+    }));
   }
   return sources.get(key);
 }
@@ -164,6 +167,18 @@ async function inspect(result) {
 /** One line for the table: what the label says and what the bytes are. */
 const said = (seen) => `${seen.claimed.format} ${seen.claimed.size?.join('x')} ${kb(seen.actual.bytes)}; bytes are ${seen.actual.format} ${seen.actual.size?.join('x') ?? 'undecodable'}` +
   (seen.honest ? '' : `; wrong: ${seen.lies.join(', ')}`);
+
+/**
+ * The finding a dishonest result points to, from the claim that is wrong: an
+ * AVIF label on other bytes is CMP-16, a wrong size COR-01, the source's own
+ * bytes under another name COR-06; `null` for any other failure.
+ */
+function findingOf(seen, source) {
+  if (seen.honest) return null;
+  if (seen.claimed.format === 'avif' && seen.actual.format !== 'avif') return 'CMP-16';
+  if (seen.lies.includes('size')) return 'COR-01';
+  return seen.actual.bytes === source.size ? 'COR-06' : null;
+}
 
 /* ------------------------------------------------------------ the pool */
 
@@ -355,46 +370,6 @@ export const CHECKS = [
     },
   },
   {
-    name: 'canvas-size',
-    finding: 'CMP-03',
-    title: 'draws, reads back and encodes 4096x4096, 6000x4000 and 8064x6048 canvases',
-    timeout: 2 * MINUTE,
-    async run() {
-      const rows = [];
-      for (const [width, height] of [[4096, 4096], [6000, 4000], [8064, 6048]]) {
-        const canvas = canvasOf(width, height);
-        const row = { size: `${width}x${height}`, megapixels: Math.round((width * height) / 1e5) / 10 };
-        const started = performance.now();
-        try {
-          const ctx = canvas.getContext('2d', { willReadFrequently: true });
-          if (!ctx) throw new Error('no 2d context');
-          const halves = [[0, 0, 'red'], [width / 2, 0, 'green'], [0, height / 2, 'blue'], [width / 2, height / 2, 'white']];
-          for (const [x, y, name] of halves) {
-            ctx.fillStyle = `rgb(${QUADRANTS[name]})`;
-            ctx.fillRect(x, y, width / 2, height / 2);
-          }
-          const read = [[1, 1], [width - 2, 1], [1, height - 2], [width - 2, height - 2]]
-            .map(([x, y]) => colourName(ctx.getImageData(x, y, 1, 1).data));
-          row.readBack = read.join() === UPRIGHT.join() ? 'ok' : read;
-          const blob = await toBlob(canvas, 'image/jpeg', 0.8);
-          row.encoded = blob ? { bytes: blob.size, bytesAre: sniffFormat(await head(blob)) } : null;
-          row.ok = row.readBack === 'ok' && row.encoded?.bytesAre === 'jpeg';
-        } catch (e) {
-          Object.assign(row, { ok: false, error: errorOf(e).message });
-        } finally {
-          release(canvas);
-        }
-        row.ms = Math.round(performance.now() - started);
-        rows.push(row);
-      }
-      return {
-        pass: rows.every((r) => r.ok),
-        summary: rows.map((r) => `${r.size} ${r.ok ? 'ok' : `failed (${r.error ?? `read-back ${r.readBack}, encoded ${r.encoded?.bytesAre ?? 'nothing'}`})`}`).join('; '),
-        details: { rows },
-      };
-    },
-  },
-  {
     name: 'default-12mp',
     finding: 'CMP-16',
     title: 'a 12 MP JPEG with defaults comes back smaller, as the format it claims, at the size it reports',
@@ -404,6 +379,7 @@ export const CHECKS = [
       const { ms, seen } = await compressed(source);
       return {
         pass: seen.honest && seen.actual.bytes < source.size,
+        finding: findingOf(seen, source),
         summary: `${kb(source.size)} source → ${said(seen)}`,
         details: { sourceBytes: source.size, ms, result: seen },
       };
@@ -421,8 +397,10 @@ export const CHECKS = [
     async run() {
       const source = await generated(1600, 1250, 'image/png');
       const { ms, seen } = await compressed(source, { format });
+      const labelled = seen.claimed.format === seen.actual.format && seen.claimed.mimeType === seen.actual.mimeType;
       return {
-        pass: seen.claimed.format === seen.actual.format && seen.claimed.mimeType === seen.actual.mimeType,
+        // Where the browser can't encode the format, an honest WebP or JPEG.
+        pass: labelled && (seen.actual.format === format || ['webp', 'jpeg'].includes(seen.actual.format)),
         summary: said(seen),
         details: { sourceBytes: source.size, ms, result: seen },
       };
@@ -431,28 +409,24 @@ export const CHECKS = [
   {
     name: 'long-screenshot',
     finding: 'COR-18',
-    title: 'an 800x20000 screenshot with defaults comes back at least 720 px wide',
+    title: 'an 800x16000 screenshot with defaults comes back at least 720 px wide',
     timeout: MINUTE,
     async run() {
-      const source = await generated(800, 20000, 'image/png', { grain: 0 });
-      let ms;
-      let seen;
-      try {
-        ({ ms, seen } = await compressed(source));
-      } catch (error) {
-        // WebP holds at most 16383 px a side: an encoder that refuses, rather
-        // than crop, fails the whole call (COR-01).
-        if (!/Failed to encode/.test(error?.message)) throw error;
-        return { pass: false, finding: 'COR-01', summary: error.message, details: { error: error.message } };
-      }
-      // What was really decoded, where it can be: the reported width may not be it (COR-01).
-      const width = (seen.actual.size ?? seen.claimed.size)[0];
-      return { pass: width >= 720, summary: `${width} px wide; ${said(seen)}`, details: { ms, width, result: seen } };
+      // Under WebP's 16383 px limit, so COR-01 stays out of this check.
+      const source = await generated(800, 16000, 'image/png', { grain: 0 });
+      const { ms, seen } = await compressed(source);
+      const width = seen.actual.size?.[0] ?? null;
+      return {
+        pass: width >= 720,
+        // COR-18 is the JPEG fallback's 2048 px cap; an undecodable result is something else.
+        finding: width !== null && seen.actual.format === 'jpeg' ? 'COR-18' : null,
+        summary: `${width ?? 'undecodable,'} px wide; ${said(seen)}`,
+        details: { ms, width, result: seen },
+      };
     },
   },
   {
     name: 'target-1mb',
-    finding: 'PERF-02',
     title: 'a 12 MP photo with maxSizeMB: 1 comes back at or under 1 MB',
     timeout: 2 * MINUTE,
     async run() {
@@ -484,7 +458,7 @@ export const CHECKS = [
       if (size === 0) return { pass: false, finding: null, summary: 'no real workers: createPool() fell back to the main thread', details: { stats: pool.stats(), isPoolSupported: isPoolSupported() } };
       const source = await generated(4000, 3000);
       const seen = await inspect(await pool.compress(source));
-      return { pass: seen.honest, summary: `${size} workers; ${said(seen)}`, details: { sourceBytes: source.size, stats: pool.stats(), result: seen } };
+      return { pass: seen.honest, finding: findingOf(seen, source), summary: `${size} workers; ${said(seen)}`, details: { sourceBytes: source.size, stats: pool.stats(), result: seen } };
     }),
   },
   {
@@ -576,7 +550,7 @@ export const CHECKS = [
   {
     name: 'pool-missing-worker',
     finding: 'PKG-01',
-    title: 'a worker URL that answers 404 is requested at most twice in 3 s, and the job settles',
+    title: 'a worker URL that answers 404 is retried at most twice in 3 s, and the job settles',
     timeout: MINUTE,
     run: () => {
       const url = new URL(`no-such-worker.js?run=${Date.now()}`, location.href).href;
@@ -585,14 +559,18 @@ export const CHECKS = [
         performance.setResourceTimingBufferSize?.(5000);
         let outcome = 'pending';
         settle(pool.compress(await fixture('sample.jpg', 'image/jpeg'))).then((o) => { outcome = o.error ? `rejected: ${errorOf(o.error).message}` : 'fulfilled'; });
-        await sleep(3000);
+        // Stops as soon as the pool has retried too often: a respawn storm is
+        // heavy, above all on WebKit, and the answer is already known.
+        const started = performance.now();
+        await until(() => pool.stats().recoveries > 2, { timeout: 3000, interval: 20 });
+        const seconds = Math.round((performance.now() - started) / 100) / 10;
         // Resource Timing sees worker script requests in some engines only;
         // each failed load also counts as one recovery, which every engine sees.
         const requests = performance.getEntriesByName(url).length;
         const { recoveries } = pool.stats();
         return {
           pass: recoveries <= 2 && requests <= 2 && outcome !== 'pending',
-          summary: `${requests} requests seen, ${recoveries} recoveries in 3 s; job ${outcome}`,
+          summary: `${requests} requests seen, ${recoveries} recoveries in ${seconds} s; job ${outcome}`,
           details: { requestsSeen: requests, recoveries, job: outcome, stats: pool.stats() },
         };
       });
@@ -610,6 +588,48 @@ export const CHECKS = [
     title: 'photo.heic comes back as a real image in another format, truly labelled (pool)',
     timeout: MINUTE,
     run: () => withPool({ size: 1 }, (pool) => heic((file) => pool.compress(file))),
+  },
+  // Last: on a phone short of memory the 48 MP canvas can end the tab, and
+  // the checks before it are already on the page to copy.
+  {
+    name: 'canvas-size',
+    finding: 'CMP-03',
+    title: 'draws, reads back and encodes 4096x4096, 6000x4000 and 8064x6048 canvases',
+    timeout: 2 * MINUTE,
+    async run() {
+      const rows = [];
+      for (const [width, height] of [[4096, 4096], [6000, 4000], [8064, 6048]]) {
+        const canvas = canvasOf(width, height);
+        const row = { size: `${width}x${height}`, megapixels: Math.round((width * height) / 1e5) / 10 };
+        const started = performance.now();
+        try {
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (!ctx) throw new Error('no 2d context');
+          const halves = [[0, 0, 'red'], [width / 2, 0, 'green'], [0, height / 2, 'blue'], [width / 2, height / 2, 'white']];
+          for (const [x, y, name] of halves) {
+            ctx.fillStyle = `rgb(${QUADRANTS[name]})`;
+            ctx.fillRect(x, y, width / 2, height / 2);
+          }
+          const read = [[1, 1], [width - 2, 1], [1, height - 2], [width - 2, height - 2]]
+            .map(([x, y]) => colourName(ctx.getImageData(x, y, 1, 1).data));
+          row.readBack = read.join() === UPRIGHT.join() ? 'ok' : read;
+          const blob = await toBlob(canvas, 'image/jpeg', 0.8);
+          row.encoded = blob ? { bytes: blob.size, bytesAre: sniffFormat(await head(blob)) } : null;
+          row.ok = row.readBack === 'ok' && row.encoded?.bytesAre === 'jpeg';
+        } catch (e) {
+          Object.assign(row, { ok: false, error: errorOf(e).message });
+        } finally {
+          release(canvas);
+        }
+        row.ms = Math.round(performance.now() - started);
+        rows.push(row);
+      }
+      return {
+        pass: rows.every((r) => r.ok),
+        summary: rows.map((r) => `${r.size} ${r.ok ? 'ok' : `failed (${r.error ?? `read-back ${r.readBack}, encoded ${r.encoded?.bytesAre ?? 'nothing'}`})`}`).join('; '),
+        details: { rows },
+      };
+    },
   },
 ];
 

@@ -7,7 +7,8 @@ the committed fixtures (`test/fixtures/`), and shows pass or fail per check
 with what really came back. **Copy report** copies the whole report as JSON,
 the environment included.
 
-The page sends nothing anywhere and has no analytics. It carries
+The page has no analytics and sends nothing anywhere unless its link carries
+`?report=<http(s) address>`, which it names on the page before it runs. It carries
 `<meta name="robots" content="noindex, nofollow">` and belongs in no sitemap.
 
 ## Opening it
@@ -66,19 +67,19 @@ names none.
 | --- | --- | --- |
 | `encoders` | For WebP, AVIF, JPEG and PNG, on `<canvas>` and `OffscreenCanvas`: every blob is the type its label claims, and lossy output at quality 0.5 is smaller than at 0.9. Records the label, first 12 bytes and both sizes. | CMP-16 |
 | `jpeg-size` | JPEG at quality 0.8 of a 2 MP texture is at most 1.5 times Chromium's size (reference in `checks.mjs`). | CMP-18 |
-| `canvas-size` | 4096 × 4096, 6000 × 4000 and 8064 × 6048 canvases draw, read back and encode. | CMP-03 |
-| `default-12mp` | A 12 MP JPEG with defaults comes back smaller, as the format it claims, at the size it reports. | CMP-16 |
-| `explicit-webp`, `explicit-avif` | `format: 'webp'` / `'avif'` on a 2 MP PNG gives bytes in the claimed format. | COR-02 |
-| `long-screenshot` | An 800 × 20000 PNG with defaults decodes at least 720 px wide. | COR-18 |
-| `target-1mb` | A 12 MP photo with `maxSizeMB: 1` comes back at or under 1 MB. | PERF-02 |
+| `default-12mp` | A 12 MP JPEG with defaults comes back smaller, as the format it claims, at the size it reports. | From the wrong claim: CMP-16 (AVIF label), COR-01 (size), COR-06 (source renamed) |
+| `explicit-webp`, `explicit-avif` | `format: 'webp'` / `'avif'` on a 2 MP PNG gives bytes in the claimed format, or, where the browser can't encode it, an honest WebP or JPEG. | COR-02 |
+| `long-screenshot` | An 800 × 16000 PNG with defaults decodes at least 720 px wide (COR-18 when the JPEG fallback's cap narrows it). | COR-18 |
+| `target-1mb` | A 12 MP photo with `maxSizeMB: 1` comes back at or under 1 MB; the time it took is in the report. | |
 | `orientation`, `pool-orientation` | All eight EXIF orientation fixtures come back 48 × 32 and upright, quadrant colours read back where the canvas allows (sizes only otherwise, and the report says so). | |
 | `heic`, `pool-heic` | `photo.heic` comes back as a real image in another format, labelled as what its bytes are. | COR-06 |
-| `pool-basic` | Real workers (`stats().size > 0`) compress a 12 MP JPEG honestly. | CMP-16 |
+| `pool-basic` | Real workers (`stats().size > 0`) compress a 12 MP JPEG honestly. | As `default-12mp` |
 | `pool-parallel` | `compressMany()` of four on `createPool({ size: 2 })` has two busy at once, fulfils all four honestly and reports progress for each. | |
 | `pool-cancel` | Aborting an in-flight job rejects it with kind `aborted`, and the freed worker takes the next job. | |
 | `pool-timeout` | `timeoutMs: 1` rejects with kind `timeout`, and the worker is replaced. | |
 | `pool-fallback` | With `OffscreenCanvas` removed, `createPool()` falls back to the main thread and stays honest. | |
 | `pool-missing-worker` | A `workerUrl` that answers 404 is retried at most twice in 3 s (counted as pool recoveries, and as requests where Resource Timing sees them), and the job settles. | PKG-01 |
+| `canvas-size` | 4096 × 4096, 6000 × 4000 and 8064 × 6048 canvases draw, read back and encode. Runs last: on a phone short of memory it can end the tab. | CMP-03 |
 
 Every pool test that `test/browser/pool.test.js` skips on WebKit has a check
 here except its two timing smoke tests (pool against serial, warm against

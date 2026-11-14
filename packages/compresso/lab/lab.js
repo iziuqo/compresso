@@ -19,6 +19,9 @@
   var TRUNCATE = 240;
 
   var params = parseQuery(location.search);
+  // Only http(s), so a link can't make the page post anywhere stranger; the
+  // page names the address before it runs.
+  var reportTo = /^https?:\/\//i.test(params.report || '') ? params.report : null;
   var started = new Date();
   var errors = [];
   var report = {
@@ -27,6 +30,7 @@
     startedAt: started.toISOString(),
     finishedAt: null,
     complete: false,
+    reportTo: reportTo,
     env: environment(),
     library: { loaded: false },
     checks: [],
@@ -44,6 +48,9 @@
     if (target && target.tagName === 'SCRIPT') return errors.push('could not load ' + target.src + ' or a module it imports');
     errors.push(String(event.message) + (event.filename ? ' (' + event.filename.split('/').pop() + ':' + event.lineno + ')' : ''));
   }, true);
+  window.addEventListener('unhandledrejection', function (event) {
+    errors.push('unhandled rejection: ' + errorText(event.reason));
+  });
 
   /** What checks.mjs calls once the library has loaded: `{ env, checks, afterEach }`. */
   window.compressoLab = {
@@ -58,8 +65,9 @@
   window.addEventListener('load', function () {
     setTimeout(function () {
       if (registered) return;
-      var why = !report.env.features.modules ? 'this browser does not run module scripts'
-        : errors.length ? errors[errors.length - 1]
+      // A captured error first: some browsers run modules but lack `noModule`.
+      var why = errors.length ? errors[errors.length - 1]
+        : !report.env.features.modules ? 'this browser does not run module scripts'
         : 'checks.mjs did not register (is dist/ built and served?)';
       report.library = { loaded: false, error: why };
       addRow({ name: 'library', pass: false, finding: null, error: 'library did not load: ' + why, details: {} });
@@ -70,7 +78,7 @@
   onReady(function () {
     byId('copy').onclick = copyReport;
     renderEnv(report.env, report.library.env);
-    if (!finished && !registered) setStatus('Loading the library…');
+    if (!finished && !registered) setStatus('Loading the library…' + (reportTo ? ' When done, the report goes to ' + reportTo + '.' : ''));
   });
 
   /* ------------------------------------------------------------ the run */
@@ -163,9 +171,9 @@
     report.complete = true;
     window.labReport = report;
     renderJson();
-    setStatus('Done: ' + passed + ' of ' + report.checks.length + ' checks passed.');
+    setStatus('Done: ' + passed + ' of ' + report.checks.length + ' checks passed.' + (reportTo ? ' Sending the report to ' + reportTo + '…' : ''));
     document.documentElement.setAttribute('data-lab-done', 'true');
-    if (params.report) send(params.report);
+    if (reportTo) send(reportTo);
   }
 
   /** POSTs the report as text/plain, a simple request any server, cross-origin too, can take. */
@@ -174,7 +182,8 @@
     xhr.open('POST', url);
     xhr.setRequestHeader('Content-Type', 'text/plain;charset=UTF-8');
     xhr.onload = function () { appendStatus(' Report sent (HTTP ' + xhr.status + ').'); };
-    xhr.onerror = function () { appendStatus(' The report could not be sent to ' + url + '.'); };
+    // A server that takes the report but sends no CORS headers lands here too.
+    xhr.onerror = function () { appendStatus(' No readable answer from ' + url + ': the report may not have arrived.'); };
     xhr.send(JSON.stringify(report));
   }
 
@@ -225,7 +234,8 @@
       ['Chrome', /\b(?:HeadlessChrome|Chrome|CriOS)\/(\d[\d.]*)/, 'Blink'],
       ['Safari', /\bVersion\/(\d[\d.]*).*\bSafari\//, 'WebKit']
     ];
-    var ios = /\b(iPhone|iPad|iPod)\b/.test(ua);
+    // iPadOS asking for desktop sites says "Macintosh", but these tokens are iOS-only.
+    var ios = /\b(iPhone|iPad|iPod)\b|\b(?:FxiOS|CriOS|EdgiOS)\//.test(ua);
     for (var i = 0; i < rules.length; i++) {
       var match = rules[i][1].exec(ua);
       if (match) return { name: rules[i][0], version: match[1], engine: ios ? 'WebKit' : rules[i][2] };
@@ -243,7 +253,9 @@
     var fromSafari = browser.name === 'Safari' ? browser.version : null;
     if (match) {
       var claimed = match[1] + '.' + match[2] + (match[3] ? '.' + match[3] : '');
-      return { name: /\biPad\b/.test(ua) ? 'iPadOS' : 'iOS', version: fromSafari || claimed, userAgentSays: claimed };
+      // From iOS 26 the user agent's number is frozen at 18: without Safari's
+      // `Version/` (other browsers, in-app views) an 18.x can't be trusted.
+      return { name: /\biPad\b/.test(ua) ? 'iPadOS' : 'iOS', version: fromSafari || (+match[1] >= 18 ? null : claimed), userAgentSays: claimed };
     }
     if (/\bMacintosh\b/.test(ua) && touchPoints > 1) return { name: 'iPadOS', version: fromSafari, userAgentSays: 'Macintosh (desktop-class site)' };
     var known = [
@@ -266,6 +278,8 @@
     if (!data || !data.getHighEntropyValues) return Promise.resolve();
     return data.getHighEntropyValues(['platformVersion', 'model', 'fullVersionList', 'architecture']).then(function (values) {
       report.env.userAgentData = values;
+      // Windows, macOS and Android freeze the version in the user agent; this one is real.
+      if (values.platformVersion) report.env.os.platformVersion = values.platformVersion;
     }, function () {});
   }
 
@@ -384,10 +398,19 @@
     for (var i = 0; i < parts.length; i++) {
       if (!parts[i]) continue;
       var eq = parts[i].indexOf('=');
-      var key = decodeURIComponent(eq < 0 ? parts[i] : parts[i].slice(0, eq));
-      out[key] = eq < 0 ? '' : decodeURIComponent(parts[i].slice(eq + 1).replace(/\+/g, ' '));
+      var key = decode(eq < 0 ? parts[i] : parts[i].slice(0, eq));
+      out[key] = eq < 0 ? '' : decode(parts[i].slice(eq + 1).replace(/\+/g, ' '));
     }
     return out;
+  }
+
+  /** decodeURIComponent that keeps a malformed escape (`?only=50%`) as typed. */
+  function decode(text) {
+    try {
+      return decodeURIComponent(text);
+    } catch (error) {
+      return text;
+    }
   }
 
   function now() {

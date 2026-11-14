@@ -15,12 +15,14 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import * as playwright from 'playwright';
 import { tracked } from '../support/known-failures.js';
 import { serveStatic } from '../support/static-server.js';
-import { CHECKS } from '../../lab/checks.mjs';
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '../..');
 const ENGINES = (process.env.LAB_BROWSERS ?? 'chromium,firefox,webkit').split(',').map((name) => name.trim()).filter(Boolean);
-// Every check has its own timeout inside the page; this only catches a page that never reports.
-const REPORT_TIMEOUT_MS = 10 * 60_000;
+// checks.mjs imports dist/, so say what is missing before importing it.
+if (!existsSync(join(PACKAGE, 'dist/compresso.mjs'))) throw new Error('dist/ is missing: run `npm run build` first');
+const { CHECKS } = await import('../../lab/checks.mjs');
+// Every check has its own timeout inside the page: all of them, plus room to load.
+const REPORT_TIMEOUT_MS = CHECKS.reduce((sum, check) => sum + check.timeout, 0) + 2 * 60_000;
 /** Reports POSTed to /report?run=<engine>, by run, as they arrive. */
 const waiting = new Map();
 
@@ -44,7 +46,11 @@ function reportFor(run, page) {
     page.on('crash', () => reject(new Error(`the page crashed in ${run}`)));
     waiting.set(run, (body) => {
       clearTimeout(timer);
-      resolve(JSON.parse(body));
+      try {
+        resolve(JSON.parse(body));
+      } catch (error) {
+        reject(new Error(`${run} posted a report that isn't JSON: ${error.message}`));
+      }
     });
   });
 }
@@ -55,7 +61,6 @@ let server;
 let origin;
 
 beforeAll(async () => {
-  if (!existsSync(join(PACKAGE, 'dist/compresso.mjs'))) throw new Error('dist/ is missing: run `npm run build` first');
   server = await serveStatic({ '/': PACKAGE }, takeReport);
   origin = `http://127.0.0.1:${server.address().port}`;
 });
@@ -79,8 +84,9 @@ for (const engine of ENGINES) {
 
     afterAll(() => browser?.close());
 
-    it('loads the library and reports every check, in order', () => {
+    it('loads the library and reports every check, in order, with no page errors', () => {
       expect(report.library, 'the library loads').toMatchObject({ loaded: true });
+      expect(report.pageErrors, 'errors and unhandled rejections on the page').toEqual([]);
       expect(report.checks.map((check) => check.name), 'checks reported').toEqual(CHECKS.map((check) => check.name));
     });
 

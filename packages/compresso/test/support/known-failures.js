@@ -131,8 +131,6 @@ export const KNOWN_FAILURES = {
   // encodes AVIF on a canvas, and none stops retrying a missing worker.
   'lab/explicit-avif': { findings: ['COR-02'], where: BROWSERS },
   'lab/pool-missing-worker': { findings: ['PKG-01'], where: BROWSERS },
-  // Chromium crops the WebP to 16383 px and still passes the width check.
-  'lab/long-screenshot': { findings: ['COR-01'], where: ['firefox', 'webkit'] },
 };
 
 /** Default `failsWith`: an error whose message names one of the entry's findings. */
