@@ -4,7 +4,7 @@ import { playwright } from '@vitest/browser-playwright';
 import { existsSync } from 'node:fs';
 import { basename, resolve } from 'node:path';
 
-const BROWSERS = [{ browser: 'chromium' }, { browser: 'firefox' }, { browser: 'webkit' }];
+const BROWSERS = ['chromium', 'firefox', 'webkit'];
 
 /** The browser suite, in real engines via Playwright, with `plugins` applied. */
 const browserSuite = (name, plugins = []) => ({
@@ -12,7 +12,8 @@ const browserSuite = (name, plugins = []) => ({
   test: {
     name,
     include: ['test/browser/**/*.test.js'],
-    browser: { enabled: true, provider: playwright(), headless: true, instances: BROWSERS },
+    // Fresh instance objects per project: Vitest names them in place.
+    browser: { enabled: true, provider: playwright(), headless: true, instances: BROWSERS.map((browser) => ({ browser })) },
   },
 });
 
