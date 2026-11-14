@@ -70,7 +70,6 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
-      - run: "echo 'TEMPORARY: types fails on purpose, to show ci-ok blocks it'; exit 1"
       - run: npm run test:types
 
   test-browser:
@@ -161,6 +160,12 @@ jobs:
       - run: npm ci
       - run: npm run build:lib
       - run: npm run size:lib
+
+  # TEMPORARY: a job left out of ci-ok's needs, to show ci-ok names it.
+  left-out:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo left out
 
   # The one check the "Protect main" ruleset requires. It passes only when
   # every other job in this file passed, so adding, renaming or splitting a
