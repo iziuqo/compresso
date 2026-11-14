@@ -62,7 +62,8 @@ for how the two suites relate, and how the personal-photo corpus at `_assets/`
   every push, but catching a regression locally first is faster for everyone
 - A pull request can merge once the `ci-ok` check passes: it waits for every job in
   `.github/workflows/ci.yml` and fails if any of them failed. A new job goes in its
-  `needs` list, or `ci-ok` fails and names it
+  `needs` list, or `ci-ok` fails and names it. A job skipped by an `if:` counts as not
+  passed, so a job that should not gate a pull request belongs in another workflow
 - Write clear commit messages
 
 ## Reporting Issues

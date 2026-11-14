@@ -176,6 +176,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: ci-ok waits for every job
         run: |
+          set -o pipefail
           missing=$(yq -o=json '.' .github/workflows/ci.yml | jq -r '(.jobs | keys) - ["ci-ok"] - .jobs["ci-ok"].needs | join(", ")')
           if [ -n "$missing" ]; then
             echo "::error::ci-ok does not wait for: $missing"
