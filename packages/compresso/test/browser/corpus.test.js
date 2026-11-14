@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { compress } from '../../src/compress.js';
+import { fileFrom } from './support/fixtures.js';
+import { expectHonestResult } from './support/honest.js';
 
 /**
  * `_assets/` (the monorepo's personal-photo test corpus) is gitignored and
@@ -14,11 +16,7 @@ const pngFiles = import.meta.glob('../../../../_assets/png/*.png', { query: '?ur
 const heicFiles = import.meta.glob('../../../../_assets/heic/*.{HEIC,heic}', { query: '?url', import: 'default' });
 const exifFixture = import.meta.glob('../../../../_assets/jpg/exif-orient-6.jpg', { query: '?url', import: 'default' });
 
-async function fileFromGlob(loader, name, type) {
-  const url = await loader();
-  const res = await fetch(url);
-  return new File([await res.arrayBuffer()], name, { type });
-}
+const fileFromGlob = async (loader, name, type) => fileFrom(await loader(), name, type);
 
 describe.skipIf(Object.keys(jpgFiles).length === 0)('corpus — real JPEGs (_assets/jpg, local-only)', () => {
   for (const [path, loader] of Object.entries(jpgFiles)) {
@@ -29,6 +27,7 @@ describe.skipIf(Object.keys(jpgFiles).length === 0)('corpus — real JPEGs (_ass
       expect(result.originalWidth).toBeGreaterThan(0);
       expect(result.originalHeight).toBeGreaterThan(0);
       expect(result.compressedSize).toBeLessThanOrEqual(result.originalSize);
+      await expectHonestResult(result, file);
     });
   }
 });
@@ -42,6 +41,7 @@ describe.skipIf(Object.keys(pngFiles).length === 0)('corpus — real PNGs (_asse
       expect(result.originalWidth).toBeGreaterThan(0);
       expect(result.originalHeight).toBeGreaterThan(0);
       expect(result.compressedSize).toBeLessThanOrEqual(result.originalSize);
+      await expectHonestResult(result, file);
     });
   }
 });
@@ -55,6 +55,7 @@ describe.skipIf(Object.keys(heicFiles).length === 0)('corpus — real HEIC photo
       expect(result.originalWidth).toBeGreaterThan(0);
       expect(result.originalHeight).toBeGreaterThan(0);
       expect(result.compressedSize).toBeGreaterThan(0);
+      await expectHonestResult(result, file);
     });
   }
 });
@@ -70,5 +71,6 @@ describe.skipIf(Object.keys(exifFixture).length === 0)('corpus — EXIF orientat
     const result = await compress(file, { format: 'auto' });
     expect(result.originalWidth).toBe(768);
     expect(result.originalHeight).toBe(1280);
+    await expectHonestResult(result, file);
   });
 });

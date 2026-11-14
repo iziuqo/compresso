@@ -11,8 +11,36 @@ fast, no-decode-needed tests slow for no reason.
 
 Run with `npm run test:browser`.
 
-- `compress.test.js` — always runs; uses the small, committed, synthetic fixtures
-  in `test/fixtures/` so CI has real coverage without depending on personal
+## The honesty check and the known-failure list
+
+Every test passes each result it inspects to `expectHonestResult(result, source)`
+(`support/honest.js`). It re-reads the output from scratch, its magic bytes, a
+fresh decode, the `file` and the object URL, and compares every field the
+result claims (format, MIME types, file name, contents, sizes, dimensions,
+savings) with what the bytes really are, in one assertion that lists every
+mismatch. Only the pool timing tests skip it, so it never sits inside a
+measured span.
+
+A case that exposes a confirmed finding is not skipped. It goes in
+`KNOWN_FAILURES` (`support/known-bugs.js`), keyed by case, with the engines
+where it reproduces and how it fails (`failsWith`, for example
+`liesAbout('format')`). `itTracked()` puts the finding ID in the title and,
+in those engines, requires the case to fail that exact way; a different
+error still fails the test. When a fix lands, the case stops failing and the
+test fails with a message to delete the entry, so the fixing pull request
+deletes it and the case must then pass for real.
+
+Fixtures come from `support/fixtures.js`: `fixture(name)` loads anything in
+`test/fixtures/` (see its README and manifest) and checks its checksum on arrival, and `generatedImage(w, h)`
+draws large photo-like images on the device.
+
+## The files
+
+- `fixtures.test.js` runs every committed fixture through `compress()` and
+  checks the result is honest and reports the manifest's size; the eight
+  orientation fixtures must come out upright; the pixel flood must be refused.
+- `compress.test.js` — always runs; uses the small, committed, synthetic `sample.*`
+  fixtures in `test/fixtures/` so CI has real coverage without depending on personal
   photos.
 - `benchmark.test.js` — always runs; uses the public, committed corpus at
   `benchmark/corpus/` (see `benchmark/README.md`) — larger and more varied than

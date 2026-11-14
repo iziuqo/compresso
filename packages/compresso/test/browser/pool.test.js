@@ -2,9 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import { server } from 'vitest/browser';
 import { createPool, isPoolSupported } from '../../src/pool.js';
 import { compress, compressMultiple } from '../../src/index.js';
-import sampleJpgUrl from '../fixtures/sample.jpg?url';
-import samplePngUrl from '../fixtures/sample.png?url';
-import sampleHeicUrl from '../fixtures/sample.heic?url';
+import { fixture } from './support/fixtures.js';
+import { expectHonestResult } from './support/honest.js';
 
 /**
  * This whole file, WebKit only: GitHub Actions' Linux WebKit build
@@ -23,11 +22,6 @@ import sampleHeicUrl from '../fixtures/sample.heic?url';
  * unblock, not the real fix.
  */
 const skipOnWebKit = server.browser === 'webkit';
-
-async function fetchBlob(url, type, name) {
-  const res = await fetch(url);
-  return new File([await res.arrayBuffer()], name, { type });
-}
 
 /**
  * A larger, non-trivial-to-encode synthetic image — the committed fixtures
@@ -60,7 +54,7 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
     expect(isPoolSupported()).toBe(true); // sanity: this whole suite assumes a real engine
     const pool = createPool({ size: 2 });
     try {
-      const file = await fetchBlob(sampleJpgUrl, 'image/jpeg', 'sample.jpg');
+      const file = await fixture('sample.jpg');
       const result = await pool.compress(file, { format: 'auto' });
       expect(result.originalWidth).toBe(64);
       expect(result.originalHeight).toBe(64);
@@ -68,6 +62,7 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
       expect(result.compressedSize).toBeLessThanOrEqual(result.originalSize);
       expect(result.file).toBeInstanceOf(File);
       expect(result.url).toMatch(/^blob:/);
+      await expectHonestResult(result, file);
     } finally {
       pool.destroy();
     }
@@ -101,12 +96,12 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
   it.skip('decodes HEIC input through a real worker (regression test: the worker-side lazy heic-to codec load, not just the main-thread path already covered in compress.test.js — see pool.js\'s __setHeicToUrl/DEFAULT_HEIC_TO_URL)', async () => {
     const pool = createPool({ size: 1 });
     try {
-      const file = await fetchBlob(sampleHeicUrl, '', 'sample.heic'); // no MIME — matches a typical iPhone upload
+      const file = await fixture('sample.heic', { type: '' }); // no MIME — matches a typical iPhone upload
       const result = await pool.compress(file, { format: 'auto' });
       expect(result.originalWidth).toBe(64);
       expect(result.originalHeight).toBe(64);
       expect(result.compressedSize).toBeGreaterThan(0);
-      expect(result.format).not.toBe('heic'); // HEIC is input-only
+      await expectHonestResult(result, file);
     } finally {
       pool.destroy();
     }
@@ -115,13 +110,14 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
   it('compressMany() through a real pool: Promise.allSettled shape, all fulfilled', async () => {
     const pool = createPool({ size: 2 });
     try {
-      const jpg = await fetchBlob(sampleJpgUrl, 'image/jpeg', 'sample.jpg');
-      const png = await fetchBlob(samplePngUrl, 'image/png', 'sample.png');
+      const jpg = await fixture('sample.jpg');
+      const png = await fixture('sample.png');
       const results = await pool.compressMany([jpg, png]);
       expect(results).toHaveLength(2);
-      for (const r of results) {
+      for (const [i, r] of results.entries()) {
         expect(r.status).toBe('fulfilled');
         expect(r.value.compressedSize).toBeGreaterThan(0);
+        await expectHonestResult(r.value, [jpg, png][i]);
       }
     } finally {
       pool.destroy();
@@ -131,9 +127,10 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
   it('reports per-file batch progress while running through real workers', async () => {
     const pool = createPool({ size: 2 });
     try {
-      const jpg = await fetchBlob(sampleJpgUrl, 'image/jpeg', 'sample.jpg');
+      const jpg = await fixture('sample.jpg');
       const events = [];
-      await pool.compressMany([jpg, jpg], {}, (e) => events.push(e));
+      const results = await pool.compressMany([jpg, jpg], {}, (e) => events.push(e));
+      for (const r of results) await expectHonestResult(r.value, jpg);
       expect(events.length).toBeGreaterThan(0);
       expect(events.every((e) => e.totalFiles === 2 && e.fileIndex < 2)).toBe(true);
       expect(events.at(-1).overallProgress).toBeCloseTo(1, 1);
@@ -147,14 +144,14 @@ describe.skipIf(skipOnWebKit)('createPool() — actually parallelizes', () => {
   it('more than one worker is genuinely busy at the same time', async () => {
     const pool = createPool({ size: 4 });
     try {
-      const file = await fetchBlob(sampleJpgUrl, 'image/jpeg', 'sample.jpg');
+      const file = await fixture('sample.jpg');
       const jobs = [pool.compress(file), pool.compress(file), pool.compress(file), pool.compress(file)];
       // A tiny fixture compresses in single-digit milliseconds — well under
       // vi.waitFor's default ~50ms poll interval, which would otherwise only
       // ever sample before dispatch and after completion, never catching the
       // real (but brief) busy window in between. Poll tightly instead.
       await vi.waitFor(() => expect(pool.stats().busy).toBeGreaterThan(1), { timeout: 5000, interval: 2 });
-      await Promise.all(jobs);
+      for (const result of await Promise.all(jobs)) await expectHonestResult(result, file);
     } finally {
       pool.destroy();
     }
@@ -245,6 +242,7 @@ describe.skipIf(skipOnWebKit)('createPool() — cancellation actually stops work
       // The slot must actually be usable again, not just numerically "free".
       const next = await pool.compress(file);
       expect(next.compressedSize).toBeGreaterThan(0);
+      await expectHonestResult(next, file);
     } finally {
       pool.destroy();
     }
@@ -255,7 +253,7 @@ describe.skipIf(skipOnWebKit)('createPool() — a real per-job timeout recovers 
   it('rejects with kind: timeout and replaces the worker', async () => {
     const pool = createPool({ size: 1, timeoutMs: 1 }); // guaranteed to fire before any real decode/encode
     try {
-      const file = await fetchBlob(sampleJpgUrl, 'image/jpeg', 'sample.jpg');
+      const file = await fixture('sample.jpg');
       await expect(pool.compress(file)).rejects.toMatchObject({ kind: 'timeout' });
       await vi.waitFor(() => expect(pool.stats()).toMatchObject({ size: 1, busy: 0 }), { interval: 2 });
       expect(pool.stats().recoveries).toBeGreaterThanOrEqual(1);
@@ -274,13 +272,15 @@ describe.skipIf(skipOnWebKit)('createPool() — fallback path, forced', () => {
       const pool = createPool();
       expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0 });
 
-      const file = await fetchBlob(sampleJpgUrl, 'image/jpeg', 'sample.jpg');
+      const file = await fixture('sample.jpg');
       const result = await pool.compress(file, { format: 'auto' });
       expect(result.compressedSize).toBeGreaterThan(0);
       expect(result.compressedSize).toBeLessThanOrEqual(result.originalSize);
+      await expectHonestResult(result, file);
 
       const batch = await pool.compressMany([file, file]);
       expect(batch.every((r) => r.status === 'fulfilled')).toBe(true);
+      for (const r of batch) await expectHonestResult(r.value, file);
     } finally {
       globalThis.OffscreenCanvas = realOffscreenCanvas;
     }
