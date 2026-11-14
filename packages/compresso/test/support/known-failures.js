@@ -127,9 +127,10 @@ export const KNOWN_FAILURES = {
   'PERF-01/slow-but-progressing': { findings: ['PERF-01'], where: BROWSERS },
   'PERF-02/size-target-encodes': { findings: ['PERF-02'], where: BROWSERS },
 
-  // test/lab: the device lab page's checks (lab/checks.mjs), as observed in Chromium.
-  'lab/explicit-avif': { findings: ['COR-02'], where: ['chromium'] },
-  'lab/pool-missing-worker': { findings: ['PKG-01'], where: ['chromium'] },
+  // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
+  // encodes AVIF on a canvas, and none stops retrying a missing worker.
+  'lab/explicit-avif': { findings: ['COR-02'], where: BROWSERS },
+  'lab/pool-missing-worker': { findings: ['PKG-01'], where: BROWSERS },
 };
 
 /** Default `failsWith`: an error whose message names one of the entry's findings. */

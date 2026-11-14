@@ -9,9 +9,8 @@
  */
 import { execFile } from 'node:child_process';
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { createReadStream, existsSync, statSync } from 'node:fs';
-import { createServer } from 'node:http';
-import { dirname, extname, join, posix } from 'node:path';
+import { existsSync, statSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -19,6 +18,7 @@ import { chromium } from 'playwright';
 import { publint } from 'publint';
 import { checkPackage, createPackageFromTarballData } from '@arethetypeswrong/core';
 import { MATRIX, NOT_RUN, tracked } from '../support/known-failures.js';
+import { serveStatic } from '../support/static-server.js';
 import { APPS } from './apps.js';
 
 const run = promisify(execFile);
@@ -35,26 +35,6 @@ const WINDOWS = process.platform === 'win32';
 function reason(error) {
   const lines = String(error?.stderr || error?.message || error).split('\n').map((line) => line.trim()).filter(Boolean);
   return (lines.find((line) => /error|failed to|cannot|invalid/i.test(line)) ?? lines[0] ?? 'failed').slice(0, 200);
-}
-
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json', '.wasm': 'application/wasm', '.jpg': 'image/jpeg', '.heic': 'image/heic' };
-
-/** A static server for one app's output, with the test fixtures at /fixtures/. */
-function serve(root) {
-  const server = createServer((request, response) => {
-    let path;
-    try {
-      path = posix.normalize(decodeURIComponent(new URL(request.url, 'http://x').pathname));
-    } catch {
-      return response.writeHead(400).end();
-    }
-    let file = path.startsWith('/fixtures/') ? join(FIXTURES, path.slice(10)) : join(root, path);
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
-    if (!existsSync(file)) return response.writeHead(404).end();
-    response.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' });
-    createReadStream(file).pipe(response);
-  });
-  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
 }
 
 /** Runs one check in the page, settling to `ok`, its error message, or a timeout. */
@@ -152,7 +132,7 @@ describe('seven bundler apps in Chromium', () => {
       }
 
       if (outcome.build === 'ok') {
-        const server = await serve(join(dir, 'out'));
+        const server = await serveStatic({ '/fixtures/': FIXTURES, '/': join(dir, 'out') });
         try {
           const url = `http://127.0.0.1:${server.address().port}/`;
           ({ load: outcome.load } = await withPage(url, async () => 'ok'));
