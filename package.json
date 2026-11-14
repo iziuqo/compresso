@@ -13,6 +13,7 @@
     "test:lib:coverage": "npm run test:coverage -w packages/compresso",
     "test:lib:dist": "npm run test:dist -w packages/compresso",
     "test:lib:bundlers": "npm run test:bundlers -w packages/compresso",
+    "test:lib:lab": "npm run test:lab -w packages/compresso",
     "test:types": "npm run test:types -w packages/compresso",
     "size:lib": "npm run size -w packages/compresso"
   }
