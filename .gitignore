@@ -23,3 +23,8 @@ packages/compresso/.vitest-attachments/
 
 # Per-user Claude Code local settings (not for the repo)
 .claude/settings.local.json
+
+# test/bundlers: the packed tarball and the built apps
+packages/compresso/test/bundlers/.out/
+packages/compresso/test/bundlers/.apps/
+packages/compresso/test/bundlers/.parcel-cache/

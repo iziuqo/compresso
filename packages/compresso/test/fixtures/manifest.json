@@ -1,0 +1,254 @@
+{
+  "about": "Test fixtures for compresso.js. Regenerate with generate.py; test/fixtures.test.js checks every entry.",
+  "files": [
+    {
+      "file": "animated.gif",
+      "type": "image/gif",
+      "bytes": 291,
+      "sha256": "772176fbb0c02751c17590294a7fd7abb239141214438bf6a26da31d62a4a0f6",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "three animation frames that a re-encode flattens to one (COR-16)",
+      "frames": 3,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "file": "animated.png",
+      "type": "image/png",
+      "bytes": 352,
+      "sha256": "7d9a9249b1d60b048c3a61806725f08e82d95eb763cae62719b6e49722b7c47b",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "three animation frames that a re-encode flattens to one (COR-16)",
+      "frames": 3,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "file": "animated.webp",
+      "type": "image/webp",
+      "bytes": 194,
+      "sha256": "80b49ea54cb906a989df2ad55866f1229951e4b262f6993fe09be6e6663b247c",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "three animation frames that a re-encode flattens to one (COR-16)",
+      "frames": 3,
+      "width": 32,
+      "height": 32
+    },
+    {
+      "file": "orientation-1.jpg",
+      "type": "image/jpeg",
+      "bytes": 756,
+      "sha256": "1c738f7a738a8e49b9dd2c575f6a4d74a73728c1d921350e4c227f103a236398",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 1: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 1,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "orientation-2.jpg",
+      "type": "image/jpeg",
+      "bytes": 758,
+      "sha256": "658c08da1d508a93e84c3f5b23f3365d251db25828a21c032f40cd6165073f97",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 2: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 2,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "orientation-3.jpg",
+      "type": "image/jpeg",
+      "bytes": 754,
+      "sha256": "4599dd799573483e8b686edcd53e696c567755a963d7f36778e071728103c778",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 3: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 3,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "orientation-4.jpg",
+      "type": "image/jpeg",
+      "bytes": 760,
+      "sha256": "1678e7e549ca0e1894e1783ebb694ddb6b802ea97237a930a44be0d3d301236e",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 4: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 4,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "orientation-5.jpg",
+      "type": "image/jpeg",
+      "bytes": 764,
+      "sha256": "16056adf67add8ac3c74760c5f46fdd156d40a8aa29bea264e5d15d49f7fa888",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 5: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 5,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "orientation-6.jpg",
+      "type": "image/jpeg",
+      "bytes": 767,
+      "sha256": "0b59c2f72d264e5396eb8c623c0af677704bb32cad3d267ddd04cc9813a273da",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 6: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 6,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "orientation-7.jpg",
+      "type": "image/jpeg",
+      "bytes": 762,
+      "sha256": "dfaf0d6138810e8c2d12de2e5dfc4d3b9edb41d98db92ee384e0eff5ed029627",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 7: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 7,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "orientation-8.jpg",
+      "type": "image/jpeg",
+      "bytes": 766,
+      "sha256": "1a62da218851fb070d5d1661a99f5261fb76ae9f48df9e203861874874d7b458",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "stresses": "EXIF orientation 8: displays as red, green / blue, white quadrants, 48 x 32",
+      "orientation": 8,
+      "width": 48,
+      "height": 32
+    },
+    {
+      "file": "photo-gps-compact.jpg",
+      "type": "image/jpeg",
+      "bytes": 8696,
+      "sha256": "4a88002f9ec655c2a557ce3b650fdb4ca6efbbbeb9964e4540e0a36d28d55ef0",
+      "licence": "CC0-1.0; derived from photo.jpg by generate.py",
+      "gps": true,
+      "stresses": "a compact JPEG with GPS EXIF that no re-encode beats, so it is kept (COR-04)",
+      "width": 400,
+      "height": 300
+    },
+    {
+      "file": "photo-gps.jpg",
+      "type": "image/jpeg",
+      "bytes": 43118,
+      "sha256": "53447c61884f2e2b3683bd5db8b73f2e2f141ce78e7f1dd5833e1a655ddeb01c",
+      "licence": "CC0-1.0; derived from photo.jpg by generate.py",
+      "gps": true,
+      "stresses": "EXIF with GPS: what a re-encode strips and a kept source leaks (COR-04)",
+      "width": 800,
+      "height": 534
+    },
+    {
+      "file": "photo-gps.webp",
+      "type": "image/webp",
+      "bytes": 5822,
+      "sha256": "188d8cf9d1ee97827d44b4c1c78c826d6b4c03f6a91ab5520fa4a6f946040509",
+      "licence": "CC0-1.0; derived from photo.jpg by generate.py",
+      "gps": true,
+      "stresses": "a compact WebP with GPS EXIF that no re-encode beats, so it is kept (COR-04, COR-05)",
+      "width": 400,
+      "height": 300
+    },
+    {
+      "file": "photo-truncated.jpg",
+      "type": "image/jpeg",
+      "bytes": 70979,
+      "sha256": "88fe161177f537355ddd9af0d5804261e57c906bd4b4db409f8364866a897c9d",
+      "licence": "CC0-1.0; derived from photo.jpg by generate.py",
+      "width": 1600,
+      "height": 1067,
+      "stresses": "the first third of photo.jpg: a broken download (COR-07)"
+    },
+    {
+      "file": "photo.heic",
+      "type": "image/heic",
+      "bytes": 109666,
+      "sha256": "493dd9a9c68dd86229c2fa30f521e0da3e7b3c3cb48d8069addc6835eb5abb57",
+      "licence": "CC0-1.0; derived from photo.jpg by generate.py",
+      "stresses": "a real HEVC-coded HEIC photo, decoded natively or by heic-to",
+      "width": 1600,
+      "height": 1067
+    },
+    {
+      "file": "photo.jpg",
+      "type": "image/jpeg",
+      "bytes": 212937,
+      "sha256": "154152126e4ed21f38ec7fcaf391ce44b6c2376706a7509ddb7139e56d03fe58",
+      "licence": "CC0-1.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Lofoten,_Norway_(Unsplash).jpg (resized to 1600 px wide)",
+      "stresses": "a real photograph: realistic encode sizes and the default path",
+      "width": 1600,
+      "height": 1067
+    },
+    {
+      "file": "pixel-flood.png",
+      "type": "image/png",
+      "bytes": 67,
+      "sha256": "6f3cf515880ded3c75552e40a333a0619e46408c67b85ba15fefd27338ce84c6",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "width": 100000,
+      "height": 100000,
+      "stresses": "a 10-gigapixel header in a tiny file: the pixel-flood guard"
+    },
+    {
+      "file": "sample.avif",
+      "type": "image/avif",
+      "bytes": 685,
+      "sha256": "0338090d9fe7d8411d0079de1f7b1338142ae8a27189304300919977eb4375f5",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "source": "test/fixtures/README.md",
+      "stresses": "a tiny AVIF",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "file": "sample.heic",
+      "type": "image/heic",
+      "bytes": 599,
+      "sha256": "3fd8408d5777c65419c7ad29a78ad546c7c9e54b9cd3694de992ff1885824f79",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "source": "test/fixtures/README.md",
+      "stresses": "a tiny HEIC",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "file": "sample.jpg",
+      "type": "image/jpeg",
+      "bytes": 1344,
+      "sha256": "4084431da12c8bb0769507c41a7d47d37fa59287411593281a7613f86effee8a",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "source": "test/fixtures/README.md",
+      "stresses": "a tiny JPEG",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "file": "sample.png",
+      "type": "image/png",
+      "bytes": 7876,
+      "sha256": "be2287e812702b9af2ec95365046e71e756971276ea26a610b03ac1216262e35",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "source": "test/fixtures/README.md",
+      "stresses": "a tiny PNG",
+      "width": 64,
+      "height": 64
+    },
+    {
+      "file": "vector.svg",
+      "type": "image/svg+xml",
+      "bytes": 182,
+      "sha256": "3b5d6fa01456cb14654d8d02e4eaa3a8adf1ed7049b42227032c34128184de91",
+      "licence": "MIT (this repository); synthetic, drawn by generate.py",
+      "width": 64,
+      "height": 48,
+      "stresses": "a vector source, returned or rejected depending on the path (COR-16, #112)"
+    }
+  ]
+}
