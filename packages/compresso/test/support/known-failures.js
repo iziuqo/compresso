@@ -3,7 +3,8 @@
  * finding, in which environments, and how the failure shows. Finding IDs are
  * the assessment's (see the quality plan's appendix). Environments are the
  * browser engines (`chromium`, `firefox`, `webkit`) and `node` for unit tests;
- * test/bundlers runs as `chromium`, and test/lab as each engine it opens.
+ * test/bundlers runs as `chromium`, and test/lab as each engine it opens, or
+ * as `ios-<major>` in iPhone Safari on a simulator.
  *
  * A listed case must fail where listed, and fail the known way: by default an
  * assertion whose message names one of its findings (tests write
@@ -16,6 +17,8 @@
  */
 
 const BROWSERS = ['chromium', 'firefox', 'webkit'];
+/** iPhone Safari in CI: the oldest and newest iOS simulators the runners have. */
+const IOS = ['ios-18', 'ios-26'];
 
 /**
  * A `failsWith` for honesty failures: true when `error` is the honesty check
@@ -129,8 +132,17 @@ export const KNOWN_FAILURES = {
 
   // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
   // encodes AVIF on a canvas, and none stops retrying a missing worker.
-  'lab/explicit-avif': { findings: ['COR-02'], where: BROWSERS },
-  'lab/pool-missing-worker': { findings: ['PKG-01'], where: BROWSERS },
+  'lab/explicit-avif': { findings: ['COR-02'], where: [...BROWSERS, ...IOS] },
+  'lab/pool-missing-worker': { findings: ['PKG-01'], where: [...BROWSERS, ...IOS] },
+  // iPhone Safari, as the browser lab found it on Nov 14: iOS 26 labels
+  // lossless output AVIF, so the default path keeps every photo; Safari's JPEG
+  // runs far larger than Chromium's; and on iOS 18 the JPEG fallback's edge
+  // cap narrows a long screenshot.
+  'lab/encoders': { findings: ['CMP-16'], where: ['ios-26'] },
+  'lab/default-12mp': { findings: ['CMP-16'], where: ['ios-26'] },
+  'lab/pool-basic': { findings: ['CMP-16'], where: ['ios-26'] },
+  'lab/jpeg-size': { findings: ['CMP-18'], where: IOS },
+  'lab/long-screenshot': { findings: ['COR-18'], where: ['ios-18'] },
 };
 
 /** Default `failsWith`: an error whose message names one of the entry's findings. */
