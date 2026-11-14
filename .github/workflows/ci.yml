@@ -161,12 +161,6 @@ jobs:
       - run: npm run build:lib
       - run: npm run size:lib
 
-  # TEMPORARY: a job left out of ci-ok's needs, to show ci-ok names it.
-  left-out:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo left out
-
   # The one check the "Protect main" ruleset requires. It passes only when
   # every other job in this file passed, so adding, renaming or splitting a
   # job (a new Node version, say) needs no ruleset change. Its first step
