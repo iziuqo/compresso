@@ -3,7 +3,7 @@
  * finding, in which environments, and how the failure shows. Finding IDs are
  * the assessment's (see the quality plan's appendix). Environments are the
  * browser engines (`chromium`, `firefox`, `webkit`) and `node` for unit tests;
- * test/bundlers runs as `chromium`.
+ * test/bundlers runs as `chromium`, and test/lab as each engine it opens.
  *
  * A listed case must fail where listed, and fail the known way: by default an
  * assertion whose message names one of its findings (tests write
@@ -126,6 +126,11 @@ export const KNOWN_FAILURES = {
   'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row(/Failed to resolve 'compresso\.js\/pool'/)) },
   'PERF-01/slow-but-progressing': { findings: ['PERF-01'], where: BROWSERS },
   'PERF-02/size-target-encodes': { findings: ['PERF-02'], where: BROWSERS },
+
+  // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
+  // encodes AVIF on a canvas, and none stops retrying a missing worker.
+  'lab/explicit-avif': { findings: ['COR-02'], where: BROWSERS },
+  'lab/pool-missing-worker': { findings: ['PKG-01'], where: BROWSERS },
 };
 
 /** Default `failsWith`: an error whose message names one of the entry's findings. */

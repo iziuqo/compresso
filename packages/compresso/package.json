@@ -37,6 +37,7 @@
     "test:browser": "vitest run --project browser",
     "test:dist": "vitest run --project dist",
     "test:bundlers": "vitest run --project bundlers",
+    "test:lab": "vitest run --project lab",
     "test:coverage": "vitest run --coverage --project unit --project \"browser (chromium)\"",
     "test:types": "tsc --noEmit -p test/types",
     "generate:benchmark-corpus": "node scripts/generate-benchmark-corpus.mjs",
