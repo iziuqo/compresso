@@ -70,7 +70,6 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
-      - run: echo 'Temporary: types fails on purpose, to show ci-ok blocks it' && exit 1
       - run: npm run test:types
 
   test-browser:
@@ -177,7 +176,7 @@ jobs:
           sparse-checkout-cone-mode: false
       - name: ci-ok waits for every job
         run: |
-          missing=$(yq '(.jobs | keys) - ["ci-ok"] - .jobs["ci-ok"].needs | .[]' .github/workflows/ci.yml)
+          missing=$(yq -o=json '.' .github/workflows/ci.yml | jq -r '(.jobs | keys) - ["ci-ok"] - .jobs["ci-ok"].needs | join(", ")')
           if [ -n "$missing" ]; then
             echo "::error::ci-ok does not wait for: $missing"
             exit 1
