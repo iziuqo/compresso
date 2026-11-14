@@ -479,9 +479,11 @@ export const CHECKS = [
       const honest = seen.filter((one) => one.honest).length;
       const files = new Set(events.map((e) => e.fileIndex)).size;
       const overall = events[events.length - 1]?.overallProgress ?? 0;
+      const ran = fulfilled.length === 4 && busiest === 2 && files === 4 && overall > 0.99;
       return {
-        pass: fulfilled.length === 4 && honest === 4 && busiest === 2 && files === 4 && overall > 0.99,
-        finding: findingOf(seen.find((one) => !one.honest), source),
+        pass: ran && honest === 4,
+        // A finding only for a dishonest result, so it can't excuse a pool that misbehaved.
+        finding: ran ? findingOf(seen.find((one) => !one.honest), source) : null,
         summary: `${fulfilled.length} of 4 fulfilled (${honest} honest) in ${ms} ms, at most ${busiest} busy, progress for ${files} files ending at ${overall}`,
         details: { busiest, fulfilled: fulfilled.length, honest, ms, progressEvents: events.length, progressFiles: files, finalProgress: overall, errors: outcomes.filter((o) => o.reason).map((o) => errorOf(o.reason)) },
       };
@@ -501,9 +503,10 @@ export const CHECKS = [
       const freed = await until(() => pool.stats().busy === 0 && pool.stats().queued === 0);
       const next = await settle(pool.compress(source));
       const seen = next.value && (await inspect(next.value));
+      const cancelled = started && error?.kind === 'aborted' && freed;
       return {
-        pass: started && error?.kind === 'aborted' && freed && Boolean(seen?.honest),
-        finding: findingOf(seen, source),
+        pass: cancelled && Boolean(seen?.honest),
+        finding: cancelled ? findingOf(seen, source) : null,
         summary: `rejected with kind ${error?.kind ?? 'none'}, ${freed ? 'freed' : 'still busy'}; next job ${seen ? said(seen) : `failed: ${errorOf(next.error).message}`}`,
         details: { startedRunning: started, rejection: error ? errorOf(error) : null, freed, next: seen ?? errorOf(next.error) },
       };
@@ -541,7 +544,7 @@ export const CHECKS = [
           const batch = await Promise.all(many.map((o) => (o.value ? inspect(o.value) : { honest: false, error: errorOf(o.reason) })));
           return {
             pass: !supported && stats.size === 0 && one.honest && batch.every((b) => b.honest),
-            finding: findingOf([one, ...batch].find((b) => !b.honest), source),
+            finding: !supported && stats.size === 0 ? findingOf([one, ...batch].find((b) => !b.honest), source) : null,
             summary: `isPoolSupported ${supported}, size ${stats.size}; ${said(one)}; batch ${batch.filter((b) => b.honest).length} of 2 honest`,
             details: { isPoolSupported: supported, stats, one, batch },
           };

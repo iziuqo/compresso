@@ -96,9 +96,9 @@ are listed in `KNOWN_FAILURES` (`test/support/known-failures.js`) and must
 fail naming their finding. `LAB_BROWSERS=chromium,firefox` limits the engines;
 `CHROMIUM_PATH` picks another Chromium.
 
-The `test-ios` job runs the same test in iPhone Safari on a GitHub macOS
-runner, on the oldest and the newest iOS simulator the runner has (18 and 26
-today). `test/lab/pick-simulator.mjs` picks and the job boots the simulator,
+The `test-ios` job runs the same test in iPhone Safari on GitHub's macOS
+runners: on the oldest iOS simulator on `macos-15` and the newest on
+`macos-26` (18 and 26 today). `test/lab/pick-simulator.mjs` picks and the job boots the simulator,
 then `LAB_OPEN="xcrun simctl openurl <device>"` opens the page instead of
 Playwright and `LAB_ENV=ios-<major>` names it, so its known failures are
 listed as `ios-18` and `ios-26`. Any command that opens a URL works the same

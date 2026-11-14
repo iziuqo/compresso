@@ -126,7 +126,8 @@ jobs:
   test-ios:
     name: test-ios (${{ matrix.simulator }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    # Longer than the lab test's own report timeout, so a page that never reports fails with that test's message.
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -144,7 +145,8 @@ jobs:
       - name: Boot an iPhone simulator
         id: simulator
         run: |
-          read -r UDID VERSION DEVICE <<< "$(node packages/compresso/test/lab/pick-simulator.mjs ${{ matrix.simulator }})"
+          picked=$(node packages/compresso/test/lab/pick-simulator.mjs ${{ matrix.simulator }})
+          read -r UDID VERSION DEVICE <<< "$picked"
           echo "$DEVICE on iOS $VERSION ($UDID)"
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b

@@ -136,14 +136,16 @@ export const KNOWN_FAILURES = {
   'lab/pool-missing-worker': { findings: ['PKG-01'], where: [...BROWSERS, ...IOS] },
   // iPhone Safari can't encode WebP, and the PNG it gets instead is labelled WebP.
   'lab/explicit-webp': { findings: ['COR-02'], where: IOS },
-  // iPhone Safari, as the browser lab found it on Nov 14: iOS 26 labels
-  // lossless output AVIF, so the default path keeps every photo (CMP-16), and
-  // a kept photo is named `jpg`, or a kept HEIC `avif`, not its own format
-  // (COR-06); Safari's JPEG runs far larger than Chromium's; and on iOS 18 the
-  // JPEG fallback's edge cap narrows a long screenshot.
+  // iPhone Safari, as the browser lab found it on Nov 14, 2026: iOS 26's canvas
+  // labels bytes that aren't AVIF as image/avif (CMP-16), so the default path
+  // keeps every source, and a kept JPEG comes back named `jpg`, a kept HEIC
+  // `avif`, not their own format (COR-06). The eight COR-06 cases fail because
+  // of CMP-16 too, so the pull request that fixes either one revisits them.
+  // Safari's JPEG runs far larger than Chromium's, and on iOS 18 the JPEG
+  // fallback's edge cap narrows a long screenshot.
   'lab/encoders': { findings: ['CMP-16'], where: ['ios-26'] },
   ...Object.fromEntries(['default-12mp', 'target-1mb', 'heic', 'pool-basic', 'pool-parallel', 'pool-cancel', 'pool-fallback', 'pool-heic']
-    .map((check) => [`lab/${check}`, { findings: ['CMP-16', 'COR-06'], where: ['ios-26'] }])),
+    .map((check) => [`lab/${check}`, { findings: ['COR-06'], where: ['ios-26'] }])),
   'lab/jpeg-size': { findings: ['CMP-18'], where: IOS },
   'lab/long-screenshot': { findings: ['COR-18'], where: ['ios-18'] },
 };

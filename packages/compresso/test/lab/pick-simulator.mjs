@@ -15,4 +15,4 @@ const iphones = Object.entries(devices)
   .sort((a, b) => a.version[0] - b.version[0] || (a.version[1] ?? 0) - (b.version[1] ?? 0));
 if (!iphones.length) throw new Error('no iPhone simulator is installed');
 const { version, phone } = which === 'oldest' ? iphones[0] : iphones.at(-1);
-console.log(phone.udid, version.join('.'), phone.name.replaceAll(' ', '-'));
+console.log(phone.udid, version.join('.'), phone.name);
