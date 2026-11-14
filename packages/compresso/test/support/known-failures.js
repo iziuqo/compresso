@@ -54,6 +54,8 @@ export const KNOWN_FAILURES = {
   'corpus/animated.gif': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'corpus/vector.svg': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'corpus/sample.heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
+  // A kept JPEG is named `jpg`, not the canonical `jpeg`.
+  'corpus/photo-gps-compact.jpg': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('format') },
   'compress/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'benchmark/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'COR-06/explicit-format-and-resize': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('width') },
@@ -65,11 +67,18 @@ export const KNOWN_FAILURES = {
     failsWith: (error) => liesAbout('width', 'height')(error) || /Failed to encode/.test(error?.message),
   },
   'COR-02/avif-where-unsupported': { findings: ['COR-02'], where: BROWSERS, failsWith: liesAbout('format') },
-  'COR-03/format': { findings: ['COR-03'], where: BROWSERS },
-  'COR-03/quality': { findings: ['COR-03'], where: ['firefox', 'webkit'] },
+  'COR-03/format': {
+    findings: ['COR-03'], where: BROWSERS,
+    // compress() reads `format.toLowerCase()` without a default.
+    failsWith: (error) => error instanceof TypeError && /toLowerCase/.test(error.message),
+  },
+  'COR-03/quality': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxSizeMB': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/backgroundColor': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxInputPixels': { findings: ['COR-03'], where: BROWSERS },
+  // A kept source keeps its EXIF, GPS included.
+  'COR-04/photo-gps-compact.jpg': { findings: ['COR-04'], where: BROWSERS },
+  'COR-04/photo-gps.webp': { findings: ['COR-04'], where: BROWSERS },
   'COR-05/already-compact': { findings: ['COR-05'], where: BROWSERS },
   'COR-07/truncated-main-thread': { findings: ['COR-07'], where: BROWSERS },
   'COR-08/pool-abort-name': { findings: ['COR-08'], where: BROWSERS },

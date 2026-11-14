@@ -53,12 +53,15 @@ export default defineConfig({
   test: {
     // Coverage over the unit tests and Chromium together (V8 coverage needs a
     // Chromium engine): `npm run test:coverage`. The thresholds are the floor
-    // the suite has reached; raise them as coverage rises, never lower them.
+    // the suite has reached, less one point so one moved line can't fail CI;
+    // raise them as coverage rises, never lower them. worker.js runs only
+    // inside Workers, which V8 browser coverage can't see.
     coverage: {
       provider: 'v8',
       include: ['src/**/*.js'],
+      exclude: ['src/worker.js'],
       reporter: ['text-summary', 'text'],
-      thresholds: { statements: 86, branches: 83, functions: 91 },
+      thresholds: { statements: 89, branches: 85, functions: 92, lines: 90 },
     },
     projects: [
       { test: { name: 'unit', include: ['test/*.test.js'], environment: 'node' } },
