@@ -435,7 +435,16 @@ export const CHECKS = [
     timeout: MINUTE,
     async run() {
       const source = await generated(800, 20000, 'image/png', { grain: 0 });
-      const { ms, seen } = await compressed(source);
+      let ms;
+      let seen;
+      try {
+        ({ ms, seen } = await compressed(source));
+      } catch (error) {
+        // WebP holds at most 16383 px a side: an encoder that refuses, rather
+        // than crop, fails the whole call (COR-01).
+        if (!/Failed to encode/.test(error?.message)) throw error;
+        return { pass: false, finding: 'COR-01', summary: error.message, details: { error: error.message } };
+      }
       // What was really decoded, where it can be: the reported width may not be it (COR-01).
       const width = (seen.actual.size ?? seen.claimed.size)[0];
       return { pass: width >= 720, summary: `${width} px wide; ${said(seen)}`, details: { ms, width, result: seen } };
