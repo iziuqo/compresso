@@ -269,32 +269,38 @@ describe('packaging and performance findings', () => {
   itTracked('PERF-01/slow-but-progressing', 'a pool job that keeps reporting progress is not timed out', async () => {
     const source = await generatedImage(4000, 3000);
     const options = { format: 'jpeg', maxSizeMB: 0.03 };
-    // Measure the job on a warm pool with no timeout: how long it takes in
-    // all, and the longest silence between its progress reports.
+    const warmUp = await generatedImage(200, 150);
+    // Measure the job on a pool with no timeout, warmed on the job itself
+    // (its first full-size run is slower): the fastest of two runs, and the
+    // longest silence between progress reports.
     const probe = createPool({ size: 1, timeoutMs: Infinity });
-    let job;
+    let job = Infinity;
     let silence = 0;
     try {
       await probe.compress(source, options);
-      const started = performance.now();
-      let last = started;
-      const heard = () => {
-        const now = performance.now();
-        silence = Math.max(silence, now - last);
-        last = now;
-      };
-      await probe.compress(source, { ...options, onProgress: heard });
-      heard();
-      job = performance.now() - started;
+      for (let run = 0; run < 2; run++) {
+        const started = performance.now();
+        let last = started;
+        const heard = () => {
+          const now = performance.now();
+          silence = Math.max(silence, now - last);
+          last = now;
+        };
+        await probe.compress(source, { ...options, onProgress: heard });
+        heard();
+        job = Math.min(job, performance.now() - started);
+      }
     } finally {
       probe.destroy();
     }
-    // A timeout between the two: a pool that restarts its clock on progress
-    // finishes, one that times the whole job doesn't.
-    expect(job, 'the job reports progress often enough to tell the two apart').toBeGreaterThan(2 * silence);
-    const timeoutMs = Math.round((job + silence) / 2);
+    // Well under the job, well over any silence: a pool that restarts its
+    // clock on progress finishes, one that times the whole job doesn't.
+    const timeoutMs = Math.round(0.6 * job);
+    expect(timeoutMs, `a timeout of ${timeoutMs} ms clears the longest silence, ${Math.round(silence)} ms, by half`).toBeGreaterThan(1.5 * silence);
     const pool = createPool({ size: 1, timeoutMs });
     try {
+      // Warm, so the worker's start-up doesn't count against the job.
+      await pool.compress(warmUp, options);
       const outcome = await settled(pool.compress(source, options));
       expect(outcome, `PERF-01 timed out at ${timeoutMs} ms`).not.toBeInstanceOf(Error);
     } finally {
