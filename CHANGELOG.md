@@ -21,8 +21,26 @@ All notable changes to `compresso.js` are documented here. The format is based o
   800 × 20000 screenshot now comes back 720 × 18000 instead of 82 × 2048.
   Shapes up to about 2.8 to 1 keep exactly the size they had; past 32 to 1
   the long edge stops at 23040px, inside iOS Safari's canvas limit.
+- **A size target costs four encodes at most, and is met.** The quality
+  search interpolates instead of bisecting and stops within 10% under the
+  target: a 12 MP photo meets 1, 0.5 or 0.2 MB in four encodes at most (it
+  took eight or nine). When quality alone can't reach the target, the image
+  steps down in size, down to a 480px long edge, instead of returning an
+  oversized file: a 48 MP photo now meets "under 0.2 MB".
+- **A source no encode can beat comes back after one encode.** With no
+  `maxSizeMB` and no resize, only the asked quality is tried; quality is no
+  longer pushed near zero for a saving under 1%.
+
+### Added
+- **`missedTarget` on every result**: `true` when `maxSizeMB` was out of reach
+  even at the smallest size tried, so a missed target is never silent.
 
 ### Changed
+- **`compress()` and `compresso.js/plan` share one engine.** `compress()` now
+  runs the same `planPhoto` planner the apps use, through a canvas host, so
+  the browser and the apps decide quality, size and never-bigger alike. The
+  planner's `PhotoHost.prepare()` may report `resized`. Size budgets rise to
+  match: main entry 5 kB, pool 6.25 kB, worker 5 kB (from 4, 5.25 and 4).
 - **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**
   (libheif 1.23.7, up from 1.5.2 and libheif 1.22.2). Same API, same
   LGPL-3.0 licence; the file grows from about 3.0 MB to 3.2 MB and still loads

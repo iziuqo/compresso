@@ -11,12 +11,14 @@
  *   1. Never bigger: output is capped at the source's own size, and when
  *      nothing fits, the source itself is the answer.
  *   2. A size target is a ceiling, met by searching quality down
- *      (`findQuality`, at most 11 encodes, measured in memory; only the winner
- *      is written).
+ *      (`findQuality`, at most 4 encodes, measured in memory; only the winner
+ *      is written). With no target and no resize, only the asked quality is
+ *      worth writing: when it can't beat the source, the source comes back
+ *      after that one encode.
  *   3. When no quality meets the target (a 48 MP photo into "under 200 KB"),
- *      the long edge steps down by 20% and the search runs again, rather than
- *      failing. Below a 480 px long edge it gives the smallest file it can make
- *      and says so.
+ *      the long edge steps down, by 20% or by as much as the smallest encode
+ *      says it must, and the search runs again, rather than failing. At a
+ *      480 px long edge it gives the smallest file it can make and says so.
  *
  * Video follows the same rules through a `VideoHost`; see video.js.
  */
@@ -31,8 +33,6 @@ const EDGE_STEP = 0.8;
 /** Never resize below this long edge, in pixels, to meet a target. */
 const MIN_LONG_EDGE = 480;
 const MAX_EDGE_TRIES = 8;
-/** Quality of the last-resort file when a target is out of reach. */
-const FLOOR_QUALITY = 0.05;
 /** Room left in a shared budget for container overhead. */
 const BUDGET_MARGIN = 0.97;
 /** Weight of a file whose size is unknown when there's nothing to average. */
@@ -47,9 +47,14 @@ export async function planPhoto(host, recipe, { signal, onProgress } = {}) {
   const quality = Math.min(1, Math.max(0.01, recipe.quality ?? 0.8));
   const target = recipe.targetBytes ?? Infinity;
   const lossy = format !== 'png';
-  const measure = (q) => {
+  // The smallest encode of this attempt, [quality, bytes]: how far the size
+  // must fall, and the last resort when no size meets the target.
+  let smallest;
+  const measure = async (q) => {
     throwIfAborted(signal);
-    return host.measure(format, q);
+    const size = await host.measure(format, q);
+    if (size < smallest[1]) smallest = [q, size];
+    return size;
   };
   const finish = (decision) => {
     onProgress?.(1);
@@ -63,21 +68,25 @@ export async function planPhoto(host, recipe, { signal, onProgress } = {}) {
   let maxLongEdge = recipe.maxLongEdge ?? undefined;
   for (let attempt = 0; ; attempt++) {
     throwIfAborted(signal);
-    const { width, height, originalSize } = await host.prepare(maxLongEdge);
+    const { width, height, originalSize, resized } = await host.prepare(maxLongEdge);
+    smallest = [quality, Infinity];
     try {
       const ceiling = Math.min(target, originalSize || Infinity);
+      const targetBinds = target < (originalSize || Infinity);
       // Progress assumes a photo settles by its second attempt, as most do.
       const onStep = (step) => onProgress?.(Math.min(0.95, (attempt + step) / 2));
-      // PNG ignores quality: one encode either fits or doesn't.
-      const fit = lossy
+      // PNG ignores quality, and with no target or resize only the asked
+      // quality is worth writing (COR-05): one encode either fits or doesn't.
+      const fit = lossy && (targetBinds || resized)
         ? await findQuality(measure, quality, ceiling, onStep)
         : (await measure(quality)) <= ceiling ? quality : null;
       if (fit !== null) return await write(fit, false);
 
-      // Nothing fits. When the caller's target is what binds, try smaller.
-      const targetBinds = target < (originalSize || Infinity);
-      const nextEdge = Math.round(Math.max(width, height) * EDGE_STEP);
-      if (targetBinds && attempt < MAX_EDGE_TRIES && nextEdge >= MIN_LONG_EDGE) {
+      // Nothing fits. When the caller's target is what binds, try smaller:
+      // bytes follow pixels, so the edge falls by the root of what's missing.
+      const longEdge = Math.max(width, height);
+      const nextEdge = Math.max(MIN_LONG_EDGE, Math.round(longEdge * Math.min(EDGE_STEP, Math.sqrt(ceiling / smallest[1]))));
+      if (targetBinds && attempt < MAX_EDGE_TRIES && longEdge > MIN_LONG_EDGE) {
         maxLongEdge = nextEdge;
         continue;
       }
@@ -86,9 +95,8 @@ export async function planPhoto(host, recipe, { signal, onProgress } = {}) {
       if (!targetBinds) return await keep(false);
 
       // The target is out of reach even at the smallest size: give the
-      // smallest file there is, and say so, rather than nothing.
-      const floorBigger = originalSize > 0 && (await measure(FLOOR_QUALITY)) >= originalSize;
-      return await (floorBigger ? keep(true) : write(FLOOR_QUALITY, true));
+      // smallest file the search made, and say so, rather than nothing.
+      return await (originalSize > 0 && smallest[1] >= originalSize ? keep(true) : write(smallest[0], true));
     } finally {
       host.release?.();
     }

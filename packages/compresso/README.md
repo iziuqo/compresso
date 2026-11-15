@@ -100,7 +100,7 @@ choose AVIF for HEIC-class output compression.
 | `maxWidth` | `number` | unbounded¹ | Max output width in px |
 | `maxHeight` | `number` | unbounded¹ | Max output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'` \| `'png'` \| `'webp'` \| `'avif'` \| `'auto'` |
-| `maxSizeMB` | `number` | source size² | Max file size in MB |
+| `maxSizeMB` | `number` | source size² | Target file size in MB: quality is lowered, then the size steps down; the result's `missedTarget` says when it's out of reach |
 | `maxInputPixels` | `number` | `100_000_000` | Max decodable input resolution (width × height). Guards against a crafted file declaring an enormous resolution from a tiny file. `Infinity` to disable |
 | `onProgress` | `function` | — | Progress callback |
 | `signal` | `AbortSignal` | — | Cancel compression |

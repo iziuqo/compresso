@@ -71,7 +71,9 @@ async function compressOne(): Promise<CompressResult> {
     savings,
     format,
     mimeType,
+    missedTarget,
   } = result;
+  const flagged: boolean = missedTarget;
   console.log(
     `${savings}% smaller`,
     optimized,
@@ -85,6 +87,7 @@ async function compressOne(): Promise<CompressResult> {
     compressedSize,
     format,
     mimeType,
+    flagged,
   );
   return result;
 }

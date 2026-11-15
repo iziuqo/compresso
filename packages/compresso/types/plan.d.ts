@@ -28,6 +28,12 @@ export interface PreparedPhoto {
   height: number;
   /** Size of the source in bytes, 0 when unknown (then only `targetBytes` caps the output). */
   originalSize: number;
+  /**
+   * True when the prepared photo is smaller than the source. With no binding
+   * target and no resize, the planner writes only the asked quality, and
+   * keeps the source when that can't beat it. Default: false
+   */
+  resized?: boolean;
 }
 
 /**
@@ -79,9 +85,10 @@ export function planPhoto<R>(host: PhotoHost<R>, recipe: PhotoRecipe, options?: 
 export function resolveFormat<F extends string>(preferred: readonly F[], writable: readonly F[], fallback?: F): F;
 
 /**
- * Highest quality, at or below `quality`, whose encode fits in `ceiling`
- * bytes; null when none does. Tries `quality` first, then binary-searches
- * down. To cancel, throw from `encode`.
+ * Highest quality found, at or below `quality`, whose encode fits in
+ * `ceiling` bytes; null when none of the tries does. Tries `quality` first,
+ * then interpolates where size meets the ceiling, and stops at a fit within
+ * 10% under it, or after four encodes in all. To cancel, throw from `encode`.
  */
 export function findQuality(
   encode: (quality: number) => Promise<number>,

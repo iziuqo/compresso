@@ -172,7 +172,7 @@ Compresses a single image.
 | `maxWidth` | `number` | unbounded <sup>†</sup> | Maximum output width in px |
 | `maxHeight` | `number` | unbounded <sup>†</sup> | Maximum output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'`, `'png'`, `'webp'`, `'avif'`, or `'auto'` |
-| `maxSizeMB` | `number` | source size <sup>‡</sup> | Maximum output file size in MB |
+| `maxSizeMB` | `number` | source size <sup>‡</sup> | Target output size in MB: quality is lowered, then the size steps down; `missedTarget` says when it's out of reach |
 | `backgroundColor` | `string` | `'#ffffff'` | Background for transparent → JPEG |
 | `onProgress` | `function` | — | Progress callback `({ progress, stage })` |
 | `signal` | `AbortSignal` | — | Cancel compression |
@@ -190,6 +190,7 @@ Compresses a single image.
 | `originalSize` / `compressedSize` | `number` | Bytes before / after |
 | `savings` | `number` | Reduction percentage |
 | `format` | `string` | Output format |
+| `missedTarget` | `boolean` | `maxSizeMB` was out of reach even at the smallest size tried; the result is the smallest file made |
 
 ### `compressMultiple(files, options?)`
 

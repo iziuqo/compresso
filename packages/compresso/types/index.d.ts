@@ -22,8 +22,11 @@ export interface CompressOptions {
   /** Output format. Default: 'auto' (best supported) */
   format?: 'jpeg' | 'png' | 'webp' | 'avif' | 'auto';
   /**
-   * Maximum output file size in MB. Lossy output is additionally never larger
-   * than the source, regardless of this value. Default: source size.
+   * Target output file size in MB. Quality is lowered to meet it (four
+   * encodes at most per size), then, if quality alone can't, the long edge
+   * steps down, to 480 px at the least. When even that misses, the result is
+   * the smallest file made and `missedTarget` is `true`. Lossy output is
+   * additionally never larger than the source. Default: source size.
    */
   maxSizeMB?: number;
   /**
@@ -84,6 +87,12 @@ export interface CompressResult {
   format: string;
   /** Output MIME type */
   mimeType: string;
+  /**
+   * `true` when `maxSizeMB` could not be met even at the smallest size the
+   * search tried; the result is then the smallest file it made (or the
+   * source, when that is smaller). `false` with no `maxSizeMB`.
+   */
+  missedTarget: boolean;
 }
 
 /**

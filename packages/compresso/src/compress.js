@@ -2,7 +2,7 @@ import { detectFormat, formatToMime, generateFileName, getBestFormat } from './u
 import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
 import { probeDimensions } from './probe.js';
-import { findQuality } from './quality.js';
+import { planPhoto } from './plan.js';
 
 /**
  * Ceiling on decodable input resolution (width × height). A crafted file can
@@ -105,39 +105,58 @@ export async function compress(source, options = {}) {
   // `options` so an unset axis differs from an explicit `Infinity`. The limit is
   // the larger of the default cap and the long edge that keeps the short edge at
   // DEFAULT_MIN_SHORT_EDGE, at most DEFAULT_MAX_FLOORED_EDGE (`|| 0`: a 0 × 0
-  // decode gives NaN).
+  // decode gives NaN). It reaches the planner as its long-edge limit.
   const noExplicitCaps = options.maxWidth == null && options.maxHeight == null;
   const flooredEdge = (DEFAULT_MIN_SHORT_EDGE * Math.max(originalWidth, originalHeight)) / Math.min(originalWidth, originalHeight);
   const cap = noExplicitCaps && opts.format === 'auto' && format === 'jpeg'
     ? Math.max(DEFAULT_MAX_DIMENSION, Math.min(DEFAULT_MAX_FLOORED_EDGE, flooredEdge) || 0)
-    : Infinity;
-  const { width, height } = calculateDimensions(
-    originalWidth,
-    originalHeight,
-    options.maxWidth ?? cap,
-    options.maxHeight ?? cap
-  );
-  const canvas = renderToCanvas(image, originalWidth, originalHeight, width, height, bgColor);
+    : undefined;
 
-  report(opts, 0.5, 'compressing');
+  // The shared planner decides quality, size and never-bigger, the same way
+  // the apps do; this canvas host draws and encodes for it.
   const originalSize = sourceSize(source);
-  // A compressor must never return a file larger than its input. For lossy formats,
-  // cap output at the smaller of any explicit `maxSizeMB` and the source's own size.
-  // PNG is exempt: it ignores quality, so a size search can't help.
-  const ceilingBytes =
-    mimeType === 'image/png' ? Infinity : Math.min(opts.maxSizeMB * 1024 * 1024, originalSize || Infinity);
-
-  let blob = await shrinkToFit(canvas, mimeType, opts.quality, ceilingBytes, opts);
-
-  // shrinkToFit only searches quality within the target format — it can't help
-  // when that format's own encoding overhead can't beat a source that was
-  // already stored in a materially more efficient one (e.g. WebKit forced to
-  // JPEG because it can't encode AVIF/WebP, re-encoding an AVIF source). When
-  // nothing achievable in the target format fits, the source itself is the
-  // only way to keep the never-bigger guarantee unconditional — return it,
-  // honestly relabeled as its own format rather than mislabeled as the target.
-  if (mimeType !== 'image/png' && source instanceof Blob && blob.size > originalSize) {
-    blob = source;
+  let canvas, width, height, encodes;
+  const host = {
+    formats: [format],
+    async prepare(maxLongEdge = Infinity) {
+      ({ width, height } = calculateDimensions(
+        originalWidth,
+        originalHeight,
+        Math.min(options.maxWidth ?? Infinity, maxLongEdge),
+        Math.min(options.maxHeight ?? Infinity, maxLongEdge)
+      ));
+      canvas = renderToCanvas(image, originalWidth, originalHeight, width, height, bgColor);
+      encodes = new Map();
+      return {
+        width,
+        height,
+        // PNG ignores quality, so only a size target caps it, not the source's size.
+        originalSize: mimeType === 'image/png' ? 0 : originalSize,
+        resized: width < originalWidth || height < originalHeight,
+      };
+    },
+    async measure(_, quality) {
+      const blob = await encode(canvas, mimeType, quality);
+      encodes.set(quality, blob);
+      return blob.size;
+    },
+    write: async (_, quality) => encodes.get(quality) ?? encode(canvas, mimeType, quality),
+    keep: async () => source,
+    release() {
+      // Frees the canvas's pixels now: Safari caps canvas memory per page.
+      canvas.width = canvas.height = 0;
+    },
+  };
+  report(opts, 0.5, 'compressing');
+  const decision = await planPhoto(
+    host,
+    { formats: [format], quality: opts.quality, maxLongEdge: cap, targetBytes: opts.maxSizeMB * 1024 * 1024 },
+    { signal: opts.signal, onProgress: (step) => report(opts, 0.5 + step * 0.4, 'compressing') }
+  );
+  const blob = decision.result;
+  // Kept: the source is the only way to keep the never-bigger guarantee, so
+  // it comes back honestly labelled as its own format, not as the target.
+  if (decision.kept) {
     format = detectFormat(source) ?? format;
     mimeType = source.type || mimeType;
   }
@@ -159,26 +178,8 @@ export async function compress(source, options = {}) {
     savings: originalSize > 0 ? Math.round((1 - blob.size / originalSize) * 1000) / 10 : 0,
     format,
     mimeType,
+    missedTarget: decision.missedTarget,
   };
-}
-
-/**
- * Encode at the highest quality that fits `maxBytes` (see `findQuality`), or
- * at a 0.1 floor when none does — the never-bigger check in `compress()` then
- * decides between that and the source.
- */
-async function shrinkToFit(canvas, mimeType, quality, maxBytes, opts) {
-  // The last encode that fit is the best one: the search only moves up after a fit.
-  let fit = null;
-  const size = async (q) => {
-    throwIfAborted(opts.signal);
-    const blob = await encode(canvas, mimeType, q);
-    if (blob.size <= maxBytes) fit = blob;
-    return blob.size;
-  };
-  const onStep = (step) => report(opts, 0.5 + step * 0.4, 'compressing');
-  const found = await findQuality(size, quality, maxBytes, onStep);
-  return found === null ? encode(canvas, mimeType, 0.1) : fit;
 }
 
 function throwIfAborted(signal) {

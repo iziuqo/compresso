@@ -48,7 +48,7 @@ describe('compress() — never-bigger guarantee under shrinkToFit\'s quality-flo
     expect(result.mimeType).toBe('image/jpeg');
   });
 
-  it('still prefers a real quality-search win when one exists under the ceiling', async () => {
+  it('with a size target, still prefers a real quality-search win under the ceiling', async () => {
     const originalSize = 1000;
     const source = blobOfSize(originalSize, 'image/jpeg');
 
@@ -59,10 +59,23 @@ describe('compress() — never-bigger guarantee under shrinkToFit\'s quality-flo
       blobOfSize(quality < 0.5 ? originalSize - 200 : originalSize + 500, 'image/jpeg')
     );
 
+    const result = await compress(source, { format: 'jpeg', maxSizeMB: 900 / 1024 / 1024 });
+
+    expect(result.compressedSize).toBe(originalSize - 200);
+    expect(result.missedTarget).toBe(false);
+  });
+
+  it('with no target or resize, returns the source after the one encode that cannot beat it (COR-05)', async () => {
+    const originalSize = 1000;
+    const source = blobOfSize(originalSize, 'image/jpeg');
+    encode.mockImplementation(async (_canvas, _mime, quality) =>
+      blobOfSize(quality < 0.5 ? originalSize - 200 : originalSize + 500, 'image/jpeg')
+    );
+
     const result = await compress(source, { format: 'jpeg' });
 
-    expect(result.compressedSize).toBeLessThanOrEqual(originalSize);
-    expect(result.compressedSize).toBe(originalSize - 200);
+    expect(result.blob).toBe(source);
+    expect(encode).toHaveBeenCalledTimes(1);
   });
 
   it('does not apply the source-bytes fallback to PNG, which is exempt from the size search', async () => {

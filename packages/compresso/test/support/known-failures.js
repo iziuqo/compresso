@@ -77,20 +77,16 @@ export const KNOWN_FAILURES = {
     // compress() reads `format.toLowerCase()` without a default.
     failsWith: (error) => error instanceof TypeError && /toLowerCase/.test(error.message),
   },
-  'COR-03/quality': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxSizeMB': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/backgroundColor': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxInputPixels': { findings: ['COR-03'], where: BROWSERS },
   // A kept source keeps its EXIF, GPS included.
   'COR-04/photo-gps-compact.jpg': { findings: ['COR-04'], where: BROWSERS },
   'COR-04/photo-gps.webp': { findings: ['COR-04'], where: BROWSERS },
-  'COR-05/already-compact': { findings: ['COR-05'], where: BROWSERS },
   'COR-07/truncated-main-thread': { findings: ['COR-07'], where: BROWSERS },
   'COR-08/pool-abort-name': { findings: ['COR-08'], where: BROWSERS },
   'COR-08/decode-error-kind': { findings: ['COR-08'], where: BROWSERS },
   'COR-10/after-destroy': { findings: ['COR-10'], where: BROWSERS },
-  'COR-14/jpeg': { findings: ['COR-14'], where: BROWSERS },
-  'COR-14/png': { findings: ['COR-14'], where: BROWSERS },
   'COR-15/signal-type': { findings: ['COR-15'], where: BROWSERS },
   'COR-15/formatBytes': { findings: ['COR-15'], where: ['node'] },
   // Firefox re-encodes small animated sources to a still WebP.
@@ -126,7 +122,6 @@ export const KNOWN_FAILURES = {
   // Parcel ignores the exports map by default, so `compresso.js/pool` doesn't resolve.
   'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row(/Failed to resolve 'compresso\.js\/pool'/)) },
   'PERF-01/slow-but-progressing': { findings: ['PERF-01'], where: BROWSERS },
-  'PERF-02/size-target-encodes': { findings: ['PERF-02'], where: BROWSERS },
 
   // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
   // encodes AVIF on a canvas, and none stops retrying a missing worker.
