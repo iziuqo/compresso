@@ -93,9 +93,10 @@ if (result.missedTarget) {
 ```
 
 Quality is lowered first, then the size steps down, never below a 480 px long edge. When even
-that misses, the result is the smallest file made, with `missedTarget: true`. PNG output ignores
-quality, and an animated image or an SVG comes back untouched, so for those a target can only be
-reported missed.
+that misses, the result is the smallest file made (or the source itself, `kept: true`, when even
+that isn't smaller), with `missedTarget: true`. PNG output ignores quality, so only the size steps
+shrink it. An animated image or an SVG File or Blob comes back untouched, so for those a target can
+only be reported missed.
 
 ## HEIC/HEIF input
 
@@ -110,7 +111,7 @@ it from your copy, once, as its own chunk (see `THIRD-PARTY-NOTICES.md`). In the
 worker that can't decode a HEIC natively asks the page, which decodes it with that same
 copy and hands the worker the pixels. Taking the decoded pixels on the page pauses it
 briefly, about 80 ms for a 12 MP photo in Chromium; Safari decodes HEIC natively and never
-pauses. The plain CDN `<script>` build can't load `heic-to`, so there HEIC works only in Safari.
+pauses. The UMD build (`compresso.umd.js` in a plain `<script>`) can't load `heic-to`, so there HEIC works only in Safari.
 
 To leave HEIC out, install with `npm install --omit=optional` and tell your bundler not to look
 for `heic-to`: in Vite, `build: { rollupOptions: { external: ['heic-to'] } }`; in webpack or
@@ -122,7 +123,7 @@ except in Safari, which decodes it itself.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `quality` | `number` | `0.8` | Output quality, 0–1. Not portable between browsers: at 0.8, Safari's JPEG is about 2.3 times the size of Chrome's or Firefox's (a later release is planned to even this out) |
+| `quality` | `number` | `0.8` | Output quality, 0–1. Not portable between browsers: at 0.8, Safari's JPEG is more than twice the size of Chrome's or Firefox's (a later release is planned to even this out) |
 | `maxWidth` | `number` | unbounded¹ | Max output width in px |
 | `maxHeight` | `number` | unbounded¹ | Max output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'` \| `'png'` \| `'webp'` \| `'avif'` \| `'auto'` |
@@ -249,8 +250,7 @@ app layer, rather than baking it into the pool itself.
 
 ## Bring your own encoder: the planner
 
-> **Since 1.1.** `compresso.js/plan` ships in 1.1.0. Until then it's on npm's `next` tag
-> (`npm install compresso.js@next`); 1.0.x, npm's `latest`, doesn't have it.
+> **Since 1.1.** compresso.js 1.0.x doesn't have `compresso.js/plan`.
 
 `compresso.js/plan` is the deciding half of `compress()` with no pixels in it: which format,
 which quality, and how small, under the same never-bigger rule. Any host that can encode (iOS
@@ -321,7 +321,7 @@ recipe)` is the pure first step on its own, for hosts that run their own encode 
 Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes it natively on Safari, via a lazy WASM decoder elsewhere, and outputs a standard web format. See [HEIC/HEIF input](#heicheif-input).
 
 ### Why did my compressed image come out bigger than the original?
-Re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can inflate it. With `format: 'auto'`, Compresso doesn't let that happen to lossy output: it lowers quality, caps the resolution in Safari, and gives the source itself back (`kept: true`) when nothing beats it. An explicit `format` is honoured even when the file grows; a negative `savings` shows it. PNG output is lossless and can grow.
+Re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can inflate it. With `format: 'auto'`, Compresso doesn't let that happen to lossy output: it gives the source itself back (`kept: true`) when the encode isn't smaller, and caps the resolution in Safari so a JPEG has a chance to be smaller. An explicit `format` is honoured even when the file grows; a negative `savings` shows it. PNG output is lossless and can grow.
 
 ### Does it keep EXIF and GPS data?
 Not on a re-encode. An original that comes back untouched (`kept: true`) keeps all of its own, GPS included.

@@ -54,13 +54,17 @@ describe('examples/vanilla/batch.html', () => {
     expect(batchExample.match(CDN_IMPORT)[1]).toBe('1');
   });
 
-  it('shows a file name containing an HTML tag as plain text, for a compressed file and a failed one', async () => {
+  // Its own timeout: the browser suite runs on Vitest's default, and the example waits up to 20 s.
+  it('shows a file name containing an HTML tag as plain text, for a compressed file and a failed one', { timeout: 60_000 }, async () => {
     const page = await openBatchExample();
     const photo = await fixture('sample.jpg', { name: HOSTILE_NAME });
     const broken = new File([new Uint8Array([1, 2, 3])], HOSTILE_NAME, { type: 'image/png' });
 
     const [done, failed] = await pick(page, [photo, broken]);
 
+    // Workers take copies of the files. A main-thread pool would get the iframe's own File
+    // objects, which aren't this page's Blobs, so name that first if it ever happens.
+    expect(pools[0].stats().mode).toBe('workers');
     expect(done.className).toBe('result');
     expect(failed.className).toBe('result failed');
     for (const card of [done, failed]) {

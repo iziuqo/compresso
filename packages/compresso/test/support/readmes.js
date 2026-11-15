@@ -17,7 +17,7 @@ export const READMES = {
 };
 
 /** A README's text. */
-export const readme = (name) => readFileSync(READMES[name], 'utf8');
+export const readme = (name) => readFileSync(READMES[name], 'utf8').replace(/\r\n/g, '\n');
 
 /** `text` without its fenced code blocks, so a `#` comment in a snippet isn't read as a heading. */
 const prose = (text) => text.replace(/^```[\s\S]*?^```/gm, '');
@@ -44,17 +44,23 @@ export function anchors(text) {
 /** Every `#anchor` a README links to within itself. */
 export const ownAnchorLinks = (text) => [...prose(text).matchAll(/\]\(#([^)]+)\)|href="#([^"]+)"/g)].map((m) => m[1] ?? m[2]);
 
+/** Fences that hold JavaScript or TypeScript, by the file extension each is checked as. */
+const SCRIPT_FENCES = { js: 'js', javascript: 'js', mjs: 'js', jsx: 'jsx', ts: 'ts', typescript: 'ts', tsx: 'tsx' };
+/** Fences whose `<script>` elements hold JavaScript. */
+const MARKUP_FENCES = ['html', 'vue', 'svelte'];
+
 /**
  * The README's code snippets that hold JavaScript or TypeScript, as
- * `{ language, code }`: js, jsx and ts fences whole, and the `<script>` of an
- * html, vue or svelte fence. A script that only loads a file has no code and
- * is left out.
+ * `{ language, code }`, `language` being the extension to check it as:
+ * script fences whole, and the `<script>` of an html, vue or svelte fence. A
+ * script that only loads a file has no code and is left out.
  */
 export function snippets(text) {
   const found = [];
-  for (const [, language, code] of text.matchAll(/^```(\w+)\n([\s\S]*?)^```/gm)) {
-    if (['js', 'jsx', 'ts'].includes(language)) found.push({ language, code });
-    if (['html', 'vue', 'svelte'].includes(language)) {
+  for (const [, fence, code] of text.matchAll(/^```[ \t]*(\w+)[^\n]*\n([\s\S]*?)^```/gm)) {
+    const language = SCRIPT_FENCES[fence.toLowerCase()];
+    if (language) found.push({ language, code });
+    if (MARKUP_FENCES.includes(fence.toLowerCase())) {
       for (const [, script] of code.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)) {
         if (script.trim()) found.push({ language: 'js', code: script });
       }

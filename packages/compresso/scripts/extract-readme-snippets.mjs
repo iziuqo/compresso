@@ -16,10 +16,13 @@ mkdirSync(OUT, { recursive: true });
 
 let written = 0;
 for (const name of Object.keys(READMES)) {
-  snippets(readme(name)).forEach(({ language, code }, i) => {
+  const found = snippets(readme(name));
+  // A fence pattern that stopped matching would otherwise pass the check by checking nothing.
+  if (!found.length) throw new Error(`no snippets found in the ${name} README: has the fence pattern in test/support/readmes.js stopped matching?`);
+  found.forEach(({ language, code }, i) => {
     // `export {}` makes each snippet a module of its own, so names never clash between snippets.
     writeFileSync(join(OUT, `${name}-${i + 1}.${language}`), `${code}\nexport {};\n`);
-    written += 1;
   });
+  written += found.length;
 }
 console.log(`${written} README snippets written to ${OUT}`);

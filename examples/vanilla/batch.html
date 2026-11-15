@@ -19,7 +19,7 @@
 </head>
 <body>
   <h1>Compresso — Batch (Worker Pool)</h1>
-  <p class="lede">Compresses every selected file in parallel, off the main thread, via <code>compresso.js/pool</code>.</p>
+  <p class="lede">Compresses every selected file with <code>compresso.js/pool</code>. Served from your own site, it runs them in parallel, off the main thread. Loaded from a CDN, as here, browsers don't start a worker from another origin, so the pool runs them one at a time on the main thread, with the same API.</p>
   <input type="file" accept="image/*" id="upload" multiple />
   <p id="progress"></p>
   <div id="results"></div>
@@ -28,9 +28,10 @@
     import { createPool } from 'https://unpkg.com/compresso.js@1/dist/compresso.pool.mjs';
 
     // Call createPool() unconditionally and let it choose: it never throws
-    // for lack of Worker/OffscreenCanvas support (or a blocked CSP). It
-    // falls back to a correct, serial, main-thread implementation with the
-    // exact same shape, so this code never branches on the environment.
+    // for lack of Worker/OffscreenCanvas support, a blocked CSP, or a worker
+    // script on another origin (this CDN import). It falls back to a correct,
+    // serial, main-thread implementation with the exact same shape, so this
+    // code never branches on the environment.
     const pool = createPool();
     window.addEventListener('beforeunload', () => pool.destroy());
 
@@ -49,11 +50,13 @@
       const files = [...e.target.files];
       if (!files.length) return;
 
+      // Free the previous batch's previews before showing the next one.
+      for (const img of results.querySelectorAll('img')) URL.revokeObjectURL(img.src);
       results.replaceChildren();
       progress.textContent = `Compressing ${files.length} file(s)… 0%`;
 
-      // Jobs run in parallel, so files finish in any order: show the batch's
-      // overall progress, not "file n of m".
+      // Files can finish in any order: show the batch's overall progress,
+      // not "file n of m".
       const settled = await pool.compressMany(files, { quality: 0.8, format: 'auto' }, (event) => {
         progress.textContent = `Compressing ${files.length} file(s)… ${Math.round(event.overallProgress * 100)}%`;
       });
@@ -74,7 +77,8 @@
             img,
             line(files[i].name),
             line(`${r.width}×${r.height} · ${r.format}`),
-            line(r.kept ? `Kept as it was (${r.reason})` : `${Math.round(r.savings)}% smaller`),
+            line(r.kept ? `Kept as it was (${r.reason})`
+              : r.savings < 0 ? `${Math.round(-r.savings)}% larger` : `${Math.round(r.savings)}% smaller`),
           );
         } else {
           card.className = 'result failed';

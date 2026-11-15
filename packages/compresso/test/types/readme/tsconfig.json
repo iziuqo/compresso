@@ -2,7 +2,10 @@
   // The READMEs' snippets (written to snippets/ by scripts/extract-readme-snippets.mjs),
   // checked against the published declarations as a reader would paste them:
   // strict about compresso.js's API, but plain JavaScript keeps its untyped
-  // parameters and its unchecked DOM lookups. `paths` points each entry at its
+  // parameters and its unchecked DOM lookups. So it catches wrong options,
+  // fields, formats and argument types, but not a null passed or dereferenced,
+  // in the .ts snippets too, and globals.d.ts lets any EventTarget have `files`.
+  // `paths` points each entry at its
   // declarations: the exports map lists `types` last, so TypeScript would read
   // the built JavaScript instead (PKG-07, which D1 fixes).
   "compilerOptions": {

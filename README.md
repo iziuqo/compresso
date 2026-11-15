@@ -110,7 +110,7 @@ How Compresso compares to the popular browser-side image libraries, checked on 2
 | Latest release <sup>3</sup> | 1.0.3, 2026-11-08 | 1.4.0, 2026-10-01 | 2.0.2, 2023-03-06 | 10.0.3, 2026-08-15 |
 | License | MIT | MIT | MIT | MIT |
 
-<sup>1</sup> Each package's default export bundled with esbuild (`--bundle --minify --format=esm`, dependencies included) and gzipped at level 9. compresso.js is this repository's main entry, every export included; `compress()` alone is 4.8 KB. <sup>2</sup> The `dependencies` of each package's latest version on npm. <sup>3</sup> The publish date of each package's `latest` on npm. Features are from each package's own documentation and source at those versions.
+<sup>1</sup> Each package's default export bundled with esbuild (`--bundle --minify --format=esm`, dependencies included) and gzipped at level 9. compresso.js is this repository's main entry as it heads for 1.1, every export included; `compress()` alone is 4.8 KB. <sup>2</sup> The `dependencies` of each package's latest version on npm. <sup>3</sup> The publish date of each package's `latest` on npm. Features are from each package's own documentation and source at those versions.
 
 **When *not* to use Compresso:** for server-side/batch processing use [sharp](https://github.com/lovell/sharp); for pixel-level image editing use [Jimp](https://github.com/jimp-dev/jimp); if you only need the highest-quality downscale, [pica](https://github.com/nodeca/pica) specializes in that. Compresso is for *optimizing user-selected images in the browser before upload.*
 
@@ -133,9 +133,10 @@ if (result.missedTarget) {
 
 Compresso searches for the highest quality that fits, in four encodes at most. When no quality fits,
 it steps the image's size down, never below a 480 px long edge. If even that misses, the result is
-the smallest file it made and `result.missedTarget` is `true`. PNG output is lossless, so quality
-can't shrink it and a target applies only through the size steps. An animated image or an SVG
-comes back untouched, so a target can't shrink it either: `missedTarget` says when it's over.
+the smallest file it made (or the source itself, `kept: true`, when even that isn't smaller), and
+`result.missedTarget` is `true`. PNG output is lossless, so quality can't shrink it and a target
+applies only through the size steps. An animated image or an SVG File or Blob comes back untouched,
+so a target can't shrink it at all: `missedTarget` says when it's over.
 
 ## Batch & Parallel Compression
 
@@ -193,7 +194,7 @@ Compresses a single image.
 | `onProgress` | `function` | — | Progress callback `({ progress, stage })` |
 | `signal` | `AbortSignal` | — | Cancel compression |
 
-<sup>§</sup> Each browser's encoder maps quality its own way: at 0.8, Safari's JPEG is about 2.3 times the size of Chrome's or Firefox's, so a full-size photo may barely shrink there. A later release is planned to even this out; until then, a lower `quality` or a `maxSizeMB` target gives Safari users smaller files. <sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode, though never below a 720px short edge for shapes up to 32:1, so a long screenshot stays readable. Pass `Infinity` to never cap. <sup>‡</sup> With `format: 'auto'`, or a format the source is already in, lossy output is never larger than the source, regardless of this value. An explicit conversion is always honoured; a negative `savings` shows it grew. See [Never bigger, and its limits](#never-bigger-and-its-limits).
+<sup>§</sup> Each browser's encoder maps quality its own way: at 0.8, Safari's JPEG is more than twice the size of Chrome's or Firefox's, so a full-size photo may barely shrink there. A later release is planned to even this out; until then, a lower `quality` or a `maxSizeMB` target gives Safari users smaller files. <sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode, though never below a 720px short edge for shapes up to 32:1, so a long screenshot stays readable. Pass `Infinity` to never cap. <sup>‡</sup> With `format: 'auto'`, or a format the source is already in, lossy output is never larger than the source, regardless of this value. An explicit conversion is always honoured; a negative `savings` shows it grew. See [Never bigger, and its limits](#never-bigger-and-its-limits).
 
 #### Result
 
@@ -208,7 +209,7 @@ Compresses a single image.
 | `format` / `mimeType` | `string` | What the output's bytes really are, in canonical names (`'jpeg'`, never `'jpg'`) |
 | `kept` | `boolean` | The source itself came back, with its own name, type and size |
 | `reason` | `string \| null` | Why the result isn't what was asked: `'not-smaller'` (kept, no encode beat it), `'unsupported-format'` (this browser can't encode the asked format, so it's in the best one it can), `'animated'` (an animated GIF, APNG or WebP File or Blob, kept untouched, since a re-encode would keep only its first frame) or `'vector'` (an SVG File or Blob, kept untouched and labelled `svg`); `null` when it is |
-| `missedTarget` | `boolean` | `maxSizeMB` was out of reach even at the smallest size tried; the result is the smallest file made (or a kept animation or SVG larger than the target) |
+| `missedTarget` | `boolean` | `maxSizeMB` was out of reach even at the smallest size tried; the result is the smallest file made (or a kept source, animation or SVG larger than the target) |
 
 ### `compressMultiple(files, options?)`
 
@@ -471,8 +472,9 @@ device lab measured by encoding, not what the browser claims:
 
 | | Chrome, Edge, Samsung Internet, Android | Firefox | Safari (macOS) | Safari (iOS, iPadOS) |
 |---|---|---|---|---|
-| **Input:** JPEG, PNG, GIF, WebP | ✅ | ✅ | ✅ | ✅ |
-| **Input:** AVIF | ✅ | ✅ | ✅ (16.4+) | ✅ (16.4+) |
+| **Input:** JPEG, PNG, GIF | ✅ | ✅ | ✅ | ✅ |
+| **Input:** WebP | ✅ | ✅ | ✅ (14+) | ✅ (14+) |
+| **Input:** AVIF | ✅ (Chrome 85+, Edge 121+) | ✅ (93+) | ✅ (16.4+) | ✅ (16.4+) |
 | **Input:** HEIC / HEIF | with `heic-to` | with `heic-to` | ✅ (17+) | ✅ (17+) |
 | **Output:** JPEG, PNG | ✅ | ✅ | ✅ | ✅ |
 | **Output:** WebP | ✅ | ✅ | ❌ JPEG instead | ❌ JPEG instead |
@@ -481,9 +483,10 @@ device lab measured by encoding, not what the browser claims:
 
 <sup>1</sup> iOS 26 labels lossless bytes as AVIF; compresso.js checks the bytes, so it isn't fooled.
 
-Measured with Chrome 159, Firefox 159, Safari 27.2 and the oldest and newest iOS simulators on
-every pull request, and on real iPhones with iOS 17.6 and 26.6. Animated GIF, APNG and animated WebP
-come back untouched (`reason: 'animated'`), and so does SVG (`reason: 'vector'`).
+Measured on every pull request in Playwright's Chromium 159, Firefox 159 and WebKit 27.2 (Safari's
+engine) and in the oldest and newest iOS simulators GitHub offers, and on real iPhones with iOS 17.6
+and 26.6. An animated GIF, APNG or WebP File or Blob comes back untouched (`reason: 'animated'`), and
+so does an SVG one (`reason: 'vector'`).
 
 The oldest versions each part runs in, from the JavaScript and browser features the built files use:
 
@@ -491,7 +494,7 @@ The oldest versions each part runs in, from the JavaScript and browser features 
 |---|---|---|---|---|---|---|
 | `compress()` | 81 | 74 | 13.1 | 13.4 | 13 | imports, but needs a browser to run |
 | `compresso.js/pool` on workers <sup>2</sup> | 85 | 114 | 16.4 | 16.4 | 14 | ❌ |
-| `compresso.js/plan` | 92 | 90 | 15.4 | 15.4 | 16 | 16.6 |
+| `compresso.js/plan` (since 1.1) | 92 | 90 | 15.4 | 15.4 | 16 | 16.6 |
 
 <sup>2</sup> Older browsers still run the pool, on the main thread, with the same API.
 
@@ -505,12 +508,13 @@ compresso.js. Your bundler builds it from your copy, once, as a chunk of its own
 the first time a HEIC file appears: about 3 MB, 0.8 MB gzipped. Output is always a web format
 (HEIC is input only).
 
-- **Licence:** `heic-to` is LGPL-3.0, and compresso.js never bundles or copies it. See
+- **License:** `heic-to` is LGPL-3.0, and compresso.js never bundles or copies it. See
   [THIRD-PARTY-NOTICES.md](packages/compresso/THIRD-PARTY-NOTICES.md).
 - **In the pool:** a worker that can't decode a HEIC asks the page, which decodes it with the same
   copy. Taking the decoded pixels pauses the page briefly, about 80 ms for a 12 MP photo in
   Chromium. Safari never pauses: it decodes HEIC itself.
-- **CDN pages:** the plain `<script>` build can't load `heic-to`, so HEIC works there only in Safari.
+- **The UMD build** (`compresso.umd.js` in a plain `<script>`) can't load `heic-to`, so there HEIC
+  works only in Safari.
 - **Leaving it out:** install with `npm install --omit=optional`, then tell your bundler not to look
   for it. In Vite, add `build: { rollupOptions: { external: ['heic-to'] } }` to `vite.config.js`. In
   webpack or Rspack, add `new IgnorePlugin({ resourceRegExp: /^heic-to$/ })` to `plugins`. Every
@@ -522,11 +526,13 @@ the first time a HEIC file appears: about 3 MB, 0.8 MB gzipped. Output is always
 With the default `format: 'auto'`, or a format the source is already in, Compresso never returns a
 lossy file larger than the source. It works like this:
 
-- **When an encode isn't smaller,** the quality search goes lower, and when nothing beats the
-  source, the source itself comes back, untouched, with `kept: true` and `reason: 'not-smaller'`.
-- **In Safari,** which can only make JPEG here, a photo with no `maxWidth` or `maxHeight` is capped
-  at a 2048 px long edge (never below a 720 px short edge), since a full-size JPEG can be larger than
-  the source.
+- **One encode decides.** With no target and no resize, Compresso encodes once at your `quality`.
+  If that isn't smaller than the source, the source itself comes back, untouched, with `kept: true`
+  and `reason: 'not-smaller'`. When it resizes, it first searches for the highest quality that stays
+  under the source's size.
+- **In Safari,** which can only make JPEG here, `format: 'auto'` with no `maxWidth` or `maxHeight`
+  caps a photo at a 2048 px long edge (never below a 720 px short edge), since a full-size JPEG can
+  be larger than the source. An explicit `format: 'jpeg'` isn't capped.
 
 The limits:
 
@@ -535,7 +541,8 @@ The limits:
 - **PNG output** is lossless, so quality doesn't shrink it.
 - **A URL source** reports `originalSize: 0` and `savings: 0`, so compare sizes yourself, and the
   server must allow CORS.
-- **A kept original** keeps its own name, type and metadata.
+- **A kept original** is the original's bytes, metadata included, labelled with the format those
+  bytes really are.
 
 ## Metadata (EXIF and GPS)
 
@@ -575,7 +582,7 @@ Read the file from an `<input type="file">`, pass it to `compress(file, { qualit
 Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes HEIC (natively on Safari, with the optional `heic-to` decoder elsewhere) and outputs a standard web format. See [HEIC/HEIF input](#heicheif-input).
 
 ### Why did my compressed image get *bigger* than the original?
-Re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can *inflate* it. With `format: 'auto'`, Compresso doesn't let that happen to lossy output: it lowers quality, in Safari it caps the resolution, and when nothing beats the source you get the source back with `kept: true`. An explicit `format` is a request to convert, so it is honoured even when the file grows, and a negative `savings` shows it. See [Never bigger, and its limits](#never-bigger-and-its-limits).
+Re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can *inflate* it. With `format: 'auto'`, Compresso doesn't let that happen to lossy output: when the encode isn't smaller you get the source back with `kept: true`, and in Safari it caps the resolution so a JPEG has a chance to be smaller. An explicit `format` is a request to convert, so it is honoured even when the file grows, and a negative `savings` shows it. See [Never bigger, and its limits](#never-bigger-and-its-limits).
 
 ### Does it keep EXIF and GPS data?
 Not on a re-encode: the result has no metadata. An original that comes back untouched (`kept: true`) keeps all of its own, GPS included. See [Metadata](#metadata-exif-and-gps).
@@ -599,7 +606,7 @@ Compresso's 5 KB core uses the browser's native Canvas API — no WASM, no heavy
 1. **Load** — decode the image (an `<img>` element on the page, an `ImageBitmap` in a worker)
 2. **Resize** — compute target dimensions (preserving aspect ratio), with step-down resizing for quality
 3. **Compress** — draw to `<canvas>`, export as the target format at the chosen quality
-4. **Fit** — if a max size is set (or to honor the never-bigger guarantee), search for the highest quality that fits, and step the size down when none does
+4. **Fit** — with a max size, search for the highest quality that fits, and step the size down when none does; without one, keep the source when the encode isn't smaller
 
 The result is a new `File` ready for upload, plus metadata about the optimization.
 

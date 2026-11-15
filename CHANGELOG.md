@@ -110,13 +110,14 @@ All notable changes to `compresso.js` are documented here. The format is based o
   `'unsafe-eval'` in `script-src` and `blob:` in `worker-src`. The
   `'wasm-unsafe-eval'` they gave isn't enough for `heic-to`'s default build.
 
+### Docs
 - **The READMEs and examples say what the library really does.** `maxSizeMB`
   is a target, with `missedTarget` to check; never-bigger is explained with
   its limits (explicit conversions, PNG, URL sources); metadata is stated
   (re-encodes drop EXIF and GPS, a kept original keeps its own); one table
   shows what each browser decodes and encodes, as the device lab measured it,
   with the real version floors; "zero-dependency" became "no runtime
-  dependencies in the core", with `heic-to`'s size, licence and how to leave
+  dependencies in the core", with `heic-to`'s size, license and how to leave
   it out; Safari's larger files at the same `quality` are noted; the planner
   is marked "since 1.1"; and the comparison table is re-measured, dated and
   sourced. Every example uses `format: 'auto'`, and the batch snippets take
@@ -128,7 +129,9 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - **The batch example no longer runs a file name as HTML.** It put file names
   into `innerHTML`, so a file named like an `<img onerror>` tag ran script; it
   now writes them as text, a browser test proves it, and it loads the current
-  major release instead of a 1.0.0 release candidate.
+  major release instead of a 1.0.0 release candidate. It also says that,
+  loaded from a CDN, the pool runs on the main thread: browsers don't start a
+  worker from another origin.
 
 ### Added
 - **`pool.stats()` reports `mode` and `reason`**: whether the pool runs on
