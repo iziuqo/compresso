@@ -13,6 +13,11 @@ The page has no analytics and sends nothing anywhere unless its link carries
 
 ## Opening it
 
+Every merge to `main` that changes the package publishes the page to GitHub
+Pages, so any phone or browser can open it at
+<https://iziuqo.github.io/compresso/lab/> (`.github/workflows/lab-pages.yml`).
+To run your own build:
+
 ```bash
 npm run build                 # in packages/compresso
 python3 -m http.server 8080   # any static server, from packages/compresso
