@@ -41,7 +41,9 @@ function reason(error) {
  * A bundler's advice that a chunk is large, which the app's own HEIC codec
  * is (about 3 MB), and its closing tally. Any other warning is reported.
  */
-const SIZE_ADVICE = /chunks are larger than|chunkSizeWarningLimit|code-split the application|codeSplitting|asset size limit|entrypoint size limit|performance recommendations|compiled with \d+ warning/i;
+const SIZE_ADVICE = /chunks are larger than|chunkSizeWarningLimit|code-split the application|codeSplitting|asset size limit|entrypoint size limit|performance recommendations|compiled with \d+ warning|(⚠️|‼)\s+[\d.]+ [kM]?B\b/i;
+/** Terminal colour codes, which a CI runner's bundlers print. */
+const COLOUR_CODES = /\x1b\[[\d;]*m/g;
 /** The name the HEIC codec gives its WebAssembly, found in every copy of it. */
 const CODEC_MARKER = 'libheif.wasm';
 
@@ -56,7 +58,7 @@ async function codecProblem(outDir) {
 
 /** The first warning a build printed, other than the size advice above, or `ok` (PKG-09). */
 function firstWarning(output) {
-  const warning = output.split('\n').find((line) => /warn|\(!\)|⚠/i.test(line) && !SIZE_ADVICE.test(line));
+  const warning = output.replace(COLOUR_CODES, '').split('\n').find((line) => /warn|\(!\)|⚠/i.test(line) && !SIZE_ADVICE.test(line));
   return warning ? warning.trim().slice(0, 200) : 'ok';
 }
 
