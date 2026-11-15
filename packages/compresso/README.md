@@ -18,7 +18,7 @@ Tiny, zero-dependency image optimizer that runs entirely in the browser. Compres
 
 - **Smallest in its class** — 3.6 KB gzipped, zero required dependencies. 4–5× smaller than [browser-image-compression](https://www.npmjs.com/package/browser-image-compression) and [pica](https://www.npmjs.com/package/pica), still leaner than [compressorjs](https://www.npmjs.com/package/compressorjs) ([full comparison](https://github.com/iziuqo/compresso#comparison)). Pure Canvas API — no WASM, no codecs bundled into the core.
 - **iPhone HEIC/HEIF input, everywhere** — Safari/iOS decode natively; other browsers lazy-load a WASM decoder only the first time a HEIC file appears. No other browser-side compressor handles HEIC input.
-- **Never returns a bigger file** — lossy output is guaranteed no larger than the source. If a target format can't beat an already-efficient source, Compresso adapts quality/resolution instead of inflating it.
+- **Never returns a bigger file** — with the default `format: 'auto'`, lossy output is guaranteed no larger than the source. If no encode can beat an already-efficient source, the source itself comes back with `kept: true`. An explicit `format` is always honoured, and the result shows when it grew.
 - **Real parallel batch compression** — `compresso.js/pool` runs a Web Worker pool with crash/timeout recovery, falling back to the identical API on the main thread where Workers aren't available. See [Batch & Workers](#batch--workers).
 - **100% client-side** — no server round-trips, no API keys, no user image ever uploaded anywhere.
 
@@ -107,7 +107,7 @@ choose AVIF for HEIC-class output compression.
 
 ¹ Original resolution is kept by default. The one exception: when neither `maxWidth` nor `maxHeight` is set **and** the browser can't encode WebP/AVIF (auto-format falls back to JPEG — e.g. Safari), output is capped to a **2048px long edge**, because a full-resolution JPEG re-encode could otherwise grow larger than the original. The cap never takes the short edge below 720px for shapes up to 32:1, so a long screenshot or a panorama stays readable. Browsers with a modern format keep the original dimensions. Set either axis to constrain it yourself, or pass `maxWidth: Infinity` to never cap. In every case output stays inside what can really be made: each format's edge limit (WebP holds 16,383px, and every format stays within 32,767px, the most every engine's canvas holds) and the canvas the browser really gives (an iPhone on iOS 17 holds about 16.7 MP, so a 24 MP photo comes back at about 12 MP there). `width` and `height` always report what was encoded.
 
-² **Lossy output (JPEG/WebP/AVIF) is never larger than the source**, regardless of `maxSizeMB`. PNG output is exempt, since it's lossless and ignores quality.
+² **Lossy output (JPEG/WebP/AVIF) is never larger than the source** with `format: 'auto'`, or in a format the source is already in, regardless of `maxSizeMB`. An explicit conversion is always honoured, and a negative `savings` shows it grew. PNG output is exempt, since it's lossless and ignores quality. Every result says what happened: `format` and `mimeType` name what the bytes really are, `kept` is `true` when the source itself came back, and `reason` says why a result isn't what was asked (`'not-smaller'` or `'unsupported-format'`), or is `null`.
 
 ## Batch & Workers
 
@@ -269,7 +269,7 @@ recipe)` is the pure first step on its own, for hosts that run their own encode 
 Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes it natively on Safari, via a lazy WASM decoder elsewhere, and outputs a standard web format. See [HEIC/HEIF input](#heicheif-input).
 
 ### Why did my compressed image come out bigger than the original?
-With most tools, re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can inflate it. Compresso guarantees this never happens: lossy output is capped at the source size, reducing resolution instead of ballooning the file where needed.
+With most tools, re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can inflate it. With `format: 'auto'`, Compresso guarantees this never happens: lossy output is capped at the source size, reducing resolution instead of ballooning the file where needed, and the source itself comes back (`kept: true`) when nothing beats it. An explicit `format` is honoured even when the file grows; a negative `savings` shows it.
 
 ### How do I compress many images in parallel without blocking the UI?
 Use `createPool()` from `compresso.js/pool` instead of calling `compress()` directly — same options, same result shape, but backed by a Web Worker pool with crash/timeout recovery. See [Batch & Workers](#batch--workers).

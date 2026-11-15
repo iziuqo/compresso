@@ -1,7 +1,7 @@
-import { detectFormat, formatToMime, generateFileName, getBestFormat } from './utils.js';
+import { canonicalFormat, detectFormat, formatToMime, getBestFormat, isFormatSupported, resultFile } from './utils.js';
 import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
-import { probeDimensions } from './probe.js';
+import { probeDimensions, sniffFormat } from './probe.js';
 import { planPhoto } from './plan.js';
 
 /**
@@ -68,11 +68,7 @@ export async function compress(source, options = {}) {
   // browser main thread nor a Web Worker (e.g. Node.js, or a framework's SSR
   // pass). Guard call sites with `typeof window !== 'undefined'` instead.
   if (typeof Image === 'undefined' && typeof OffscreenCanvas === 'undefined') {
-    throw new Error(
-      'compresso.js requires a browser or Web Worker environment; it cannot run ' +
-      'in Node.js or during server-side rendering. Guard calls with `typeof ' +
-      "window !== 'undefined'` or a dynamic import."
-    );
+    throw new Error('compresso.js requires a browser or Web Worker environment, not Node.js or server-side rendering');
   }
 
   const opts = { ...DEFAULTS, ...options };
@@ -82,10 +78,23 @@ export async function compress(source, options = {}) {
   // is a memoized sync probe; in a worker it is an async one (OffscreenCanvas has
   // no `toDataURL`), which is why the pipeline awaits it here.
   await ensureCapabilities();
-  // Not const: the never-bigger fallback below can retarget these to the
-  // source's own format when nothing achievable in the requested one fits.
-  let format = opts.format === 'auto' ? getBestFormat() : opts.format;
+  // Not const: a kept source, or bytes that aren't what their label says,
+  // retarget these below.
+  let format = opts.format === 'auto' ? getBestFormat() : canonicalFormat(opts.format);
+  // Why the result isn't exactly what was asked, if it isn't (RFC 0001).
+  let reason = null;
+  // A format this browser can't encode falls back to the best it can (O4).
+  if (!isFormatSupported(format)) {
+    format = getBestFormat();
+    reason = 'unsupported-format';
+  }
   let mimeType = formatToMime(format);
+  // What the source really is: its bytes, else its type or name.
+  const sourceFormat = (source instanceof Blob ? await sniffFormat(source) : null) ?? (source && detectFormat(source));
+  // A conversion the caller asked for is honoured even when the file grows,
+  // and the result shows it (O4). `auto`, a fallback, and a source already in
+  // the asked format never grow.
+  const converting = opts.format !== 'auto' && !reason && sourceFormat !== format;
   const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;
 
   report(opts, 0.1, 'loading');
@@ -127,8 +136,7 @@ export async function compress(source, options = {}) {
   // the apps do; this canvas host draws and encodes for it.
   const originalSize = sourceSize(source);
   let canvas, width, height, encodes;
-  // Lower-cased for the planner, which tells PNG apart by name.
-  const formats = [format.toLowerCase()];
+  const formats = [format];
   const host = {
     formats,
     async prepare(maxLongEdge = Infinity) {
@@ -151,8 +159,9 @@ export async function compress(source, options = {}) {
       return {
         width,
         height,
-        // PNG ignores quality, so only a size target caps it, not the source's size.
-        originalSize: mimeType === 'image/png' ? 0 : originalSize,
+        // PNG ignores quality, and an asked conversion is honoured, so only a
+        // size target caps these, not the source's size.
+        originalSize: mimeType === 'image/png' || converting ? 0 : originalSize,
         // Resized or converted: the source isn't what was asked for.
         transformed: width < originalWidth || height < originalHeight || source.type !== mimeType,
       };
@@ -175,22 +184,33 @@ export async function compress(source, options = {}) {
     { formats, quality: opts.quality, maxLongEdge: cap, targetBytes: opts.maxSizeMB * 1024 * 1024 },
     { signal: opts.signal, onProgress: (step) => report(opts, 0.5 + step * 0.4, 'compressing') }
   );
-  const blob = decision.result;
-  // Kept: the source is the only way to keep the never-bigger guarantee, so
-  // it comes back honestly labelled as its own format, not as the target.
-  if (decision.kept) {
-    format = detectFormat(source) ?? format;
-    mimeType = source.type || mimeType;
+  let { result: blob, kept, missedTarget } = decision;
+  // Named by what the bytes are (COR-02, COR-06): a canvas may label bytes as
+  // a format it can't encode, and a kept source is whatever it is, a format
+  // this library doesn't know (BMP, say) included.
+  if (kept) {
+    reason = 'not-smaller';
+    format = sourceFormat ?? (source.type?.split('/')[1] || '');
+    mimeType = sourceFormat ? formatToMime(sourceFormat) : source.type || '';
     width = originalWidth;
     height = originalHeight;
+  } else {
+    const real = await sniffFormat(blob);
+    if (real && real !== format) {
+      reason = 'unsupported-format';
+      format = real;
+      mimeType = formatToMime(real);
+    }
   }
+  // The blob is labelled as its bytes are, an untyped kept source included.
+  if (blob.type !== mimeType) blob = new Blob([blob], { type: mimeType });
   throwIfAborted(opts.signal);
 
   report(opts, 1, 'done');
-  const file = new File([blob], generateFileName(source, format), { type: mimeType });
+  const result = { kept, reason, missedTarget, format, mimeType };
 
   return {
-    file,
+    file: resultFile(source, blob, result),
     blob,
     url: URL.createObjectURL(blob),
     width,
@@ -200,9 +220,7 @@ export async function compress(source, options = {}) {
     originalSize,
     compressedSize: blob.size,
     savings: originalSize > 0 ? Math.round((1 - blob.size / originalSize) * 1000) / 10 : 0,
-    format,
-    mimeType,
-    missedTarget: decision.missedTarget,
+    ...result,
   };
 }
 

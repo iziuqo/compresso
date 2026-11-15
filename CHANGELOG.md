@@ -60,10 +60,22 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - **A source no encode can beat comes back after one encode.** With no
   `maxSizeMB`, no resize and no change of format, only the asked quality is
   tried, and when it can't beat the source the source comes back; quality is
-  no longer pushed near zero for a saving under 1%. A conversion, such as
-  HEIC to JPEG, still searches under the source's size.
+  no longer pushed near zero for a saving under 1%.
 - **`maxSizeMB: undefined`, `null`, `0`, a negative number or `NaN` means no
   target**, as when it is left out. `undefined` used to override the default.
+- **Every result describes its own bytes.** `format` and `mimeType` are read
+  from the output's signature, so a browser that labels PNG bytes as WebP or
+  AVIF no longer passes the wrong label on, and `blob.type`, `file.type` and
+  the file's extension always agree with them. A source that comes back
+  untouched keeps its own name and type, an untyped one (an iPhone HEIC often
+  has none) included. Format names are canonical everywhere: `'jpeg'`, never
+  `'jpg'`, in results and from `detectFormat()`.
+- **An explicit `format` the browser can't encode falls back to the best one
+  it can**, instead of returning the untouched source or mislabelled PNG
+  bytes: `format: 'webp'` in iPhone Safari now gives a real JPEG.
+- **The pool's main-thread fallback runs jobs one at a time, as documented**,
+  separate `compress()` calls included, the same way a pool that gave up on
+  its workers does.
 
 ### Added
 - **`pool.stats()` reports `mode` and `reason`**: whether the pool runs on
@@ -71,8 +83,21 @@ All notable changes to `compresso.js` are documented here. The format is based o
   `worker-blocked`, `worker-failed-to-load` or `worker-crashed-repeatedly`).
 - **`missedTarget` on every result**: `true` when `maxSizeMB` was out of reach
   even at the smallest size tried, so a missed target is never silent.
+- **`kept` and `reason` on every result** (RFC 0001): `kept` is `true` when
+  the source itself came back, and `reason` says why a result isn't exactly
+  what was asked, `'not-smaller'` or `'unsupported-format'`, or is `null`.
 
 ### Changed
+- **An explicit `format` is always honoured.** `format: 'auto'` still never
+  returns a bigger file, and a source already in the asked format is still
+  kept when re-encoding can't shrink it. A conversion to another format is
+  written at the asked quality even when the file grows, and a negative
+  `savings` shows it; it used to return the untouched source in its own
+  format.
+- **Shorter error messages** for a non-browser environment, HEIC's optional
+  decoder and a source that won't load (one message, `Failed to load image`,
+  for a URL and a Blob alike); the README's HEIC and Content-Security-Policy
+  sections carry the detail.
 - **`compress()` and `compresso.js/plan` share one engine.** `compress()` now
   runs the same `planPhoto` planner the apps use, through a canvas host, so
   the browser and the apps decide quality, size and never-bigger alike. The

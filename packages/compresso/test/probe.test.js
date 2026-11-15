@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { probeDimensions } from '../src/probe.js';
+import { probeDimensions, sniffFormat } from '../src/probe.js';
 
 const ASSETS_DIR = fileURLToPath(new URL('../../../_assets', import.meta.url));
 const hasCorpus = existsSync(ASSETS_DIR);
@@ -102,6 +102,49 @@ describe('probeDimensions — synthetic fixtures (always run, no corpus needed)'
 
   it('never throws on an empty blob', async () => {
     await expect(probeDimensions(new Blob([]))).resolves.toBeNull();
+  });
+});
+
+describe('sniffFormat — what the bytes are, whatever their label says (COR-02)', () => {
+  const ascii = (text) => [...text].map((c) => c.charCodeAt(0));
+  const blob = (...bytes) => new Blob([new Uint8Array(bytes.flat())], { type: 'image/avif' });
+  // An ftyp box: its size, the major brand, a minor version, then the compatible brands.
+  const ftyp = (major, ...compatible) => blob([0, 0, 0, 16 + 4 * compatible.length], ascii('ftyp'), ascii(major), [0, 0, 0, 0], ...compatible.map(ascii));
+
+  it('names each format by its magic numbers', async () => {
+    await expect(sniffFormat(blob([0xff, 0xd8, 0xff, 0xe0]))).resolves.toBe('jpeg');
+    await expect(sniffFormat(blob([0x89], ascii('PNG\r\n\x1a\n')))).resolves.toBe('png');
+    await expect(sniffFormat(blob(ascii('GIF89a')))).resolves.toBe('gif');
+    await expect(sniffFormat(blob(ascii('RIFF'), [0x24, 0, 0, 0], ascii('WEBPVP8 ')))).resolves.toBe('webp');
+  });
+
+  it('tells AVIF from HEIC by the ftyp brands', async () => {
+    await expect(sniffFormat(ftyp('avif', 'mif1', 'miaf'))).resolves.toBe('avif');
+    await expect(sniffFormat(ftyp('avis'))).resolves.toBe('avif');
+    await expect(sniffFormat(ftyp('heic'))).resolves.toBe('heic');
+    await expect(sniffFormat(ftyp('hevc'))).resolves.toBe('heic');
+    await expect(sniffFormat(ftyp('mif1', 'heic'))).resolves.toBe('heic');
+  });
+
+  it('finds an AVIF brand anywhere in the ftyp box, not just the first few', async () => {
+    await expect(sniffFormat(ftyp('mif1', 'miaf', 'MA1B', 'iso8', 'avif'))).resolves.toBe('avif');
+  });
+
+  it('reads no brands past the ftyp box', async () => {
+    const box = await ftyp('isom', 'iso2').arrayBuffer();
+    const next = new Uint8Array([0, 0, 0, 16, ...ascii('free'), ...ascii('heicavif')]);
+    await expect(sniffFormat(new Blob([box, next]))).resolves.toBeNull();
+  });
+
+  it('does not take another ISOBMFF file, such as an MP4, for an image', async () => {
+    const mp4 = blob([0, 0, 0, 0x18], ascii('ftypisom'), [0, 0, 2, 0], ascii('isomiso2'));
+    await expect(sniffFormat(mp4)).resolves.toBeNull();
+  });
+
+  it('returns null for bytes it does not know, and for nothing at all', async () => {
+    await expect(sniffFormat(blob(ascii('<svg xmlns')))).resolves.toBeNull();
+    await expect(sniffFormat(new Blob([]))).resolves.toBeNull();
+    await expect(sniffFormat(blob(ascii('RIFF'), [0, 0, 0, 0], ascii('WAVE')))).resolves.toBeNull();
   });
 });
 

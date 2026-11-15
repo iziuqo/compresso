@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { server } from 'vitest/browser';
 import { createPool, isPoolSupported } from '../../src/pool.js';
 import { compress, compressMultiple } from '../../src/index.js';
-import { fixture } from './support/fixtures.js';
+import { FIXTURES, fixture } from './support/fixtures.js';
 import { expectHonestResult } from './support/honest.js';
 
 /**
@@ -134,6 +134,30 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
       expect(events.length).toBeGreaterThan(0);
       expect(events.every((e) => e.totalFiles === 2 && e.fileIndex < 2)).toBe(true);
       expect(events.at(-1).overallProgress).toBeCloseTo(1, 1);
+    } finally {
+      pool.destroy();
+    }
+  });
+});
+
+describe.skipIf(skipOnWebKit)('createPool() — the committed corpus, as on the main thread', () => {
+  // Left out: HEIC, since the worker's lazy codec load doesn't run under this
+  // test server (see the skipped HEIC test above; fixtures.test.js covers it),
+  // and SVG, which the pool can't decode yet (COR-16/svg-both-paths).
+  const files = Object.keys(FIXTURES).filter((file) => file !== 'pixel-flood.png' && !/\.(heic|svg)$/.test(file));
+
+  it('gives an honest result for every fixture through real workers', async () => {
+    const pool = createPool({ size: 2 });
+    try {
+      const sources = await Promise.all(files.map((file) => fixture(file)));
+      const results = await pool.compressMany(sources);
+      for (const [i, outcome] of results.entries()) {
+        // Whether a truncated JPEG is refused depends on the engine's decoder
+        // today, and COR-07 tracks it (findings.test.js). Here, whatever
+        // comes back must be honest.
+        if (files[i] !== 'photo-truncated.jpg') expect(outcome.status, files[i]).toBe('fulfilled');
+        if (outcome.value) await expectHonestResult(outcome.value, sources[i]);
+      }
     } finally {
       pool.destroy();
     }

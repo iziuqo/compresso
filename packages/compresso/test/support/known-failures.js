@@ -54,18 +54,7 @@ const POOL_ON_MAIN_THREAD = row('ok', 'ok', 'ok', NO_WORKERS, NO_WORKERS, 'ok');
 
 /** Case key → the findings it exposes, where they reproduce, and (optionally) how. */
 export const KNOWN_FAILURES = {
-  // COR-06: a returned source keeps its own bytes, but the result names another
-  // format. Firefox re-encodes these small sources instead of returning them.
-  'corpus/animated.gif': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
-  'corpus/vector.svg': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
-  'corpus/sample.heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
-  // A kept JPEG is named `jpg`, not the canonical `jpeg`.
-  'corpus/photo-gps-compact.jpg': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('format') },
-  'compress/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
-  'benchmark/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
-
-  // The rest: one case per finding, from test/browser/findings.test.js and the unit tests.
-  'COR-02/avif-where-unsupported': { findings: ['COR-02'], where: BROWSERS, failsWith: liesAbout('format') },
+  // One case per finding, from test/browser/findings.test.js and the unit tests.
   'COR-03/format': {
     findings: ['COR-03'], where: BROWSERS,
     // compress() reads `format.toLowerCase()` without a default.
@@ -114,20 +103,13 @@ export const KNOWN_FAILURES = {
   // Parcel ignores the exports map by default, so `compresso.js/pool` doesn't resolve.
   'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row(/Failed to resolve 'compresso\.js\/pool'/)) },
 
-  // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
-  // encodes AVIF on a canvas.
-  'lab/explicit-avif': { findings: ['COR-02'], where: [...BROWSERS, ...IOS] },
-  // iPhone Safari can't encode WebP, and the PNG it gets instead is labelled WebP.
-  'lab/explicit-webp': { findings: ['COR-02'], where: IOS },
-  // iPhone Safari: iOS 26's canvas labels bytes that aren't AVIF as
-  // image/avif and ignores quality (CMP-16). The library no longer believes
-  // it, but the raw encoder check reports what the browser does. Safari's
-  // JPEG runs far larger than Chromium's.
+  // test/lab: the device lab page's checks (lab/checks.mjs). iPhone Safari:
+  // iOS 26's canvas labels bytes that aren't AVIF as image/avif and ignores
+  // quality (CMP-16). The library no longer believes it, but the raw encoder
+  // check reports what the browser does. Safari's JPEG runs far larger than
+  // Chromium's.
   'lab/encoders': { findings: ['CMP-16'], where: ['ios-26'] },
   'lab/jpeg-size': { findings: ['CMP-18'], where: IOS },
-  // So no JPEG it makes beats the 64 × 64 JPEG source, which comes back named
-  // `jpg`, not the canonical `jpeg` (COR-06, as for photo-gps-compact.jpg).
-  'lab/pool-fallback': { findings: ['COR-06'], where: IOS },
 };
 
 /** Default `failsWith`: an error whose message names one of the entry's findings. */
