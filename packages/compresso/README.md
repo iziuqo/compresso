@@ -107,7 +107,7 @@ choose AVIF for HEIC-class output compression.
 
 ¹ Original resolution is kept by default. The one exception: when neither `maxWidth` nor `maxHeight` is set **and** the browser can't encode WebP/AVIF (auto-format falls back to JPEG — e.g. Safari), output is capped to a **2048px long edge**, because a full-resolution JPEG re-encode could otherwise grow larger than the original. The cap never takes the short edge below 720px for shapes up to 32:1, so a long screenshot or a panorama stays readable. Browsers with a modern format keep the original dimensions. Set either axis to constrain it yourself, or pass `maxWidth: Infinity` to never cap. In every case output stays inside what can really be made: each format's edge limit (WebP holds 16,383px, and every format stays within 32,767px, the most every engine's canvas holds) and the canvas the browser really gives (an iPhone on iOS 17 holds about 16.7 MP, so a 24 MP photo comes back at about 12 MP there). `width` and `height` always report what was encoded.
 
-² **Lossy output (JPEG/WebP/AVIF) is never larger than the source** with `format: 'auto'`, or in a format the source is already in, regardless of `maxSizeMB`. An explicit conversion is always honoured, and a negative `savings` shows it grew. PNG output is exempt, since it's lossless and ignores quality. Every result says what happened: `format` and `mimeType` name what the bytes really are, `kept` is `true` when the source itself came back, and `reason` says why a result isn't what was asked (`'not-smaller'`, `'unsupported-format'`, or `'animated'` for an animated GIF, APNG or WebP File or Blob, which always comes back untouched), or is `null`.
+² **Lossy output (JPEG/WebP/AVIF) is never larger than the source** with `format: 'auto'`, or in a format the source is already in, regardless of `maxSizeMB`. An explicit conversion is always honoured, and a negative `savings` shows it grew. PNG output is exempt, since it's lossless and ignores quality. Every result says what happened: `format` and `mimeType` name what the bytes really are, `kept` is `true` when the source itself came back, and `reason` says why a result isn't what was asked (`'not-smaller'`, `'unsupported-format'`, `'animated'` for an animated GIF, APNG or WebP File or Blob, or `'vector'` for an SVG one, both of which always come back untouched), or is `null`.
 
 ## Batch & Workers
 
@@ -177,6 +177,10 @@ is rejected and the pool stops spawning workers too. Either way the other runnin
 carry on on the main thread, one at a time, every later job runs there too, and `pool.stats()`
 reports `mode: 'main-thread'` with the reason. From then on the pool behaves like the main-thread
 pool: `cancel()` and `destroy()` can't stop a job already running, but an `AbortSignal` still can.
+
+An SVG File or Blob comes back untouched, with `reason: 'vector'`. A worker can't decode SVG, so
+even a pool on workers returns it from the main thread, the way the main-thread pool does: outside
+`maxQueueLength` and `pool.stats()`, and only an `AbortSignal` can stop it.
 
 ### Content-Security-Policy
 

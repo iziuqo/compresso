@@ -23,7 +23,7 @@ and each one describes the bytes in `blob`:
 | `mimeType` | That format's MIME type; `blob.type` and `file.type` are the same. |
 | `kept` | `true` when the source itself came back, byte for byte. |
 | `reason` | Why the result isn't exactly what was asked, or `null` when it is. |
-| `missedTarget` | `true` when `maxSizeMB` was out of reach even at the smallest size tried, or a kept animation is larger than it. |
+| `missedTarget` | `true` when `maxSizeMB` was out of reach even at the smallest size tried, or a kept animation or SVG is larger than it. |
 
 `reason` is one of:
 
@@ -36,11 +36,18 @@ and each one describes the bytes in `blob`:
   says when one is larger than `maxSizeMB`. Only a File or Blob source is
   checked: a URL source's bytes aren't read before it is decoded, so pass
   the fetched Blob to keep an animation.
+- `'vector'`: kept, because the source is SVG, which a canvas can only
+  flatten to pixels. SVG comes back untouched and labelled `svg`, whatever
+  was asked, on the main thread and in the pool alike (the pool runs it on
+  the main thread, as its fallback does, since a worker can't decode SVG).
+  It is known by its type or name: a File or Blob typed exactly
+  `image/svg+xml`, or untyped and named `.svg`. A URL source is drawn as
+  before.
 
-When more than one applies, the reason for a kept source wins, `'animated'`
-first: the bytes are the source's, whatever was asked.
+When more than one applies, the reason for a kept source wins, `'vector'`
+or `'animated'` first: the bytes are the source's, whatever was asked.
 
-B7 adds `'vector'` for SVG, which comes back kept. Later reasons are added the same way; code that reads
+Later reasons are added the same way; code that reads
 `reason` treats an unknown one as "not what was asked".
 
 A kept result is the source: its own bytes, file name, width and height,

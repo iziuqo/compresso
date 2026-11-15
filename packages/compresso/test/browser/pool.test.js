@@ -142,9 +142,8 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
 
 describe.skipIf(skipOnWebKit)('createPool() — the committed corpus, as on the main thread', () => {
   // Left out: HEIC, since the worker's lazy codec load doesn't run under this
-  // test server (see the skipped HEIC test above; fixtures.test.js covers it),
-  // and SVG, which the pool can't decode yet (COR-16/svg-both-paths).
-  const files = Object.keys(FIXTURES).filter((file) => file !== 'pixel-flood.png' && !/\.(heic|svg)$/.test(file));
+  // test server (see the skipped HEIC test above; fixtures.test.js covers it).
+  const files = Object.keys(FIXTURES).filter((file) => file !== 'pixel-flood.png' && !file.endsWith('.heic'));
 
   it('gives an honest result for every fixture through real workers', async () => {
     const pool = createPool({ size: 2 });

@@ -94,9 +94,10 @@ export async function compress(source, options = {}) {
   // and the result shows it (O4). `auto`, a fallback, and a source already in
   // the asked format never grow.
   const converting = opts.format !== 'auto' && !reason && sourceFormat !== format;
-  // A re-encode would keep only the first frame, so an animation comes back
-  // untouched, whatever was asked (COR-16).
-  const animated = source instanceof Blob && (await isAnimated(source, sourceFormat));
+  // Sources that come back untouched whatever was asked (COR-16), and why:
+  // SVG, which a canvas can only flatten to pixels, and an animation, whose
+  // re-encode would keep only its first frame.
+  const keptAs = source instanceof Blob && (sourceFormat === 'svg' ? 'vector' : (await isAnimated(source, sourceFormat)) && 'animated');
   const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;
 
   report(opts, 0.1, 'loading');
@@ -136,7 +137,8 @@ export async function compress(source, options = {}) {
 
   // The shared planner decides quality, size and never-bigger, the same way
   // the apps do; this canvas host draws and encodes for it.
-  const originalSize = sourceSize(source);
+  // A File or Blob's size; a URL source has no known size.
+  const originalSize = source.size || 0;
   let canvas, width, height, encodes;
   const formats = [format];
   const host = {
@@ -182,7 +184,7 @@ export async function compress(source, options = {}) {
   };
   report(opts, 0.5, 'compressing');
   const targetBytes = opts.maxSizeMB * 1024 * 1024;
-  let { result: blob, kept, missedTarget } = animated
+  let { result: blob, kept, missedTarget } = keptAs
     ? { result: source, kept: true, missedTarget: targetBytes > 0 && source.size > targetBytes }
     : await planPhoto(
       host,
@@ -193,7 +195,7 @@ export async function compress(source, options = {}) {
   // a format it can't encode, and a kept source is whatever it is, a format
   // this library doesn't know (BMP, say) included.
   if (kept) {
-    reason = animated ? 'animated' : 'not-smaller';
+    reason = keptAs || 'not-smaller';
     format = sourceFormat ?? (source.type?.split('/')[1] || '');
     mimeType = sourceFormat ? formatToMime(sourceFormat) : source.type || '';
     width = originalWidth;
@@ -238,9 +240,4 @@ function tooLargeError() {
 
 function report(opts, progress, stage) {
   opts.onProgress?.({ progress, stage });
-}
-
-// File extends Blob, so this covers both; URL/string sources have no known size.
-function sourceSize(source) {
-  return source instanceof Blob ? source.size : 0;
 }
