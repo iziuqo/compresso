@@ -24,14 +24,13 @@ const prose = (text) => text.replace(/^```[\s\S]*?^```/gm, '');
 
 /**
  * GitHub's anchor for a heading: lower case, punctuation dropped (letters,
- * digits, spaces, `-` and `_` stay), spaces turned into `-`. A repeated
+ * digits, spaces, `-` and `_` stay, so backticks go), spaces turned into `-`. A repeated
  * heading gets `-1`, `-2` and so on, as on GitHub.
  */
 export function anchors(text) {
   const seen = new Map();
   return [...prose(text).matchAll(/^#{1,6}\s+(.+?)\s*#*\s*$/gm)].map(([, heading]) => {
     const slug = heading
-      .replace(/<[^>]+>|`/g, '')
       .toLowerCase()
       .replace(/[^\p{L}\p{N}\s_-]/gu, '')
       .replace(/\s/g, '-');
@@ -61,7 +60,7 @@ export function snippets(text) {
     const language = SCRIPT_FENCES[fence.toLowerCase()];
     if (language) found.push({ language, code });
     if (MARKUP_FENCES.includes(fence.toLowerCase())) {
-      for (const [, script] of code.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)) {
+      for (const [, script] of code.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) {
         if (script.trim()) found.push({ language: 'js', code: script });
       }
     }
