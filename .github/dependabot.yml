@@ -4,7 +4,18 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Tools released together move together, majors included, so one PR updates
+    # the whole family and its tests run against matching versions.
     groups:
+      vitest:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - 'vite'
+      size-limit:
+        patterns:
+          - 'size-limit'
+          - '@size-limit/*'
       npm-dependencies:
         patterns:
           - '*'
