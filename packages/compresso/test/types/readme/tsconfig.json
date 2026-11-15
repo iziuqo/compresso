@@ -1,0 +1,28 @@
+{
+  // The READMEs' snippets (written to snippets/ by scripts/extract-readme-snippets.mjs),
+  // checked against the published declarations as a reader would paste them:
+  // strict about compresso.js's API, but plain JavaScript keeps its untyped
+  // parameters and its unchecked DOM lookups. `paths` points each entry at its
+  // declarations: the exports map lists `types` last, so TypeScript would read
+  // the built JavaScript instead (PKG-07, which D1 fixes).
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": false,
+    "strictNullChecks": false,
+    "allowJs": true,
+    "checkJs": true,
+    "jsx": "preserve",
+    "target": "es2022",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "noEmit": true,
+    "paths": {
+      "compresso.js": ["../../../types/index.d.ts"],
+      "compresso.js/pool": ["../../../types/pool.d.ts"],
+      "compresso.js/plan": ["../../../types/plan.d.ts"],
+      "https://cdn.jsdelivr.net/npm/compresso.js@1/+esm": ["../../../types/index.d.ts"]
+    }
+  },
+  "include": ["globals.d.ts", "snippets"]
+}

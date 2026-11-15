@@ -29,3 +29,6 @@ packages/compresso/.vitest/
 packages/compresso/test/bundlers/.out/
 packages/compresso/test/bundlers/.apps/
 packages/compresso/test/bundlers/.parcel-cache/
+
+# test:types: the READMEs' snippets, extracted on every run
+packages/compresso/test/types/readme/snippets/

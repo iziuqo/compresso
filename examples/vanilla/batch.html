@@ -25,47 +25,60 @@
   <div id="results"></div>
 
   <script type="module">
-    import { createPool } from 'https://unpkg.com/compresso.js@1.0.0-rc.1/dist/compresso.pool.mjs';
+    import { createPool } from 'https://unpkg.com/compresso.js@1/dist/compresso.pool.mjs';
 
-    // Call createPool() unconditionally and let it choose — it never throws
-    // for lack of Worker/OffscreenCanvas support (or a blocked CSP): it
-    // silently falls back to a correct, serial, main-thread implementation
-    // with the exact same shape, so this code never needs to branch on the
-    // environment itself.
+    // Call createPool() unconditionally and let it choose: it never throws
+    // for lack of Worker/OffscreenCanvas support (or a blocked CSP). It
+    // falls back to a correct, serial, main-thread implementation with the
+    // exact same shape, so this code never branches on the environment.
     const pool = createPool();
     window.addEventListener('beforeunload', () => pool.destroy());
 
     const progress = document.getElementById('progress');
     const results = document.getElementById('results');
 
+    /** A <div> holding `text` as plain text: a file name is never parsed as HTML. */
+    function line(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div;
+    }
+
     document.getElementById('upload').addEventListener('change', async (e) => {
+      // input.files is a FileList; compressMany() takes an array.
       const files = [...e.target.files];
       if (!files.length) return;
 
-      results.innerHTML = '';
-      progress.textContent = `Compressing 0/${files.length}…`;
+      results.replaceChildren();
+      progress.textContent = `Compressing ${files.length} file(s)… 0%`;
 
+      // Jobs run in parallel, so files finish in any order: show the batch's
+      // overall progress, not "file n of m".
       const settled = await pool.compressMany(files, { quality: 0.8, format: 'auto' }, (event) => {
-        progress.textContent =
-          `Compressing ${event.fileIndex + 1}/${event.totalFiles}… ${Math.round(event.overallProgress * 100)}%`;
+        progress.textContent = `Compressing ${files.length} file(s)… ${Math.round(event.overallProgress * 100)}%`;
       });
 
-      progress.textContent = `Done: ${settled.length} file(s).`;
+      const failed = settled.filter((outcome) => outcome.status === 'rejected').length;
+      progress.textContent = `Done: ${settled.length - failed} compressed, ${failed} failed.`;
 
+      // One entry per file, in the order the files were picked.
       for (const [i, outcome] of settled.entries()) {
         const card = document.createElement('div');
         if (outcome.status === 'fulfilled') {
           const r = outcome.value;
           card.className = 'result';
-          card.innerHTML = `
-            <img src="${r.url}" alt="${files[i].name}, compressed">
-            <div>${files[i].name}</div>
-            <div>${r.width}×${r.height} · ${r.format}</div>
-            <div>${Math.round(r.savings)}% smaller</div>
-          `;
+          const img = document.createElement('img');
+          img.src = r.url;
+          img.alt = `${files[i].name}, compressed`;
+          card.append(
+            img,
+            line(files[i].name),
+            line(`${r.width}×${r.height} · ${r.format}`),
+            line(r.kept ? `Kept as it was (${r.reason})` : `${Math.round(r.savings)}% smaller`),
+          );
         } else {
           card.className = 'result failed';
-          card.innerHTML = `<div>${files[i].name}</div><div>Failed: ${outcome.reason?.message ?? 'unknown error'}</div>`;
+          card.append(line(files[i].name), line(`Failed: ${outcome.reason?.message ?? 'unknown error'}`));
         }
         results.appendChild(card);
       }

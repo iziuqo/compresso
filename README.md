@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Compress, resize, and convert images in the browser.</strong><br />
-  A 3.6 KB, zero-dependency image compressor with HEIC input, parallel Web Worker batching, and a never-bigger-output guarantee — no server needed.
+  About 5 KB gzipped, with no runtime dependencies in its core: HEIC input through an optional decoder, parallel Web Worker batching, and never-bigger output when it picks the format. No server needed.
 </p>
 
 <p align="center">
@@ -41,11 +41,11 @@
 
 ## Why Compresso
 
-- **Smallest in its class — 3.6 KB gzipped, zero required dependencies.** Roughly **4–5× smaller than browser-image-compression and pica**, and still leaner than compressorjs ([see comparison](#comparison)). The core is pure Canvas API — no WASM, no codecs bundled.
-- **iPhone HEIC/HEIF input, everywhere.** Safari/iOS decode natively; other browsers lazy-load a WASM decoder *only* the first time a HEIC file appears, so the tiny core stays codec-free for every other format. No other browser compressor handles HEIC.
-- **Never returns a bigger file.** With the default `format: 'auto'`, output is guaranteed to be no larger than the original — if no encode can beat an already-efficient source, the source itself comes back, and the result says so (`kept: true`). An explicit `format` is always honoured, and the result shows when that file grew. No rival makes this guarantee.
+- **Small: about 5 KB gzipped, with no runtime dependencies in the core.** The core is the browser's own Canvas API, with no WASM and no bundled codecs. That's about the size of compressorjs, and three to four times smaller than browser-image-compression and pica ([see comparison](#comparison)).
+- **iPhone HEIC/HEIF input.** Safari 17+ and iOS 17+ decode HEIC themselves. Other browsers use the optional [`heic-to`](https://www.npmjs.com/package/heic-to) decoder, which npm installs beside compresso.js and your bundler loads only the first time a HEIC file appears. It weighs about 0.8 MB gzipped and is LGPL-3.0; see [HEIC/HEIF input](#heicheif-input), including how to leave it out.
+- **Never bigger, when Compresso picks the format.** With the default `format: 'auto'`, or a format the source is already in, a lossy result is never larger than the source: if no encode beats it, the source itself comes back, and the result says so (`kept: true`). An explicit conversion is honoured even when the file grows, and a negative `savings` shows it. PNG output is lossless and exempt. [How it works, and its limits](#never-bigger-and-its-limits).
 - **Real parallel batch compression, off the main thread.** `compresso.js/pool` runs a resilient Web Worker pool — crash and timeout recovery included — for compressing many files at once without blocking the UI. Falls back to the exact same API on the main thread where Workers aren't available, so you never branch on environment yourself ([see Batch & Workers](#batch--parallel-compression)).
-- **Modern by default** — `format: 'auto'` picks AVIF → WebP → JPEG per browser, promise-based API, first-class TypeScript types, and it's actively maintained.
+- **Modern by default.** `format: 'auto'` picks the best format the browser can really encode, proved by encoding a test image rather than trusting the browser's label: WebP in Chrome, Edge and Firefox, JPEG in Safari. It would pick AVIF where a browser truly encodes it, which none tested does yet ([see Browser Support](#browser-support)). Promise-based API and TypeScript types.
 - **100% client-side** — no server round-trips, no API keys, no upload of user images anywhere. Private by construction.
 
 ## Install
@@ -93,41 +93,49 @@ input.addEventListener('change', async (e) => {
 
 ## Comparison
 
-How Compresso compares to the popular browser-side image libraries:
+How Compresso compares to the popular browser-side image libraries, checked on 2026-11-15:
 
 | | **compresso.js** | compressorjs | browser-image-compression | pica |
 |---|:---:|:---:|:---:|:---:|
-| Bundle, min+gzip <sup>1</sup> | **3.8 KB** | 4.6 KB | 19.6 KB | 15.7 KB |
-| Required dependencies | **0** | 2 | 1 | 2 |
-| HEIC / HEIF input | **✅** | ❌ | ❌ | ❌ |
-| AVIF output | **✅** | ❌ | ❌ | ❌ |
-| Auto best-format | **✅** | ❌ | ❌ | ❌ |
-| Never larger than input | **✅** | ❌ | ❌ | ❌ |
-| Target max file size | ✅ | ❌ | ✅ | ❌ |
+| Bundle, min+gzip <sup>1</sup> | **5.2 KB** | 5.2 KB | 20.8 KB | 16.3 KB |
+| Runtime dependencies <sup>2</sup> | **0** in the core; `heic-to` optional, for HEIC | 2 | 1 | 2 |
+| HEIC / HEIF input | **✅** (natively in Safari, `heic-to` elsewhere) | ❌ | ❌ | ❌ |
+| Picks the best format the browser encodes | **✅** | ❌ | ❌ | ❌ |
+| Returns the original when no encode is smaller | ✅ with `format: 'auto'` | ✅ (`strict`, on by default) | ❌ | not applicable (resizes only) |
+| Target file size | ✅ `maxSizeMB`, a target; `missedTarget` says when it's missed | ❌ | ✅ `maxSizeMB` | ❌ |
+| Keeps EXIF metadata | ❌ (an original that comes back keeps its own) | ✅ `retainExif` (JPEG) | ✅ `preserveExif` | ❌ |
 | Non-blocking (Web Worker) | **✅** (`compresso.js/pool`) | ❌ | ✅ | ✅ |
 | API style | Promise | Callbacks | Promise | Promise |
 | TypeScript types | ✅ | ✅ | ✅ | ✅ |
-| Latest release <sup>2</sup> | 2026-08 | 2026-04 | 2023-03 | 2026-06 |
+| Latest release <sup>3</sup> | 1.0.3, 2026-11-08 | 1.4.0, 2026-10-01 | 2.0.2, 2023-03-06 | 10.0.3, 2026-08-15 |
 | License | MIT | MIT | MIT | MIT |
 
-<sup>1</sup> Bundlephobia min+gzip, each package's latest version. <sup>2</sup> npm latest-publish date. Figures verified 2026-08-04 — reproduce with `https://bundlephobia.com/api/size?package=<name>`.
+<sup>1</sup> Each package's default export bundled with esbuild (`--bundle --minify --format=esm`, dependencies included) and gzipped at level 9. compresso.js is this repository's main entry, every export included; `compress()` alone is 4.8 KB. <sup>2</sup> The `dependencies` of each package's latest version on npm. <sup>3</sup> The publish date of each package's `latest` on npm. Features are from each package's own documentation and source at those versions.
 
 **When *not* to use Compresso:** for server-side/batch processing use [sharp](https://github.com/lovell/sharp); for pixel-level image editing use [Jimp](https://github.com/jimp-dev/jimp); if you only need the highest-quality downscale, [pica](https://github.com/nodeca/pica) specializes in that. Compresso is for *optimizing user-selected images in the browser before upload.*
 
 ## Target a Maximum File Size
 
-Perfect for systems with strict upload limits:
+For systems with strict upload limits. `maxSizeMB` is a target, not a guarantee: check `missedTarget` before you rely on it.
 
 ```js
+import { compress } from 'compresso.js';
+
 const result = await compress(file, {
-  maxSizeMB: 2,       // at or under 2 MB
-  format: 'jpeg',
+  maxSizeMB: 2, // aim for 2 MB or less
+  format: 'auto',
 });
+
+if (result.missedTarget) {
+  // Even the smallest file Compresso could make is over 2 MB.
+}
 ```
 
 Compresso searches for the highest quality that fits, in four encodes at most. When no quality fits,
-it steps the image's size down, never below a 480 px long edge. If even that misses,
-`result.missedTarget` is `true`.
+it steps the image's size down, never below a 480 px long edge. If even that misses, the result is
+the smallest file it made and `result.missedTarget` is `true`. PNG output is lossless, so quality
+can't shrink it and a target applies only through the size steps. An animated image or an SVG
+comes back untouched, so a target can't shrink it either: `missedTarget` says when it's over.
 
 ## Batch & Parallel Compression
 
@@ -136,12 +144,18 @@ New in `1.0.0`: `compresso.js/pool` runs many compressions in parallel, off the 
 ```js
 import { createPool } from 'compresso.js/pool';
 
+const input = document.querySelector('input[type="file"]');
 const pool = createPool();
 
-const results = await pool.compressMany(fileList, { format: 'auto' }, (e) => {
-  console.log(`${e.fileIndex + 1}/${e.totalFiles} — ${Math.round(e.overallProgress * 100)}%`);
+// input.files is a FileList; compressMany() takes an array.
+const files = [...input.files];
+
+// Files run in parallel and finish in any order, so report the whole batch.
+const results = await pool.compressMany(files, { format: 'auto' }, (e) => {
+  console.log(`${Math.round(e.overallProgress * 100)}% of ${e.totalFiles} files`);
 });
 
+const uploads = [];
 for (const r of results) {
   if (r.status === 'fulfilled') uploads.push(r.value.file);
 }
@@ -170,7 +184,7 @@ Compresses a single image.
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `quality` | `number` | `0.8` | Output quality, 0–1 |
+| `quality` | `number` | `0.8` | Output quality, 0–1. The same number gives larger files in Safari than in Chrome or Firefox <sup>§</sup> |
 | `maxWidth` | `number` | unbounded <sup>†</sup> | Maximum output width in px |
 | `maxHeight` | `number` | unbounded <sup>†</sup> | Maximum output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'`, `'png'`, `'webp'`, `'avif'`, or `'auto'` |
@@ -179,7 +193,7 @@ Compresses a single image.
 | `onProgress` | `function` | — | Progress callback `({ progress, stage })` |
 | `signal` | `AbortSignal` | — | Cancel compression |
 
-<sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode, though never below a 720px short edge for shapes up to 32:1, so a long screenshot stays readable. Pass `Infinity` to never cap. <sup>‡</sup> With `format: 'auto'`, or a format the source is already in, lossy output is never larger than the source, regardless of this value. An explicit conversion is always honoured; a negative `savings` shows it grew.
+<sup>§</sup> Each browser's encoder maps quality its own way: at 0.8, Safari's JPEG is about 2.3 times the size of Chrome's or Firefox's, so a full-size photo may barely shrink there. A later release is planned to even this out; until then, a lower `quality` or a `maxSizeMB` target gives Safari users smaller files. <sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode, though never below a 720px short edge for shapes up to 32:1, so a long screenshot stays readable. Pass `Infinity` to never cap. <sup>‡</sup> With `format: 'auto'`, or a format the source is already in, lossy output is never larger than the source, regardless of this value. An explicit conversion is always honoured; a negative `savings` shows it grew. See [Never bigger, and its limits](#never-bigger-and-its-limits).
 
 #### Result
 
@@ -198,14 +212,16 @@ Compresses a single image.
 
 ### `compressMultiple(files, options?)`
 
-Compress an array of files sequentially. Same options as `compress`, with an extended progress callback that includes `fileIndex`, `totalFiles`, and `overallProgress`.
+Compress an array of files one after another, on the main thread. Same options as `compress`, with an extended progress callback that includes `fileIndex`, `totalFiles`, and `overallProgress`. For many files, [the pool](#batch--parallel-compression) runs them in parallel, off the main thread.
 
 ### `createCompressor(defaults?)`
 
 Create a reusable instance with preset options:
 
 ```js
-const optimizer = createCompressor({ quality: 0.7, maxWidth: 1200, format: 'webp' });
+import { createCompressor } from 'compresso.js';
+
+const optimizer = createCompressor({ quality: 0.7, maxWidth: 1200, format: 'auto' });
 const result = await optimizer.compress(file);
 ```
 
@@ -214,10 +230,14 @@ const result = await optimizer.compress(file);
 ```js
 import { isFormatSupported, getBestFormat, formatBytes } from 'compresso.js';
 
-isFormatSupported('avif');  // true or false
-getBestFormat();            // 'avif', 'webp', or 'jpeg'
-formatBytes(1536000);       // '1.5 MB'
+isFormatSupported('webp'); // true when this browser really encodes WebP
+getBestFormat();           // what format: 'auto' uses here: 'avif', 'webp' or 'jpeg'
+formatBytes(1536000);      // '1.5 MB'
 ```
+
+Pass `format: 'auto'` unless you need one format: Safari can't encode WebP or AVIF, so an explicit
+`format: 'webp'` gives Safari users the best format it can make instead, with
+`reason: 'unsupported-format'`. If you do need one, check `isFormatSupported()` first.
 
 ## Framework Examples
 
@@ -396,7 +416,7 @@ export default function UploadForm() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const result = await compress(file, { quality: 0.8, maxWidth: 1920, format: 'webp' });
+    const result = await compress(file, { quality: 0.8, maxWidth: 1920, format: 'auto' });
 
     setStatus('uploading');
     const body = new FormData();
@@ -446,18 +466,87 @@ Full working versions: [`examples/nextjs/UploadForm.jsx`](examples/nextjs/Upload
 
 ## Browser Support
 
-| Browser | JPEG/PNG | WebP | AVIF |
-|---------|----------|------|------|
-| Chrome 32+ | ✅ | ✅ | ✅ (85+) |
-| Firefox 29+ | ✅ | ✅ (96+) | ✅ (113+) |
-| Safari 8+ | ✅ | ✅ (16+) | ✅ (16.4+) |
-| Edge 79+ | ✅ | ✅ | ✅ (121+) |
+What each browser decodes (input) and encodes (output) through compresso.js. Output is what the
+device lab measured by encoding, not what the browser claims:
 
-With `format: 'auto'`, Compresso picks the best format each browser supports. Safari can't *encode* WebP/AVIF from a canvas, so it falls back to JPEG — and Compresso caps resolution there to keep the file small (see the never-bigger guarantee).
+| | Chrome, Edge, Samsung Internet, Android | Firefox | Safari (macOS) | Safari (iOS, iPadOS) |
+|---|---|---|---|---|
+| **Input:** JPEG, PNG, GIF, WebP | ✅ | ✅ | ✅ | ✅ |
+| **Input:** AVIF | ✅ | ✅ | ✅ (16.4+) | ✅ (16.4+) |
+| **Input:** HEIC / HEIF | with `heic-to` | with `heic-to` | ✅ (17+) | ✅ (17+) |
+| **Output:** JPEG, PNG | ✅ | ✅ | ✅ | ✅ |
+| **Output:** WebP | ✅ | ✅ | ❌ JPEG instead | ❌ JPEG instead |
+| **Output:** AVIF | ❌ falls back | ❌ falls back | ❌ falls back | ❌ falls back <sup>1</sup> |
+| `format: 'auto'` gives | WebP | WebP | JPEG | JPEG |
 
-**HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression). `heic-to` is an optional dependency under the LGPL-3.0, installed beside compresso.js as its own package and never bundled into it; see [THIRD-PARTY-NOTICES.md](packages/compresso/THIRD-PARTY-NOTICES.md).
+<sup>1</sup> iOS 26 labels lossless bytes as AVIF; compresso.js checks the bytes, so it isn't fooled.
+
+Measured with Chrome 159, Firefox 159, Safari 27.2 and the oldest and newest iOS simulators on
+every pull request, and on real iPhones with iOS 17.6 and 26.6. Animated GIF, APNG and animated WebP
+come back untouched (`reason: 'animated'`), and so does SVG (`reason: 'vector'`).
+
+The oldest versions each part runs in, from the JavaScript and browser features the built files use:
+
+| You use | Chrome, Edge | Firefox | Safari | iOS Safari | Samsung Internet | Node |
+|---|---|---|---|---|---|---|
+| `compress()` | 81 | 74 | 13.1 | 13.4 | 13 | imports, but needs a browser to run |
+| `compresso.js/pool` on workers <sup>2</sup> | 85 | 114 | 16.4 | 16.4 | 14 | ❌ |
+| `compresso.js/plan` | 92 | 90 | 15.4 | 15.4 | 16 | 16.6 |
+
+<sup>2</sup> Older browsers still run the pool, on the main thread, with the same API.
 
 Every pull request runs the tests in Chromium, Firefox and WebKit and on Node 22, 24 and 26, and the device lab in iPhone Safari on the oldest and newest iOS simulators. This project is tested with BrowserStack. Its real iPhones, Android phones and Macs cover what simulators cannot.
+
+## HEIC/HEIF input
+
+Safari 17+ and iOS 17+ decode HEIC themselves. Other browsers decode it with
+[`heic-to`](https://www.npmjs.com/package/heic-to), an optional dependency that npm installs beside
+compresso.js. Your bundler builds it from your copy, once, as a chunk of its own that loads only
+the first time a HEIC file appears: about 3 MB, 0.8 MB gzipped. Output is always a web format
+(HEIC is input only).
+
+- **Licence:** `heic-to` is LGPL-3.0, and compresso.js never bundles or copies it. See
+  [THIRD-PARTY-NOTICES.md](packages/compresso/THIRD-PARTY-NOTICES.md).
+- **In the pool:** a worker that can't decode a HEIC asks the page, which decodes it with the same
+  copy. Taking the decoded pixels pauses the page briefly, about 80 ms for a 12 MP photo in
+  Chromium. Safari never pauses: it decodes HEIC itself.
+- **CDN pages:** the plain `<script>` build can't load `heic-to`, so HEIC works there only in Safari.
+- **Leaving it out:** install with `npm install --omit=optional`, then tell your bundler not to look
+  for it. In Vite, add `build: { rollupOptions: { external: ['heic-to'] } }` to `vite.config.js`. In
+  webpack or Rspack, add `new IgnorePlugin({ resourceRegExp: /^heic-to$/ })` to `plugins`. Every
+  other format works as before. A HEIC file then rejects with an error that says `heic-to` is
+  missing, except in Safari, which decodes it itself.
+
+## Never bigger, and its limits
+
+With the default `format: 'auto'`, or a format the source is already in, Compresso never returns a
+lossy file larger than the source. It works like this:
+
+- **When an encode isn't smaller,** the quality search goes lower, and when nothing beats the
+  source, the source itself comes back, untouched, with `kept: true` and `reason: 'not-smaller'`.
+- **In Safari,** which can only make JPEG here, a photo with no `maxWidth` or `maxHeight` is capped
+  at a 2048 px long edge (never below a 720 px short edge), since a full-size JPEG can be larger than
+  the source.
+
+The limits:
+
+- **An explicit conversion is honoured,** even when the file grows: `format: 'png'` can be ten
+  times the size of a JPEG source. A negative `savings` shows it.
+- **PNG output** is lossless, so quality doesn't shrink it.
+- **A URL source** reports `originalSize: 0` and `savings: 0`, so compare sizes yourself, and the
+  server must allow CORS.
+- **A kept original** keeps its own name, type and metadata.
+
+## Metadata (EXIF and GPS)
+
+Every image Compresso re-encodes comes back **without metadata**: no EXIF, no GPS location, no
+camera details. The photo is turned upright first, so it looks the same without
+its orientation tag.
+
+An image that comes back untouched (`kept: true`: no encode was smaller, an animation, or an SVG)
+is the original file, **with all its metadata, GPS included**. If you need location data gone, check
+`kept` and strip it yourself, or pass a `maxWidth`, a `maxSizeMB` or an explicit `format`, which
+make a re-encode likely but don't guarantee one.
 
 ## Content-Security-Policy (CSP)
 
@@ -483,10 +572,13 @@ Content-Security-Policy: script-src 'self' 'unsafe-eval'; worker-src 'self' blob
 Read the file from an `<input type="file">`, pass it to `compress(file, { quality, maxWidth })`, and upload `result.file`. See [Quick Start](#quick-start). Everything runs client-side — the image never leaves the browser until *you* upload it.
 
 ### How do I convert a HEIC image to JPEG or WebP in JavaScript?
-Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes HEIC (natively on Safari, via a lazy WASM decoder elsewhere) and outputs a standard web format. See [Browser Support](#browser-support).
+Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes HEIC (natively on Safari, with the optional `heic-to` decoder elsewhere) and outputs a standard web format. See [HEIC/HEIF input](#heicheif-input).
 
 ### Why did my compressed image get *bigger* than the original?
-With most tools, re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can *inflate* it. With `format: 'auto'`, Compresso guarantees this never happens: lossy output is capped at the source size, on browsers that can't produce WebP/AVIF it reduces resolution instead of ballooning the file, and when nothing beats the source you get the source back with `kept: true`. An explicit `format` is a request to convert, so it is honoured even when the file grows, and a negative `savings` shows it. ([The engineering story →](https://compresso.izaias.xyz/docs))
+Re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can *inflate* it. With `format: 'auto'`, Compresso doesn't let that happen to lossy output: it lowers quality, in Safari it caps the resolution, and when nothing beats the source you get the source back with `kept: true`. An explicit `format` is a request to convert, so it is honoured even when the file grows, and a negative `savings` shows it. See [Never bigger, and its limits](#never-bigger-and-its-limits).
+
+### Does it keep EXIF and GPS data?
+Not on a re-encode: the result has no metadata. An original that comes back untouched (`kept: true`) keeps all of its own, GPS included. See [Metadata](#metadata-exif-and-gps).
 
 ### Does it need a server or backend?
 No. Compresso is 100% client-side (Canvas API). No servers, no API keys, no image ever uploaded to a third party.
@@ -502,9 +594,9 @@ It's almost always a missing `'unsafe-eval'` in `script-src` or `blob:` in `work
 
 ## How It Works
 
-Compresso's 3.6 KB core uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips. (The one exception: HEIC/HEIF input on non-Safari browsers lazily pulls in a WASM decoder on demand.)
+Compresso's 5 KB core uses the browser's native Canvas API — no WASM, no heavy codecs, no server round-trips. (The one exception: HEIC/HEIF input on non-Safari browsers loads the optional `heic-to` decoder on demand.)
 
-1. **Load** — read the image into an `<img>` element
+1. **Load** — decode the image (an `<img>` element on the page, an `ImageBitmap` in a worker)
 2. **Resize** — compute target dimensions (preserving aspect ratio), with step-down resizing for quality
 3. **Compress** — draw to `<canvas>`, export as the target format at the chosen quality
 4. **Fit** — if a max size is set (or to honor the never-bigger guarantee), search for the highest quality that fits, and step the size down when none does

@@ -54,6 +54,8 @@ draws large photo-like images on the device.
 - `findings.test.js` — a case per confirmed finding (above), plus the
   fallback-cap baseline that COR-18's fix must keep.
 - `exports.test.js` — the main entry's convenience exports, run for real.
+- `examples.test.js` — the repository's `examples/vanilla/batch.html`, run as it ships with its
+  CDN import pointed at this suite's pool: a file name holding an HTML tag must show as text.
 - `fixtures.test.js` runs every committed fixture through `compress()` and
   checks the result is honest and reports the manifest's size; the eight
   orientation fixtures must come out upright; the pixel flood must be refused.
