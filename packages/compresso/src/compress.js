@@ -15,7 +15,7 @@ import { planPhoto } from './plan.js';
  * it, bounded enough to cap worst-case decode memory. Pass `maxInputPixels:
  * Infinity` to disable.
  */
-const DEFAULT_MAX_INPUT_PIXELS = 100_000_000;
+export const DEFAULT_MAX_INPUT_PIXELS = 100_000_000;
 
 const DEFAULTS = {
   quality: 0.8,

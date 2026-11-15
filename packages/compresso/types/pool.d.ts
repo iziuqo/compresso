@@ -37,7 +37,7 @@ export interface PoolOptions {
    * is considered stuck and replaced; the clock restarts on every progress
    * message, so a long job that keeps working is never cut off. The time
    * scales with the photo: a 12 MP photo or smaller gets `timeoutMs`, a
-   * 48 MP one four times as much. Guards against a silently-suspended worker
+   * 48 MP one four times as much, counting up to `maxInputPixels`. Guards against a silently-suspended worker
    * (e.g. iOS backgrounding a tab) or a hung decode. Pass `Infinity` to
    * disable. Default: `30000`.
    */

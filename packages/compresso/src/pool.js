@@ -1,4 +1,4 @@
-import { compress as compressOne } from './compress.js';
+import { compress as compressOne, DEFAULT_MAX_INPUT_PIXELS } from './compress.js';
 import { ensureCapabilities } from './platform.js';
 import { probeDimensions } from './probe.js';
 import { generateFileName } from './utils.js';
@@ -28,6 +28,8 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const PIXELS_PER_TIMEOUT = 12_000_000;
 /** Pixels per byte of a typical photo, for files whose header probe.js can't read (HEIC, AVIF). */
 const PIXELS_PER_BYTE = 6;
+/** The longest delay setTimeout honours; a longer one fires at once. */
+const MAX_TIMER_MS = 2 ** 31 - 1;
 /** Replacements for workers that crash one after another, before the pool gives up on workers. */
 const MAX_CRASH_REPLACEMENTS = 2;
 const DEFAULT_WORKER_URL = new URL('./worker.js', import.meta.url);
@@ -255,7 +257,7 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
   function watch(slot) {
     clearTimeout(slot.timeoutHandle);
     if (timeoutMs !== Infinity) {
-      slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), timeoutMs * slot.task.scale);
+      slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), Math.min(timeoutMs * slot.task.scale, MAX_TIMER_MS));
     }
   }
 
@@ -277,11 +279,11 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
         reject(poolError('Pool queue is full', 'queue-full'));
         return;
       }
-      const task = { id, file, options, scale: silenceScale(file?.size * PIXELS_PER_BYTE), resolve, reject };
+      const task = { id, file, options, scale: silenceScale(file?.size * PIXELS_PER_BYTE, options), resolve, reject };
       // The header gives the real pixel count a moment later; the next
       // progress message restarts the watchdog with it.
       if (file instanceof Blob) {
-        probeDimensions(file).then((size) => size && (task.scale = silenceScale(size.width * size.height)), () => {});
+        probeDimensions(file).then((size) => size && (task.scale = silenceScale(size.width * size.height, options)), () => {});
       }
       queue.push(task);
       pump();
@@ -358,8 +360,14 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
   return { compress, compressMany, cancel, destroy, stats };
 }
 
-/** How many `timeoutMs` a job of this many pixels may stay silent: one per 12 MP, at least one (`|| 1`: a URL source). */
-const silenceScale = (pixels) => Math.max(1, pixels / PIXELS_PER_TIMEOUT || 1);
+/**
+ * How many `timeoutMs` a job of this many pixels may stay silent: one per 12 MP,
+ * at least one (`|| 1`: a URL source). Pixels count up to the job's
+ * `maxInputPixels`, since a bigger photo is refused once its header is read, so
+ * a crafted header can't stretch the watchdog to hours.
+ */
+const silenceScale = (pixels, options) =>
+  Math.max(1, Math.min(pixels, options.maxInputPixels ?? DEFAULT_MAX_INPUT_PIXELS) / PIXELS_PER_TIMEOUT || 1);
 
 function paramsFor(options) {
   const params = {};

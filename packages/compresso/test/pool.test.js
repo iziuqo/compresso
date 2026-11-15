@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // capability probe (pool.js's only platform.js dependency) so everything runs
 // in plain Node against a dependency-injected mock Worker, matching this
 // project's established mocking style (see compress-guard.test.js).
-vi.mock('../src/compress.js', () => ({ compress: vi.fn() }));
+vi.mock('../src/compress.js', async (importOriginal) => ({ ...(await importOriginal()), compress: vi.fn() }));
 vi.mock('../src/platform.js', () => ({
   ensureCapabilities: vi.fn().mockResolvedValue({ avif: false, webp: false }),
   capabilities: () => ({ avif: false, webp: false }),
@@ -509,6 +509,28 @@ describe('resilience: crash and timeout recovery', () => {
     await vi.advanceTimersByTimeAsync(1);
     await rejection;
     expect(worker.terminated).toBe(true);
+  });
+
+  it('a crafted header cannot stretch the silence past maxInputPixels', async () => {
+    // A PNG header declaring 1,000,000 × 1,000,000; the default maxInputPixels
+    // (100 MP) caps the silence at 100/12 × timeoutMs.
+    const png = new Uint8Array(24);
+    png.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
+    new DataView(png.buffer).setUint32(16, 1_000_000);
+    new DataView(png.buffer).setUint32(20, 1_000_000);
+    vi.useFakeTimers();
+    const pool = createPool({ size: 1, timeoutMs: 1200 });
+    const job = pool.compress(new Blob([png], { type: 'image/png' }));
+    await vi.advanceTimersByTimeAsync(0);
+    const worker = MockWorker.instances[0];
+    await vi.waitFor(() => expect(worker.posted).toHaveLength(1));
+    worker.respond({ type: 'progress', id: worker.posted[0].id, progress: 0.1, stage: 'loading' });
+
+    await vi.advanceTimersByTimeAsync(9999);
+    expect(worker.terminated).toBe(false);
+    const rejection = expect(job).rejects.toMatchObject({ kind: 'timeout' });
+    await vi.advanceTimersByTimeAsync(1);
+    await rejection;
   });
 
   it('timeoutMs: Infinity disables the timeout entirely', async () => {
