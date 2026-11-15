@@ -68,32 +68,12 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
     }
   });
 
-  // Skipped everywhere in CI, for the same underlying reason: Vitest's
-  // browser-mode dev server breaks dynamic `import()` calls made from
-  // *inside* a worker (globalThis.__vitest_browser_runner__ isn't set up in
-  // a worker's scope, so Vite's dev-time import-wrapping instrumentation
-  // throws) — a confirmed, open Vitest bug, not a compresso.js defect:
-  // https://github.com/vitest-dev/vitest/issues/6552.
-  //
-  // Originally believed WebKit-only-immune (this test used to run for real
-  // there), based on a local macOS run — confirmed still true, rerunning
-  // locally against real Playwright WebKit passes. But GitHub Actions' Linux
-  // WebKit build fails it every time in CI (surfaces as "HEIC support
-  // requires the optional 'heic-to' package", i.e. even the bare-specifier
-  // fallback import rejected) — same shape as the Chromium/Firefox bug, just
-  // reachable on a different WebKit build than the one used for local
-  // verification. Treated the same way: a test-infrastructure gap, not
-  // reverified per-engine every time, since it isn't one.
-  //
-  // The actual real-world path this covers (compresso-app's real Vite
-  // *production* build, where the bug that prompted writing this test — a
-  // bare `import('heic-to')` left unresolved inside a pre-built,
-  // node_modules-sourced worker file — was originally found) was verified
-  // manually against that build, not just here; see the M5 implementation
-  // notes in _docs/LIB_V1_WORKERS_PLAN.md. Real Safari also decodes HEIC
-  // natively on the main thread regardless (see compress.test.js) — this
-  // lazy-heic-to path only matters for non-Safari engines there anyway.
-  it.skip('decodes HEIC input through a real worker (regression test: the worker-side lazy heic-to codec load, not just the main-thread path already covered in compress.test.js — see pool.js\'s __setHeicToUrl/DEFAULT_HEIC_TO_URL)', async () => {
+  // Workers never import the codec: one that can't read a HEIC natively asks
+  // the page, which decodes it with the app's own heic-to and transfers the
+  // bitmap (B8). That also means no dynamic import runs inside a worker, so
+  // this runs under Vitest's dev server, which breaks those
+  // (https://github.com/vitest-dev/vitest/issues/6552).
+  it('decodes HEIC input through a real worker, the page decoding where the worker natively can\'t', async () => {
     const pool = createPool({ size: 1 });
     try {
       const file = await fixture('sample.heic', { type: '' }); // no MIME — matches a typical iPhone upload
@@ -141,9 +121,7 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
 });
 
 describe.skipIf(skipOnWebKit)('createPool() — the committed corpus, as on the main thread', () => {
-  // Left out: HEIC, since the worker's lazy codec load doesn't run under this
-  // test server (see the skipped HEIC test above; fixtures.test.js covers it).
-  const files = Object.keys(FIXTURES).filter((file) => file !== 'pixel-flood.png' && !file.endsWith('.heic'));
+  const files = Object.keys(FIXTURES).filter((file) => file !== 'pixel-flood.png');
 
   it('gives an honest result for every fixture through real workers', async () => {
     const pool = createPool({ size: 2 });

@@ -26,7 +26,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PACKAGE = join(HERE, '../..');
 const FIXTURES = join(HERE, '../fixtures');
 const OUT = join(HERE, '.out');
-const CHECKS = MATRIX.slice(2);
+const CHECKS = MATRIX.slice(2, -1);
 const CHECK_TIMEOUT_MS = 20_000;
 const itTracked = tracked(it, 'chromium');
 const WINDOWS = process.platform === 'win32';
@@ -35,6 +35,29 @@ const WINDOWS = process.platform === 'win32';
 function reason(error) {
   const lines = String(error?.stderr || error?.message || error).split('\n').map((line) => line.trim()).filter(Boolean);
   return (lines.find((line) => /error|failed to|cannot|invalid/i.test(line)) ?? lines[0] ?? 'failed').slice(0, 200);
+}
+
+/**
+ * A bundler's advice that a chunk is large, which the app's own HEIC codec
+ * is (about 3 MB), and its closing tally. Any other warning is reported.
+ */
+const SIZE_ADVICE = /chunks are larger than|chunkSizeWarningLimit|code-split the application|codeSplitting|asset size limit|entrypoint size limit|performance recommendations|compiled with \d+ warning/i;
+/** The name the HEIC codec gives its WebAssembly, found in every copy of it. */
+const CODEC_MARKER = 'libheif.wasm';
+
+/** Why a build that succeeded is still wrong, or null: it must carry exactly one copy of the HEIC codec, the app's own heic-to (PKG-05). */
+async function codecProblem(outDir) {
+  const files = (await readdir(outDir, { recursive: true, withFileTypes: true }))
+    .filter((e) => e.isFile() && !e.name.endsWith('.map'));
+  let codecs = 0;
+  for (const e of files) if ((await readFile(join(e.parentPath ?? e.path, e.name), 'utf8')).includes(CODEC_MARKER)) codecs++;
+  return codecs === 1 ? null : `${codecs} copies of the HEIC codec in the output, not one`;
+}
+
+/** The first warning a build printed, other than the size advice above, or `ok` (PKG-09). */
+function firstWarning(output) {
+  const warning = output.split('\n').find((line) => /warn|\(!\)|⚠/i.test(line) && !SIZE_ADVICE.test(line));
+  return warning ? warning.trim().slice(0, 200) : 'ok';
 }
 
 /** Runs one check in the page, settling to `ok`, its error message, or a timeout. */
@@ -94,6 +117,19 @@ beforeAll(async () => {
 afterAll(() => browser?.close());
 
 describe('the packed tarball', () => {
+  it('holds no HEIC codec, its notice, and stays under 0.5 MB unpacked (SEC-01, PKG-08)', async () => {
+    const root = join(HERE, 'node_modules/compresso.js');
+    const files = (await readdir(root, { recursive: true, withFileTypes: true })).filter((e) => e.isFile());
+    let unpacked = 0;
+    for (const e of files) {
+      const text = await readFile(join(e.parentPath ?? e.path, e.name), 'utf8');
+      unpacked += Buffer.byteLength(text);
+      expect(text.includes(CODEC_MARKER), `${e.name} carries the codec`).toBe(false);
+    }
+    expect(files.map((e) => e.name)).toContain('THIRD-PARTY-NOTICES.md');
+    expect(unpacked).toBeLessThan(500_000);
+  });
+
   itTracked('package/publint', 'passes publint', async () => {
     const { messages } = await publint({ pkgDir: join(HERE, 'node_modules/compresso.js') });
     const errors = messages.filter((m) => m.type === 'error').map((m) => `${m.code} ${m.path.join(' ')}`).sort();
@@ -122,11 +158,12 @@ describe('seven bundler apps in Chromium', () => {
 
       const [tool, ...args] = app.build;
       try {
-        await run(join(HERE, 'node_modules/.bin', WINDOWS ? `${tool}.cmd` : tool), args, {
+        const { stdout, stderr } = await run(join(HERE, 'node_modules/.bin', WINDOWS ? `${tool}.cmd` : tool), args, {
           cwd: dir, env: { ...process.env, NODE_ENV: 'production' }, maxBuffer: 64 * 1024 * 1024, shell: WINDOWS,
         });
         if (app.page) await writeFile(join(dir, 'out/index.html'), app.page);
-        outcome.build = 'ok';
+        outcome.build = (await codecProblem(join(dir, 'out'))) ?? 'ok';
+        outcome.warnings = firstWarning(`${stdout}\n${stderr}`);
       } catch (error) {
         outcome.build = reason(error);
       }

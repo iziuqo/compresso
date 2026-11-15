@@ -1,4 +1,5 @@
 import { compress as compressOne, DEFAULT_MAX_INPUT_PIXELS } from './compress.js';
+import { decodeHeicToBitmap } from './heic.js';
 import { ensureCapabilities } from './platform.js';
 import { probeDimensions } from './probe.js';
 import { detectFormat, resultFile } from './utils.js';
@@ -33,14 +34,6 @@ const MAX_TIMER_MS = 2 ** 31 - 1;
 /** Replacements for workers that crash one after another, before the pool gives up on workers. */
 const MAX_CRASH_REPLACEMENTS = 2;
 const DEFAULT_WORKER_URL = new URL('./worker.js', import.meta.url);
-// Resolved here, not inside worker.js, and handed to each worker over
-// postMessage — see heic.js's __setHeicToUrl for why: a bare `import('heic-to')`
-// left inside a pre-built worker file isn't reliably re-resolved by a
-// consumer's bundler once that file lives in node_modules (confirmed against
-// a real Vite production build), the same class of problem this exact
-// resolve-it-here-and-hand-over-a-concrete-URL trick already solves for
-// worker.js itself, one line below.
-const DEFAULT_HEIC_TO_URL = new URL('./heic-to.js', import.meta.url);
 const PARAM_KEYS = ['quality', 'format', 'maxWidth', 'maxHeight', 'maxSizeMB', 'maxInputPixels', 'backgroundColor'];
 
 export function isPoolSupported() {
@@ -62,11 +55,11 @@ export function defaultPoolSize() {
   return mem && mem <= 4 ? Math.min(cores, 4) : cores;
 }
 
-export function createPool({ size, workerUrl, heicToUrl, maxQueueLength = Infinity, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+// `heicToUrl` is still accepted and does nothing: workers no longer load the codec.
+export function createPool({ size, workerUrl, maxQueueLength = Infinity, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
   const pool = (reason) => createWorkerPool(
     reason ? 0 : size ?? defaultPoolSize(),
     workerUrl ?? DEFAULT_WORKER_URL,
-    heicToUrl ?? DEFAULT_HEIC_TO_URL,
     maxQueueLength,
     timeoutMs,
     reason
@@ -103,8 +96,7 @@ function poolError(message, kind) {
  * which one it got. That is the concrete form of "degrades gracefully": the
  * degradation lives here, once, instead of in every consumer.
  */
-function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs, reason) {
-  const heicToUrlString = String(heicToUrl);
+function createWorkerPool(size, workerUrl, maxQueueLength, timeoutMs, reason) {
   let seq = 0;
   let recoveries = 0;
   let caps = null;
@@ -161,6 +153,14 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs,
     // reference implementation (see the plan's §3.1/§4.6).
     if (!slot?.task || slot.task.id !== msg.id) return;
 
+    // The worker can't read this HEIC natively: decode it here, with the
+    // app's own heic-to, and hand the worker the bitmap (see worker.js).
+    if (msg.type === 'decode-heic') {
+      return void decodeHeicToBitmap(slot.task.file).then(
+        (image) => worker.postMessage({ type: 'heic-decoded', id: msg.id, image }, [image]),
+        (err) => worker.postMessage({ type: 'heic-decoded', id: msg.id, message: err.message })
+      );
+    }
     if (msg.type === 'progress') {
       watch(slot);
       slot.task.options.onProgress?.({ progress: msg.progress, stage: msg.stage });
@@ -235,7 +235,7 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs,
       slot.task = task;
       watch(slot);
       slot.worker.postMessage({
-        type: 'run', id: task.id, file: task.file, params: paramsFor(task.options), caps, heicToUrl: heicToUrlString,
+        type: 'run', id: task.id, file: task.file, params: paramsFor(task.options), caps,
       });
     }
   }

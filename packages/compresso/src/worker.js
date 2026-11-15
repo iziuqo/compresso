@@ -1,4 +1,5 @@
-import { compress, __setCapabilities, __setHeicToUrl } from './index.js';
+import { compressWithHeicDecoder } from './compress.js';
+import { __setCapabilities } from './platform.js';
 
 /**
  * One compression worker. It holds no state beyond in-flight aborts — the
@@ -15,6 +16,18 @@ import { compress, __setCapabilities, __setHeicToUrl } from './index.js';
  */
 
 const aborts = new Map();
+/** Job id → what to do with the page's answer to that job's HEIC decode request. */
+const heicDecodes = new Map();
+
+/**
+ * HEIC that native decoding can't read is decoded on the page, by the app's
+ * own `heic-to`, and handed back as an `ImageBitmap`: this file never
+ * imports the codec, so an app's bundler emits it once (PKG-05).
+ */
+const decodeHeicOnPage = (id) => () => new Promise((resolve, reject) => {
+  heicDecodes.set(id, ({ image, message }) => (image ? resolve(image) : reject(new Error(message))));
+  post({ type: 'decode-heic', id });
+});
 
 function post(message) {
   self.postMessage(message);
@@ -23,21 +36,21 @@ function post(message) {
 self.onmessage = async (event) => {
   const msg = event.data;
 
+  if (msg.type === 'heic-decoded') return heicDecodes.get(msg.id)?.(msg);
   if (msg.type === 'abort') {
     aborts.get(msg.id)?.abort();
     aborts.delete(msg.id);
     return;
   }
 
-  const { id, file, params, caps, heicToUrl } = msg;
+  const { id, file, params, caps } = msg;
   __setCapabilities(caps);
-  __setHeicToUrl(heicToUrl);
 
   const controller = new AbortController();
   aborts.set(id, controller);
 
   try {
-    const result = await compress(file, {
+    const result = await compressWithHeicDecoder(decodeHeicOnPage(id), file, {
       ...params,
       signal: controller.signal,
       onProgress: ({ progress, stage }) => post({ type: 'progress', id, progress, stage }),
@@ -61,6 +74,7 @@ self.onmessage = async (event) => {
     post({ type: 'error', id, message, kind });
   } finally {
     aborts.delete(id);
+    heicDecodes.delete(id);
   }
 };
 

@@ -32,13 +32,15 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run build:lib
-      # The paths the page needs, side by side as in the package, and a root
-      # page that sends visitors on to lab/.
+      # The paths the page needs, side by side as in the package, heic-to's
+      # own build with its licence at heic-to/ for the page's import map, and
+      # a root page that sends visitors on to lab/.
       - name: Lay out the site
         working-directory: packages/compresso
         run: |
-          mkdir -p _site/test/support
+          mkdir -p _site/test/support _site/heic-to
           cp -R lab dist _site/
+          cp ../../node_modules/heic-to/dist/heic-to.js ../../node_modules/heic-to/LICENSE _site/heic-to/
           cp -R test/fixtures _site/test/
           cp test/support/formats.js _site/test/support/
           cat > _site/index.html <<'HTML'

@@ -455,7 +455,7 @@ Full working versions: [`examples/nextjs/UploadForm.jsx`](examples/nextjs/Upload
 
 With `format: 'auto'`, Compresso picks the best format each browser supports. Safari can't *encode* WebP/AVIF from a canvas, so it falls back to JPEG — and Compresso caps resolution there to keep the file small (see the never-bigger guarantee).
 
-**HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression).
+**HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression). `heic-to` is an optional dependency under the LGPL-3.0, installed beside compresso.js as its own package and never bundled into it; see [THIRD-PARTY-NOTICES.md](packages/compresso/THIRD-PARTY-NOTICES.md).
 
 Every pull request runs the tests in Chromium, Firefox and WebKit and on Node 22, 24 and 26, and the device lab in iPhone Safari on the oldest and newest iOS simulators. This project is tested with BrowserStack. Its real iPhones, Android phones and Macs cover what simulators cannot.
 

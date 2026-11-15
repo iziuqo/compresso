@@ -14,6 +14,7 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -22,6 +23,8 @@ import { tracked } from '../support/known-failures.js';
 import { serveStatic } from '../support/static-server.js';
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '../..');
+/** The folder of the installed heic-to's own build, served at /heic-to/ as the page's import map expects. */
+const HEIC_TO = dirname(createRequire(import.meta.url).resolve('heic-to'));
 const { LAB_OPEN, LAB_ENV } = process.env;
 if (LAB_OPEN && !LAB_ENV) throw new Error('LAB_OPEN needs LAB_ENV, the browser name KNOWN_FAILURES uses (for example ios-26)');
 const ENGINES = LAB_OPEN ? [LAB_ENV] : (process.env.LAB_BROWSERS ?? 'chromium,firefox,webkit').split(',').map((name) => name.trim()).filter(Boolean);
@@ -87,7 +90,7 @@ let server;
 let origin;
 
 beforeAll(async () => {
-  server = await serveStatic({ '/': PACKAGE }, takeReport);
+  server = await serveStatic({ '/': PACKAGE, '/heic-to/': HEIC_TO }, takeReport);
   origin = `http://127.0.0.1:${server.address().port}`;
 });
 

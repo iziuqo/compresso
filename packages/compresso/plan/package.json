@@ -1,0 +1,5 @@
+{
+  "main": "../dist/compresso.plan.cjs",
+  "module": "../dist/compresso.plan.mjs",
+  "types": "../types/plan.d.ts"
+}

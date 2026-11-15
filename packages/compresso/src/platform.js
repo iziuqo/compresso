@@ -1,4 +1,4 @@
-import { isHeicSource, decodeHeic, sniffHeicMagic } from './heic.js';
+import { isHeicSource, sniffHeicMagic } from './heic.js';
 
 /**
  * Platform seam — the ONLY module that touches host I/O. The pipeline
@@ -70,31 +70,19 @@ async function shouldDecodeHeic(source) {
 /**
  * Decode a source to a drawable and its intrinsic pixel size. Native decode first
  * (free on Safari/iOS, the common path everywhere); only HEIC/HEIF sources fall
- * back to the lazy WASM decoder. Dimensions are returned explicitly so the rest of
- * the pipeline never reads `.naturalWidth` — an `ImageBitmap` exposes only
- * `.width`/`.height`.
+ * back to `decodeHeic`, which resolves to an `ImageBitmap`. Dimensions are
+ * returned explicitly so the rest of the pipeline never reads `.naturalWidth`.
  */
-export async function decode(source) {
-  if (isWorker) {
-    const blob = source instanceof Blob ? source : await (await fetch(source)).blob();
-    let image;
-    try {
-      image = await loadBitmap(blob);
-    } catch (err) {
-      if (!(await shouldDecodeHeic(blob))) throw err;
-      image = await loadBitmap(await decodeHeic(blob));
-    }
-    return { image, width: image.width, height: image.height };
-  }
-
+export async function decode(source, decodeHeic) {
+  const blob = isWorker && !(source instanceof Blob) ? await (await fetch(source)).blob() : source;
   let image;
   try {
-    image = await loadElement(source);
+    image = await (isWorker ? loadBitmap(blob) : loadElement(blob));
   } catch (err) {
-    if (!(await shouldDecodeHeic(source))) throw err;
-    image = await loadElement(await decodeHeic(source));
+    if (!(await shouldDecodeHeic(blob))) throw err;
+    image = await decodeHeic(blob);
   }
-  return { image, width: image.naturalWidth, height: image.naturalHeight };
+  return { image, width: image.naturalWidth ?? image.width, height: image.naturalHeight ?? image.height };
 }
 
 /* ------------------------------------------------------------------ canvas */

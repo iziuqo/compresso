@@ -25,9 +25,13 @@
   },
   "files": [
     "dist",
+    "src",
     "types",
+    "pool",
+    "plan",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "THIRD-PARTY-NOTICES.md"
   ],
   "scripts": {
     "build": "rollup -c",
@@ -86,7 +90,6 @@
     "url": "https://github.com/iziuqo/compresso/issues"
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^16.0.3",
     "@rollup/plugin-terser": "^1.0.2",
     "@size-limit/file": "^14.3.0",
     "@vitest/browser": "^5.1.0",

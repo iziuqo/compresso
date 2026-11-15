@@ -92,6 +92,14 @@ and iOS decode them natively; other browsers lazily load an optional WASM decode
 tiny core stays codec-free for every other format. Output is input-only web formats —
 choose AVIF for HEIC-class output compression.
 
+`heic-to` is an optional dependency under the LGPL-3.0. npm installs it beside
+compresso.js as its own package, and compresso.js never bundles it: your bundler builds
+it from your copy, once, as its own chunk (see `THIRD-PARTY-NOTICES.md`). In the pool, a
+worker that can't decode a HEIC natively asks the page, which decodes it with that same
+copy and hands the worker the pixels. Taking the decoded pixels on the page pauses it
+briefly, about 80 ms for a 12 MP photo in Chromium; Safari decodes HEIC natively and never
+pauses.
+
 ## Options
 
 | Option | Type | Default | Description |
@@ -161,7 +169,7 @@ the pool itself works correctly either way. Every `compress()` option, including
 |--------|------|---------|-------------|
 | `size` | `number` | `defaultPoolSize()` | Number of workers to spawn. |
 | `workerUrl` | `string \| URL` | built-in `worker.js` | Override the worker script's location — for bundlers that can't resolve it automatically, or a CSP-nonce'd hosting path. |
-| `heicToUrl` | `string \| URL` | built-in HEIC codec chunk | Override where a worker loads the lazy HEIC codec from — the same class of escape hatch as `workerUrl`, for the same class of bundler/hosting edge case. Most hosts never need this; it exists because a worker can't always re-resolve it on its own once bundled into your app. |
+| `heicToUrl` | `string \| URL` | — | Deprecated: since 1.1 it does nothing. Workers no longer load the HEIC codec; the page decodes HEIC for them with your app's own `heic-to`. Still accepted, so existing code keeps working. |
 | `maxQueueLength` | `number` | unbounded | Once this many jobs are waiting, further `compress()`/`compressMany()` calls reject immediately with `kind: 'queue-full'` instead of growing the queue further. |
 | `timeoutMs` | `number` | `30000` | Milliseconds a job may go without reporting progress before its worker is considered stuck, terminated, and replaced. The clock restarts on every progress message, so a long job that keeps working is never cut off, and it scales with the photo: 12 MP or smaller gets `timeoutMs`, 48 MP four times as much, counting up to `maxInputPixels`. Guards against a silently-suspended worker (e.g. iOS backgrounding a tab) or a hung decode. `Infinity` to disable. |
 
