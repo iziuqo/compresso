@@ -1,7 +1,7 @@
 import { compress as compressOne, DEFAULT_MAX_INPUT_PIXELS } from './compress.js';
 import { ensureCapabilities } from './platform.js';
 import { probeDimensions } from './probe.js';
-import { generateFileName } from './utils.js';
+import { resultFile } from './utils.js';
 
 /**
  * A fixed pool of compression workers, for running many compressions in
@@ -9,7 +9,7 @@ import { generateFileName } from './utils.js';
  * Worker support (or a CSP that blocks worker construction) — it falls back
  * to a correct, serial, main-thread implementation with the exact same
  * shape, so a host never branches on which one it got (see
- * `createFallbackPool` below).
+ * `createWorkerPool` below).
  *
  * Generalizes compresso-app's proven `engine/pool.ts` + `engine/worker.ts`,
  * plus a resilience subsystem that single internal app didn't need: a worker
@@ -63,20 +63,22 @@ export function defaultPoolSize() {
 }
 
 export function createPool({ size, workerUrl, heicToUrl, maxQueueLength = Infinity, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
-  if (!isPoolSupported()) return createFallbackPool('workers-unsupported');
+  const pool = (reason) => createWorkerPool(
+    reason ? 0 : size ?? defaultPoolSize(),
+    workerUrl ?? DEFAULT_WORKER_URL,
+    heicToUrl ?? DEFAULT_HEIC_TO_URL,
+    maxQueueLength,
+    timeoutMs,
+    reason
+  );
+  if (!isPoolSupported()) return pool('workers-unsupported');
   try {
-    return createWorkerPool(
-      size ?? defaultPoolSize(),
-      workerUrl ?? DEFAULT_WORKER_URL,
-      heicToUrl ?? DEFAULT_HEIC_TO_URL,
-      maxQueueLength,
-      timeoutMs
-    );
+    return pool(null);
   } catch {
     // Most likely a CSP blocking worker construction (see README's "Batch &
     // Workers" section) — a restricted host still gets correct, serial
     // behavior instead of an uncaught throw.
-    return createFallbackPool('worker-blocked');
+    return pool('worker-blocked');
   }
 }
 
@@ -91,59 +93,25 @@ function wrapProgress(total, onProgress) {
   };
 }
 
-function invalidFilesError() {
-  return new TypeError('compressMany() expects an array of files');
-}
-
-/* ------------------------------------------------------------ fallback pool */
-
-/**
- * The concrete implementation of "gracefully degrades depending on the
- * environment": real parallelism where the platform supports it, correct,
- * unblocked, serial behavior everywhere else — with zero application-level
- * `if` statements, because the degradation lives here, once, instead of
- * being re-implemented by every consumer.
- */
-function createFallbackPool(reason) {
-  return {
-    compress: (file, options = {}) => compressOne(file, options),
-    async compressMany(files, options = {}, onProgress) {
-      if (!Array.isArray(files)) throw invalidFilesError();
-      const report = wrapProgress(files.length, onProgress);
-      const out = [];
-      for (let i = 0; i < files.length; i++) {
-        try {
-          const value = await compressOne(files[i], {
-            ...options,
-            onProgress: (e) => report(i, e.progress, e.stage),
-          });
-          out.push({ status: 'fulfilled', value });
-        } catch (reason) {
-          out.push({ status: 'rejected', reason });
-        }
-      }
-      return out;
-    },
-    cancel() {},
-    destroy() {},
-    stats: () => ({ size: 0, busy: 0, queued: 0, recoveries: 0, mode: 'main-thread', reason }),
-  };
-}
-
-/* --------------------------------------------------------------- real pool */
-
 function poolError(message, kind) {
   return Object.assign(new Error(message), { kind });
 }
 
-function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs) {
+/**
+ * The pool. Without workers (`reason` says why: none in this environment, or
+ * none allowed to start) it has no slots and runs every job on the main
+ * thread, one at a time, with the same shape, so a host never branches on
+ * which one it got. That is the concrete form of "degrades gracefully": the
+ * degradation lives here, once, instead of in every consumer.
+ */
+function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs, reason) {
   const heicToUrlString = String(heicToUrl);
   let seq = 0;
   let recoveries = 0;
   let caps = null;
   let capsPromise = null;
-  // Why the pool gave up on workers and runs on the main thread; null while it uses them.
-  let reason = null;
+  // `reason`: why the pool runs on the main thread, given up on workers or
+  // never had them; null while it uses them.
   let crashesInARow = 0;
   const queue = [];
   const slots = [];
@@ -336,8 +304,8 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
   // options object can't change a job that is still waiting.
   async function compress(file, { ...options } = {}) {
     caps ??= await (capsPromise ??= ensureCapabilities());
-    if (options.signal?.aborted) throw poolError('Compression cancelled', 'aborted');
     if (reason) return onMainThread(file, options);
+    if (options.signal?.aborted) throw poolError('Compression cancelled', 'aborted');
 
     const id = `job-${++seq}`;
     const onAbort = () => cancel(id);
@@ -350,7 +318,7 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
   }
 
   async function compressMany(files, options = {}, onProgress) {
-    if (!Array.isArray(files)) throw invalidFilesError();
+    if (!Array.isArray(files)) throw new TypeError('compressMany() expects an array of files');
     const report = wrapProgress(files.length, onProgress);
     return Promise.allSettled(
       files.map((file, i) => compress(file, { ...options, onProgress: (e) => report(i, e.progress, e.stage) }))
@@ -384,7 +352,7 @@ function paramsFor(options) {
 function toResult(source, result) {
   const { blob, ...rest } = result;
   return {
-    file: new File([blob], generateFileName(source, rest.format), { type: rest.mimeType }),
+    file: resultFile(source, blob, rest),
     blob,
     url: URL.createObjectURL(blob),
     ...rest,

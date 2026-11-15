@@ -1,3 +1,5 @@
+import { sniffFormat } from './probe.js';
+
 const HEIC_MIME = /^image\/hei[cf]$/;
 const HEIC_EXT = /\.(heic|heif)$/i;
 
@@ -90,9 +92,7 @@ export async function decodeHeic(source) {
   try {
     ({ heicTo } = await importHeicTo());
   } catch {
-    throw new Error(
-      "HEIC support requires the optional 'heic-to' package. Install it with: npm i heic-to"
-    );
+    throw new Error("HEIC input requires the optional 'heic-to' package: npm i heic-to");
   }
   const blob = source instanceof Blob ? source : await (await fetch(source)).blob();
   try {
@@ -102,18 +102,11 @@ export async function decodeHeic(source) {
     // strict script-src CSP; without it, WebAssembly compilation rejects with an
     // opaque, hard-to-diagnose error. Surface the likely cause instead of it.
     if (err instanceof Error && /wasm|webassembly/i.test(err.message)) {
-      throw new Error(
-        'HEIC decoding failed to initialize its WASM decoder. If this page sets a ' +
-        "Content-Security-Policy, add 'wasm-unsafe-eval' (or 'unsafe-eval') to script-src."
-      );
+      throw new Error("HEIC decoding needs 'wasm-unsafe-eval' in the page's script-src");
     }
     throw err;
   }
 }
-
-const HEIC_BRANDS = new Set([
-  'heic', 'heix', 'hevc', 'hevx', 'heim', 'heis', 'hevm', 'hevs', 'mif1', 'msf1',
-]);
 
 /**
  * Confirms a blob is actually HEIC/HEIF-shaped by its ISOBMFF `ftyp` box, rather
@@ -125,8 +118,5 @@ const HEIC_BRANDS = new Set([
  * caller.
  */
 export async function sniffHeicMagic(blob) {
-  const head = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
-  if (head.length < 12) return false;
-  if (String.fromCharCode(head[4], head[5], head[6], head[7]) !== 'ftyp') return false;
-  return HEIC_BRANDS.has(String.fromCharCode(head[8], head[9], head[10], head[11]));
+  return (await sniffFormat(blob)) === 'heic';
 }

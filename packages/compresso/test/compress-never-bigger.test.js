@@ -13,11 +13,11 @@ vi.mock('../src/platform.js', () => ({
   decode: vi.fn(),
   encode: vi.fn(),
   ensureCapabilities: vi.fn().mockResolvedValue({ avif: false, webp: false }),
-  capabilities: () => ({ avif: false, webp: false }),
+  capabilities: vi.fn(() => ({ avif: false, webp: false })),
   createCanvas: vi.fn(() => ({ canvas: {}, ctx: { drawImage: vi.fn(), fillRect: vi.fn() } })),
 }));
 
-const { decode, encode } = await import('../src/platform.js');
+const { capabilities, decode, encode } = await import('../src/platform.js');
 const { compress } = await import('../src/compress.js');
 
 function blobOfSize(size, type) {
@@ -76,7 +76,7 @@ describe('compress() — the never-bigger guarantee', () => {
     expect(encode).toHaveBeenCalledTimes(1);
   });
 
-  it('converting to another format still searches under the source size, rather than keep the source', async () => {
+  it('honours an asked conversion at the asked quality, even when the file grows (O4)', async () => {
     const originalSize = 1000;
     const source = blobOfSize(originalSize, 'image/webp');
     encode.mockImplementation(async (_canvas, _mime, quality) =>
@@ -85,8 +85,36 @@ describe('compress() — the never-bigger guarantee', () => {
 
     const result = await compress(source, { format: 'jpeg' });
 
-    expect(result.blob).not.toBe(source);
-    expect(result.compressedSize).toBe(originalSize - 200);
+    expect([result.kept, result.reason, result.compressedSize]).toEqual([false, null, originalSize + 500]);
+    expect(result.savings, 'the result shows the file grew').toBeLessThan(0);
+    expect(encode).toHaveBeenCalledTimes(1);
+  });
+
+  it('with auto, a conversion still never grows: the source comes back, and says why', async () => {
+    const source = blobOfSize(1000, 'image/webp');
+    encode.mockImplementation(async () => blobOfSize(1500, 'image/jpeg'));
+
+    const result = await compress(source);
+
+    expect([result.blob, result.kept, result.reason, result.format, result.file.type]).toEqual([source, true, 'not-smaller', 'webp', 'image/webp']);
+  });
+
+  it('a kept HEIC keeps its own name and type, even untyped (COR-06)', async () => {
+    const source = new File([new Uint8Array(1000)], 'IMG_0001.HEIC');
+    encode.mockImplementation(async () => blobOfSize(1500, 'image/jpeg'));
+
+    const result = await compress(source);
+
+    expect([result.kept, result.format, result.mimeType, result.blob.type, result.file.name, result.file.type])
+      .toEqual([true, 'heic', 'image/heic', 'image/heic', 'IMG_0001.HEIC', 'image/heic']);
+  });
+
+  it('a format this browser can\'t encode falls back to the best one it can, and says so (O4)', async () => {
+    encode.mockImplementation(async () => blobOfSize(500, 'image/jpeg'));
+
+    const result = await compress(blobOfSize(1000, 'image/png'), { format: 'webp' });
+
+    expect([result.format, result.mimeType, result.reason, result.file.name]).toEqual(['jpeg', 'image/jpeg', 'unsupported-format', 'image.jpg']);
   });
 
   for (const maxSizeMB of [undefined, null, 0, -1, Number.NaN]) {
@@ -117,6 +145,7 @@ describe('compress() — the never-bigger guarantee', () => {
 
 describe('compress() — output inside real limits (COR-01)', () => {
   it('scales WebP past 16,383 px to fit, and reports the size encoded', async () => {
+    capabilities.mockReturnValueOnce({ avif: false, webp: true });
     decode.mockResolvedValue({ image: {}, width: 800, height: 20000 });
     encode.mockImplementation(async () => blobOfSize(100, 'image/webp'));
     const result = await compress(blobOfSize(1000, 'image/png'), { format: 'webp' });

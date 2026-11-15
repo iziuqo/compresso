@@ -19,7 +19,14 @@ export interface CompressOptions {
    * `Infinity` to never cap.
    */
   maxHeight?: number;
-  /** Output format. Default: 'auto' (best supported) */
+  /**
+   * Output format. Default: 'auto', the best this browser can encode, which
+   * never returns a bigger file. An explicit format is always honoured, even
+   * when the file grows (`savings` is then negative), except that a source
+   * already in that format is kept when re-encoding can't shrink it. A format
+   * the browser can't encode falls back to the best one it can, with
+   * `reason: 'unsupported-format'`.
+   */
   format?: 'jpeg' | 'png' | 'webp' | 'avif' | 'auto';
   /**
    * Target output file size in MB. Quality is lowered to meet it (four
@@ -87,10 +94,27 @@ export interface CompressResult {
   compressedSize: number;
   /** Size reduction percentage (e.g. 85.3 means 85.3% smaller) */
   savings: number;
-  /** Output format */
+  /**
+   * The format the output's bytes really are, in canonical names: `'jpeg'`
+   * (never `'jpg'`), `'png'`, `'webp'`, `'avif'`, or for a kept source its own
+   * format, such as `'gif'` or `'heic'`.
+   */
   format: string;
-  /** Output MIME type */
+  /** The output's MIME type, matching its bytes (`blob.type` and `file.type` are the same) */
   mimeType: string;
+  /**
+   * `true` when the source itself came back, byte for byte, with its own name,
+   * type and dimensions: no encode was smaller (`reason` says why).
+   */
+  kept: boolean;
+  /**
+   * Why the result isn't exactly what was asked, or `null` when it is:
+   * `'not-smaller'` when the source was kept because no encode beat it, and
+   * `'unsupported-format'` when this browser can't encode the asked format,
+   * so the result is in the best one it can. More reasons may be added; treat
+   * an unknown one as "not what was asked".
+   */
+  reason: CompressReason | null;
   /**
    * `true` when `maxSizeMB` could not be met even at the smallest size the
    * search tried; the result is then the smallest file it made (or the
@@ -98,6 +122,9 @@ export interface CompressResult {
    */
   missedTarget: boolean;
 }
+
+/** Why a result isn't exactly what was asked (see `CompressResult.reason`). */
+export type CompressReason = 'not-smaller' | 'unsupported-format';
 
 /**
  * Compress a single image file, blob, or URL.
@@ -154,7 +181,8 @@ export function isFormatSupported(format: string): boolean;
 export function getBestFormat(): string;
 
 /**
- * Detect the format of a file from its MIME type or extension.
+ * Detect the format of a file from its MIME type or extension, in canonical
+ * names (`'jpeg'`, never `'jpg'`), or `null` when neither names a known one.
  */
 export function detectFormat(file: File | Blob | string): string | null;
 

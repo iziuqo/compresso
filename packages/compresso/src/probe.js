@@ -11,18 +11,42 @@
 const MAX_PROBE_BYTES = 65536;
 
 export async function probeDimensions(blob) {
-  const head = new Uint8Array(await blob.slice(0, MAX_PROBE_BYTES).arrayBuffer());
-  return probePng(head) ?? probeJpeg(head) ?? probeWebp(head) ?? null;
+  const head = await bytes(blob, MAX_PROBE_BYTES);
+  return { png: probePng, jpeg: probeJpeg, webp: probeWebp }[formatOf(head)]?.(head) ?? null;
 }
 
-const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+/**
+ * The canonical format a blob's bytes really are, from their signature, or
+ * `null` when there is none to read (SVG is text). A canvas can label bytes
+ * as a format it can't encode (COR-02, CMP-16), so results are named by this,
+ * never by a label.
+ */
+export async function sniffFormat(blob) {
+  return formatOf(await bytes(blob, 32));
+}
+
+const bytes = async (blob, length) => new Uint8Array(await blob.slice(0, length).arrayBuffer());
+
+// An ISOBMFF file (`ftyp`, as MP4 also is) is AVIF when an AVIF brand
+// appears among its first brands, else HEIC when a HEIF one does.
+function formatOf(b) {
+  const tag = fourCC(b, 0);
+  const brands = fourCC(b, 4) === 'ftyp' ? String.fromCharCode(...b.subarray(8, 32)) : '';
+  return b[0] === 0xff && b[1] === 0xd8 ? 'jpeg'
+    : tag === '\x89PNG' ? 'png'
+    : tag === 'GIF8' ? 'gif'
+    : tag === 'RIFF' && fourCC(b, 8) === 'WEBP' ? 'webp'
+    : /avi[fos]/.test(brands) ? 'avif'
+    : /he[iv][cxms]|m[is]f1/.test(brands) ? 'heic'
+    : null;
+}
+
+// Each probe below runs only on bytes that `formatOf` named its format.
 
 // PNG: an 8-byte signature, then the IHDR chunk's width/height at a fixed
 // offset (big-endian uint32 each). https://www.w3.org/TR/png/#11IHDR
 function probePng(b) {
-  if (b.length < 24) return null;
-  for (let i = 0; i < PNG_SIGNATURE.length; i++) if (b[i] !== PNG_SIGNATURE[i]) return null;
-  if (fourCC(b, 12) !== 'IHDR') return null;
+  if (b.length < 24 || fourCC(b, 12) !== 'IHDR') return null;
   return { width: readUint32BE(b, 16), height: readUint32BE(b, 20) };
 }
 
@@ -30,8 +54,6 @@ function probePng(b) {
 // marker (0xFFC0-0xFFCF, excluding the non-frame markers 0xC4/0xC8/0xCC), whose
 // payload starts with 1 byte precision, then height/width as big-endian uint16.
 function probeJpeg(b) {
-  if (b.length < 4 || b[0] !== 0xff || b[1] !== 0xd8) return null;
-
   let offset = 2;
   while (offset + 4 <= b.length) {
     if (b[offset] !== 0xff) { offset++; continue; } // stray fill byte
@@ -62,7 +84,6 @@ function probeJpeg(b) {
 // dimensions differently. https://developers.google.com/speed/webp/docs/riff_container
 function probeWebp(b) {
   if (b.length < 30) return null;
-  if (fourCC(b, 0) !== 'RIFF' || fourCC(b, 8) !== 'WEBP') return null;
 
   switch (fourCC(b, 12)) {
     case 'VP8 ': // lossy: 14-bit width/height (+2-bit scale, ignored) at a fixed offset

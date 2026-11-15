@@ -43,7 +43,7 @@
 
 - **Smallest in its class — 3.6 KB gzipped, zero required dependencies.** Roughly **4–5× smaller than browser-image-compression and pica**, and still leaner than compressorjs ([see comparison](#comparison)). The core is pure Canvas API — no WASM, no codecs bundled.
 - **iPhone HEIC/HEIF input, everywhere.** Safari/iOS decode natively; other browsers lazy-load a WASM decoder *only* the first time a HEIC file appears, so the tiny core stays codec-free for every other format. No other browser compressor handles HEIC.
-- **Never returns a bigger file.** Lossy output is guaranteed to be no larger than the original — if a format can't beat an already-efficient source, Compresso adapts (quality/resolution) instead of inflating it. No rival makes this guarantee.
+- **Never returns a bigger file.** With the default `format: 'auto'`, output is guaranteed to be no larger than the original — if no encode can beat an already-efficient source, the source itself comes back, and the result says so (`kept: true`). An explicit `format` is always honoured, and the result shows when that file grew. No rival makes this guarantee.
 - **Real parallel batch compression, off the main thread.** `compresso.js/pool` runs a resilient Web Worker pool — crash and timeout recovery included — for compressing many files at once without blocking the UI. Falls back to the exact same API on the main thread where Workers aren't available, so you never branch on environment yourself ([see Batch & Workers](#batch--parallel-compression)).
 - **Modern by default** — `format: 'auto'` picks AVIF → WebP → JPEG per browser, promise-based API, first-class TypeScript types, and it's actively maintained.
 - **100% client-side** — no server round-trips, no API keys, no upload of user images anywhere. Private by construction.
@@ -179,7 +179,7 @@ Compresses a single image.
 | `onProgress` | `function` | — | Progress callback `({ progress, stage })` |
 | `signal` | `AbortSignal` | — | Cancel compression |
 
-<sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode, though never below a 720px short edge for shapes up to 32:1, so a long screenshot stays readable. Pass `Infinity` to never cap. <sup>‡</sup> Lossy output is never larger than the source, regardless of this value.
+<sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode, though never below a 720px short edge for shapes up to 32:1, so a long screenshot stays readable. Pass `Infinity` to never cap. <sup>‡</sup> With `format: 'auto'`, or a format the source is already in, lossy output is never larger than the source, regardless of this value. An explicit conversion is always honoured; a negative `savings` shows it grew.
 
 #### Result
 
@@ -191,7 +191,9 @@ Compresses a single image.
 | `width` / `height` | `number` | Output dimensions, as encoded: inside the format's edge limit (WebP: 16,383px) and the canvas the browser really gives |
 | `originalSize` / `compressedSize` | `number` | Bytes before / after |
 | `savings` | `number` | Reduction percentage |
-| `format` | `string` | Output format |
+| `format` / `mimeType` | `string` | What the output's bytes really are, in canonical names (`'jpeg'`, never `'jpg'`) |
+| `kept` | `boolean` | The source itself came back, with its own name, type and size |
+| `reason` | `string \| null` | Why the result isn't what was asked: `'not-smaller'` (kept, no encode beat it) or `'unsupported-format'` (this browser can't encode the asked format, so it's in the best one it can); `null` when it is |
 | `missedTarget` | `boolean` | `maxSizeMB` was out of reach even at the smallest size tried; the result is the smallest file made |
 
 ### `compressMultiple(files, options?)`
@@ -483,7 +485,7 @@ Read the file from an `<input type="file">`, pass it to `compress(file, { qualit
 Pass the `.heic`/`.heif` file straight to `compress(file, { format: 'auto' })`. Compresso decodes HEIC (natively on Safari, via a lazy WASM decoder elsewhere) and outputs a standard web format. See [Browser Support](#browser-support).
 
 ### Why did my compressed image get *bigger* than the original?
-With most tools, re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can *inflate* it. Compresso guarantees this never happens: lossy output is capped at the source size, and on browsers that can't produce WebP/AVIF it reduces resolution instead of ballooning the file. ([The engineering story →](https://compresso.izaias.xyz/docs))
+With most tools, re-encoding an already-efficient source (like an iPhone HEIC) to JPEG can *inflate* it. With `format: 'auto'`, Compresso guarantees this never happens: lossy output is capped at the source size, on browsers that can't produce WebP/AVIF it reduces resolution instead of ballooning the file, and when nothing beats the source you get the source back with `kept: true`. An explicit `format` is a request to convert, so it is honoured even when the file grows, and a negative `savings` shows it. ([The engineering story →](https://compresso.izaias.xyz/docs))
 
 ### Does it need a server or backend?
 No. Compresso is 100% client-side (Canvas API). No servers, no API keys, no image ever uploaded to a third party.
