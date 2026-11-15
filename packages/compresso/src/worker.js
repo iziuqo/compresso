@@ -16,8 +16,12 @@ import { __setCapabilities } from './platform.js';
  */
 
 const aborts = new Map();
-/** Job id → what to do with the page's answer to that job's HEIC decode request. */
-const heicDecodes = new Map();
+/**
+ * The HEIC decode this worker is waiting on the page for: its job's id and
+ * what to do with the answer. One at a time, as the pool gives a worker one
+ * job at a time; a job cancelled while it waits is simply never answered.
+ */
+let heicDecode = null;
 
 /**
  * HEIC that native decoding can't read is decoded on the page, by the app's
@@ -25,7 +29,7 @@ const heicDecodes = new Map();
  * imports the codec, so an app's bundler emits it once (PKG-05).
  */
 const decodeHeicOnPage = (id) => () => new Promise((resolve, reject) => {
-  heicDecodes.set(id, ({ image, message }) => (image ? resolve(image) : reject(new Error(message))));
+  heicDecode = { id, settle: ({ image, message }) => (image ? resolve(image) : reject(new Error(message))) };
   post({ type: 'decode-heic', id });
 });
 
@@ -36,7 +40,7 @@ function post(message) {
 self.onmessage = async (event) => {
   const msg = event.data;
 
-  if (msg.type === 'heic-decoded') return heicDecodes.get(msg.id)?.(msg);
+  if (msg.type === 'heic-decoded') return heicDecode?.id === msg.id && heicDecode.settle(msg);
   if (msg.type === 'abort') {
     aborts.get(msg.id)?.abort();
     aborts.delete(msg.id);
@@ -74,7 +78,7 @@ self.onmessage = async (event) => {
     post({ type: 'error', id, message, kind });
   } finally {
     aborts.delete(id);
-    heicDecodes.delete(id);
+    if (heicDecode?.id === id) heicDecode = null;
   }
 };
 
