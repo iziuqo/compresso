@@ -160,13 +160,26 @@ jobs:
       - run: npm run build:lib
       - run: npm run size:lib
 
+  # Fails when a change adds a dependency with a known moderate or worse
+  # vulnerability. A pull request is compared with its base; a push to main
+  # with the commit before it.
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: moderate
+          base-ref: ${{ github.event.pull_request.base.sha || github.event.before }}
+          head-ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
   # The one check the "Protect main" ruleset requires. It passes only when
   # every other job in this file passed, so adding, renaming or splitting a
   # job (a new Node version, say) needs no ruleset change. Its first step
   # fails if a job here is missing from `needs`.
   ci-ok:
     if: always()
-    needs: [build, test, types, test-browser, test-dist, test-lab, test-bundlers, size]
+    needs: [build, test, types, test-browser, test-dist, test-lab, test-bundlers, size, dependency-review]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
