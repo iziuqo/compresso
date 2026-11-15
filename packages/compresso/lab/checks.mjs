@@ -171,10 +171,11 @@ const said = (seen) => `${seen.claimed.format} ${seen.claimed.size?.join('x')} $
 /**
  * The finding a dishonest result points to, from the claim that is wrong: an
  * AVIF label on other bytes is CMP-16, a wrong size COR-01, the source's own
- * bytes under another name COR-06; `null` for any other failure.
+ * bytes under another name COR-06; `null` for any other failure, or for a
+ * job that failed and so has no result to inspect.
  */
 function findingOf(seen, source) {
-  if (seen.honest) return null;
+  if (!seen?.actual || seen.honest) return null;
   if (seen.claimed.format === 'avif' && seen.actual.format !== 'avif') return 'CMP-16';
   if (seen.lies.includes('size')) return 'COR-01';
   return seen.actual.bytes === source.size ? 'COR-06' : null;
@@ -432,7 +433,7 @@ export const CHECKS = [
     async run() {
       const source = await generated(4000, 3000);
       const { ms, seen } = await compressed(source, { maxSizeMB: 1 });
-      return { pass: seen.actual.bytes <= MB, summary: `${seen.actual.bytes} B in ${ms} ms; ${said(seen)}`, details: { sourceBytes: source.size, ms, result: seen } };
+      return { pass: seen.actual.bytes <= MB, finding: findingOf(seen, source), summary: `${seen.actual.bytes} B in ${ms} ms; ${said(seen)}`, details: { sourceBytes: source.size, ms, result: seen } };
     },
   },
   {
@@ -474,11 +475,15 @@ export const CHECKS = [
       const outcomes = await pool.compressMany([source, source, source, source], {}, (e) => events.push(e)).finally(() => clearInterval(watch));
       const ms = Math.round(performance.now() - started);
       const fulfilled = outcomes.filter((o) => o.status === 'fulfilled');
-      const honest = (await Promise.all(fulfilled.map((o) => inspect(o.value)))).filter((seen) => seen.honest).length;
+      const seen = await Promise.all(fulfilled.map((o) => inspect(o.value)));
+      const honest = seen.filter((one) => one.honest).length;
       const files = new Set(events.map((e) => e.fileIndex)).size;
       const overall = events[events.length - 1]?.overallProgress ?? 0;
+      const ran = fulfilled.length === 4 && busiest === 2 && files === 4 && overall > 0.99;
       return {
-        pass: fulfilled.length === 4 && honest === 4 && busiest === 2 && files === 4 && overall > 0.99,
+        pass: ran && honest === 4,
+        // A finding only for a dishonest result, so it can't excuse a pool that misbehaved.
+        finding: ran ? findingOf(seen.find((one) => !one.honest), source) : null,
         summary: `${fulfilled.length} of 4 fulfilled (${honest} honest) in ${ms} ms, at most ${busiest} busy, progress for ${files} files ending at ${overall}`,
         details: { busiest, fulfilled: fulfilled.length, honest, ms, progressEvents: events.length, progressFiles: files, finalProgress: overall, errors: outcomes.filter((o) => o.reason).map((o) => errorOf(o.reason)) },
       };
@@ -498,8 +503,10 @@ export const CHECKS = [
       const freed = await until(() => pool.stats().busy === 0 && pool.stats().queued === 0);
       const next = await settle(pool.compress(source));
       const seen = next.value && (await inspect(next.value));
+      const cancelled = started && error?.kind === 'aborted' && freed;
       return {
-        pass: started && error?.kind === 'aborted' && freed && Boolean(seen?.honest),
+        pass: cancelled && Boolean(seen?.honest),
+        finding: cancelled ? findingOf(seen, source) : null,
         summary: `rejected with kind ${error?.kind ?? 'none'}, ${freed ? 'freed' : 'still busy'}; next job ${seen ? said(seen) : `failed: ${errorOf(next.error).message}`}`,
         details: { startedRunning: started, rejection: error ? errorOf(error) : null, freed, next: seen ?? errorOf(next.error) },
       };
@@ -537,6 +544,7 @@ export const CHECKS = [
           const batch = await Promise.all(many.map((o) => (o.value ? inspect(o.value) : { honest: false, error: errorOf(o.reason) })));
           return {
             pass: !supported && stats.size === 0 && one.honest && batch.every((b) => b.honest),
+            finding: !supported && stats.size === 0 ? findingOf([one, ...batch].find((b) => !b.honest), source) : null,
             summary: `isPoolSupported ${supported}, size ${stats.size}; ${said(one)}; batch ${batch.filter((b) => b.honest).length} of 2 honest`,
             details: { isPoolSupported: supported, stats, one, batch },
           };

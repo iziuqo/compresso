@@ -1,13 +1,18 @@
 /**
- * Runs the device lab page (lab/index.html) in Playwright's Chromium, Firefox
- * and WebKit, the way a phone would open it: a static server for this
- * package, the page at /lab/, and `?report=` pointing back at the server,
- * which takes the finished report as a POST. Each of the page's checks is
- * then one case per engine, keyed `lab/<check>`, so known failures live in
- * KNOWN_FAILURES like every other test's. Run with `npm run test:lab` after
- * `npm run build`; LAB_BROWSERS=chromium,firefox limits the engines and
- * CHROMIUM_PATH picks another Chromium.
+ * Runs the device lab page (lab/index.html) the way a phone would open it: a
+ * static server for this package, the page at /lab/, and `?report=` pointing
+ * back at the server, which takes the finished report as a POST. Each of the
+ * page's checks is then one case per browser, keyed `lab/<check>`, so known
+ * failures live in KNOWN_FAILURES like every other test's. Run with
+ * `npm run test:lab` after `npm run build`.
+ *
+ * By default it opens the page in Playwright's Chromium, Firefox and WebKit;
+ * LAB_BROWSERS=chromium,firefox limits them and CHROMIUM_PATH picks another
+ * Chromium. With LAB_OPEN set it opens the page with that command instead, the
+ * URL appended, and names the browser LAB_ENV: CI opens iPhone Safari with
+ * LAB_OPEN="xcrun simctl openurl <device>" and LAB_ENV=ios-26.
  */
+import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,7 +22,9 @@ import { tracked } from '../support/known-failures.js';
 import { serveStatic } from '../support/static-server.js';
 
 const PACKAGE = join(dirname(fileURLToPath(import.meta.url)), '../..');
-const ENGINES = (process.env.LAB_BROWSERS ?? 'chromium,firefox,webkit').split(',').map((name) => name.trim()).filter(Boolean);
+const { LAB_OPEN, LAB_ENV } = process.env;
+if (LAB_OPEN && !LAB_ENV) throw new Error('LAB_OPEN needs LAB_ENV, the browser name KNOWN_FAILURES uses (for example ios-26)');
+const ENGINES = LAB_OPEN ? [LAB_ENV] : (process.env.LAB_BROWSERS ?? 'chromium,firefox,webkit').split(',').map((name) => name.trim()).filter(Boolean);
 // checks.mjs imports dist/, so say what is missing before importing it.
 if (!existsSync(join(PACKAGE, 'dist/compresso.mjs'))) throw new Error('dist/ is missing: run `npm run build` first');
 const { CHECKS } = await import('../../lab/checks.mjs');
@@ -39,11 +46,12 @@ function takeReport(request, response, url) {
   return true;
 }
 
-/** The report the page POSTs for `run`, parsed; rejects when the page crashes or never reports. */
-function reportFor(run, page) {
-  return new Promise((resolve, reject) => {
+/** The report the page POSTs for `run`, parsed; rejects if it never comes, or through `fail`. */
+function reportFor(run) {
+  let fail;
+  const report = new Promise((resolve, reject) => {
+    fail = reject;
     const timer = setTimeout(() => reject(new Error(`no report from ${run} in ${REPORT_TIMEOUT_MS / 60_000} min`)), REPORT_TIMEOUT_MS);
-    page.on('crash', () => reject(new Error(`the page crashed in ${run}`)));
     waiting.set(run, (body) => {
       clearTimeout(timer);
       try {
@@ -53,9 +61,27 @@ function reportFor(run, page) {
       }
     });
   });
+  return { report, fail };
 }
 
-const launch = (engine) => playwright[engine].launch(engine === 'chromium' && process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+/**
+ * Opens `url` in `engine`: with LAB_OPEN's command, or in a Playwright browser.
+ * Calls `fail` if the browser goes away before reporting; returns a close().
+ */
+async function open(engine, url, fail) {
+  if (LAB_OPEN) {
+    const [command, ...args] = LAB_OPEN.split(' ').filter(Boolean);
+    const opener = spawn(command, [...args, url], { stdio: 'inherit' });
+    opener.on('error', (error) => fail(new Error(`LAB_OPEN failed to start: ${error.message}`)));
+    opener.on('exit', (code) => code && fail(new Error(`LAB_OPEN exited with ${code}`)));
+    return () => {};
+  }
+  const browser = await playwright[engine].launch(engine === 'chromium' && process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
+  const page = await browser.newPage();
+  page.on('crash', () => fail(new Error(`the page crashed in ${engine}`)));
+  await page.goto(url);
+  return () => browser.close();
+}
 
 let server;
 let origin;
@@ -70,19 +96,17 @@ afterAll(() => server?.close());
 for (const engine of ENGINES) {
   describe(`the device lab in ${engine}`, () => {
     const itTracked = tracked(it, engine);
-    let browser;
+    let close;
     let report;
 
     beforeAll(async () => {
-      browser = await launch(engine);
-      const page = await browser.newPage();
-      const received = reportFor(engine, page);
-      await page.goto(`${origin}/lab/?report=${encodeURIComponent(`${origin}/report?run=${engine}`)}`);
-      report = await received;
+      const received = reportFor(engine);
+      close = await open(engine, `${origin}/lab/?report=${encodeURIComponent(`${origin}/report?run=${engine}`)}`, received.fail);
+      report = await received.report;
       console.log(`${engine}: ${report.env.browser.name} ${report.env.browser.version}, ${report.summary.passed} of ${report.checks.length} checks passed`);
     }, REPORT_TIMEOUT_MS + 60_000);
 
-    afterAll(() => browser?.close());
+    afterAll(() => close?.());
 
     it('loads the library and reports every check, in order, with no page errors', () => {
       expect(report.library, 'the library loads').toMatchObject({ loaded: true });

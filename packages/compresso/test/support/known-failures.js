@@ -3,7 +3,8 @@
  * finding, in which environments, and how the failure shows. Finding IDs are
  * the assessment's (see the quality plan's appendix). Environments are the
  * browser engines (`chromium`, `firefox`, `webkit`) and `node` for unit tests;
- * test/bundlers runs as `chromium`, and test/lab as each engine it opens.
+ * test/bundlers runs as `chromium`, and test/lab as each engine it opens, or
+ * as `ios-<major>` in iPhone Safari on a simulator.
  *
  * A listed case must fail where listed, and fail the known way: by default an
  * assertion whose message names one of its findings (tests write
@@ -16,6 +17,8 @@
  */
 
 const BROWSERS = ['chromium', 'firefox', 'webkit'];
+/** iPhone Safari in CI: the oldest and newest iOS simulators the runners have. */
+const IOS = ['ios-18', 'ios-26'];
 
 /**
  * A `failsWith` for honesty failures: true when `error` is the honesty check
@@ -129,8 +132,22 @@ export const KNOWN_FAILURES = {
 
   // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
   // encodes AVIF on a canvas, and none stops retrying a missing worker.
-  'lab/explicit-avif': { findings: ['COR-02'], where: BROWSERS },
-  'lab/pool-missing-worker': { findings: ['PKG-01'], where: BROWSERS },
+  'lab/explicit-avif': { findings: ['COR-02'], where: [...BROWSERS, ...IOS] },
+  'lab/pool-missing-worker': { findings: ['PKG-01'], where: [...BROWSERS, ...IOS] },
+  // iPhone Safari can't encode WebP, and the PNG it gets instead is labelled WebP.
+  'lab/explicit-webp': { findings: ['COR-02'], where: IOS },
+  // iPhone Safari, as the browser lab found it on Nov 14, 2026: iOS 26's canvas
+  // labels bytes that aren't AVIF as image/avif (CMP-16), so the default path
+  // keeps every source, and a kept JPEG comes back named `jpg`, a kept HEIC
+  // `avif`, not their own format (COR-06). The eight COR-06 cases fail because
+  // of CMP-16 too, so the pull request that fixes either one revisits them.
+  // Safari's JPEG runs far larger than Chromium's, and on iOS 18 the JPEG
+  // fallback's edge cap narrows a long screenshot.
+  'lab/encoders': { findings: ['CMP-16'], where: ['ios-26'] },
+  ...Object.fromEntries(['default-12mp', 'target-1mb', 'heic', 'pool-basic', 'pool-parallel', 'pool-cancel', 'pool-fallback', 'pool-heic']
+    .map((check) => [`lab/${check}`, { findings: ['COR-06'], where: ['ios-26'] }])),
+  'lab/jpeg-size': { findings: ['CMP-18'], where: IOS },
+  'lab/long-screenshot': { findings: ['COR-18'], where: ['ios-18'] },
 };
 
 /** Default `failsWith`: an error whose message names one of the entry's findings. */

@@ -119,6 +119,43 @@ jobs:
       - run: npm run build:lib
       - run: npm run test:lib:lab
 
+  # The device lab page in iPhone Safari, on the oldest and the newest iOS
+  # simulator the macOS runners have (18 and 26 today). Known failures for
+  # each are listed as ios-<major> in test/support/known-failures.js.
+  test-ios:
+    name: test-ios (${{ matrix.simulator }})
+    runs-on: ${{ matrix.os }}
+    # Longer than the lab test's own report timeout, so a page that never reports fails with that test's message.
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, simulator: oldest }
+          - { os: macos-26, simulator: newest }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build:lib
+      - name: Boot an iPhone simulator
+        id: simulator
+        run: |
+          picked=$(node packages/compresso/test/lab/pick-simulator.mjs ${{ matrix.simulator }})
+          read -r UDID VERSION DEVICE <<< "$picked"
+          echo "$DEVICE on iOS $VERSION ($UDID)"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "env=ios-${VERSION%%.*}" >> "$GITHUB_OUTPUT"
+      - run: npm run test:lib:lab
+        env:
+          LAB_OPEN: xcrun simctl openurl ${{ steps.simulator.outputs.udid }}
+          LAB_ENV: ${{ steps.simulator.outputs.env }}
+
   # The packed tarball: publint, attw, and seven bundler apps in Chromium.
   test-bundlers:
     runs-on: ubuntu-latest
@@ -179,7 +216,7 @@ jobs:
   # fails if a job here is missing from `needs`.
   ci-ok:
     if: always()
-    needs: [build, test, types, test-browser, test-dist, test-lab, test-bundlers, size, dependency-review]
+    needs: [build, test, types, test-browser, test-dist, test-lab, test-ios, test-bundlers, size, dependency-review]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

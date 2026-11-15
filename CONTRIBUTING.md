@@ -34,7 +34,7 @@ npm run test:lib:browser  # Integration tests in real Chromium/Firefox/WebKit vi
 npm run test:lib:coverage # Unit + Chromium coverage, held at or above its thresholds
 npm run test:lib:dist     # The browser suite against the build (run build:lib first)
 npm run test:lib:bundlers # The packed tarball in seven bundler apps (see test/bundlers/README.md)
-npm run test:lib:lab      # The device lab page in Chromium, Firefox and WebKit (see lab/README.md)
+npm run test:lib:lab      # The device lab page in Chromium, Firefox and WebKit; CI adds iPhone Safari (see lab/README.md)
 npm run test:types        # Type-check the hand-written declarations against documented usage
 npm run size:lib          # Check the built bundle against its size-limit budget
 ```
