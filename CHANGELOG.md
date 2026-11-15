@@ -73,6 +73,12 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - **An explicit `format` the browser can't encode falls back to the best one
   it can**, instead of returning the untouched source or mislabelled PNG
   bytes: `format: 'webp'` in iPhone Safari now gives a real JPEG.
+- **SVG comes back untouched and labelled**, with `kept: true` and
+  `reason: 'vector'`, on the main thread and in the pool alike. The main
+  thread drew it to pixels under the SVG label, and the pool rejected it as
+  undecodable; the pool now hands SVG to the main thread, where nothing is
+  drawn. A File or Blob is known as SVG by its type or name; a URL source is
+  drawn as before.
 - **Animated GIF, APNG and animated WebP come back untouched**, on the main
   thread and in the pool, whatever format or size was asked, with
   `kept: true` and `reason: 'animated'`. A re-encode kept only the first
@@ -92,8 +98,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
   even at the smallest size tried, so a missed target is never silent.
 - **`kept` and `reason` on every result** (RFC 0001): `kept` is `true` when
   the source itself came back, and `reason` says why a result isn't exactly
-  what was asked, `'not-smaller'`, `'unsupported-format'` or `'animated'`,
-  or is `null`.
+  what was asked, `'not-smaller'`, `'unsupported-format'`, `'animated'` or
+  `'vector'`, or is `null`.
 
 ### Changed
 - **An explicit `format` is always honoured.** `format: 'auto'` still never

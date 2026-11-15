@@ -198,14 +198,16 @@ describe('correctness findings', () => {
     await expectHonestResult(result, source);
   });
 
-  itTracked('COR-16/svg-both-paths', 'an SVG comes back untouched on the main thread and in the pool', async () => {
+  itTracked('COR-16/svg-both-paths', 'an SVG comes back untouched on the main thread and in the pool, whatever was asked', async () => {
     const source = await fixture('vector.svg');
     const pool = createPool({ size: 1 });
     try {
-      for (const outcome of [await settled(compress(source)), await settled(pool.compress(source))]) {
+      for (const outcome of [await settled(compress(source)), await settled(pool.compress(source, { format: 'png' }))]) {
         expect(outcome, 'COR-16 SVG rejected as undecodable').not.toMatchObject({ kind: 'decode' });
         expect(outcome).not.toBeInstanceOf(Error);
         expect(await bytesOf(outcome.blob), 'COR-16 SVG kept').toEqual(await bytesOf(source));
+        expect([outcome.kept, outcome.reason, outcome.format, outcome.file.name]).toEqual([true, 'vector', 'svg', 'vector.svg']);
+        await expectHonestResult(outcome, source);
       }
     } finally {
       pool.destroy();

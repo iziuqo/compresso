@@ -71,7 +71,6 @@ export const KNOWN_FAILURES = {
   'COR-10/after-destroy': { findings: ['COR-10'], where: BROWSERS },
   'COR-15/signal-type': { findings: ['COR-15'], where: BROWSERS },
   'COR-15/formatBytes': { findings: ['COR-15'], where: ['node'] },
-  'COR-16/svg-both-paths': { findings: ['COR-16'], where: BROWSERS },
   'CMP-17/decoded-smaller': { findings: ['CMP-17'], where: BROWSERS },
 
   // test/bundlers: the packed tarball and the seven bundler apps, in Chromium.

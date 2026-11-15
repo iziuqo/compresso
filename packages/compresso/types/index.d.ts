@@ -28,7 +28,8 @@ export interface CompressOptions {
    * the browser can't encode falls back to the best one it can, with
    * `reason: 'unsupported-format'`. An animated GIF, APNG or WebP comes back
    * untouched whatever is asked, with `reason: 'animated'`, when passed as a
-   * File or Blob (a URL source isn't checked).
+   * File or Blob (a URL source isn't checked); so does an SVG File or Blob,
+   * with `reason: 'vector'`.
    */
   format?: 'jpeg' | 'png' | 'webp' | 'avif' | 'auto';
   /**
@@ -117,7 +118,8 @@ export interface CompressResult {
    * `'unsupported-format'` when this browser can't encode the asked format,
    * so the result is in the best one it can, and `'animated'` when the source
    * is an animated GIF, APNG or animated WebP, which comes back untouched
-   * whatever was asked, since a re-encode would keep only its first frame.
+   * whatever was asked, since a re-encode would keep only its first frame,
+   * and `'vector'` when the source is SVG, which also comes back untouched.
    * More reasons may be added; treat
    * an unknown one as "not what was asked".
    */
@@ -132,7 +134,7 @@ export interface CompressResult {
 }
 
 /** Why a result isn't exactly what was asked (see `CompressResult.reason`). */
-export type CompressReason = 'not-smaller' | 'unsupported-format' | 'animated';
+export type CompressReason = 'not-smaller' | 'unsupported-format' | 'animated' | 'vector';
 
 /**
  * Compress a single image file, blob, or URL.

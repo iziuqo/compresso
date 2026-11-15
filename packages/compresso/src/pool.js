@@ -1,7 +1,7 @@
 import { compress as compressOne, DEFAULT_MAX_INPUT_PIXELS } from './compress.js';
 import { ensureCapabilities } from './platform.js';
 import { probeDimensions } from './probe.js';
-import { resultFile } from './utils.js';
+import { detectFormat, resultFile } from './utils.js';
 
 /**
  * A fixed pool of compression workers, for running many compressions in
@@ -84,12 +84,11 @@ export function createPool({ size, workerUrl, heicToUrl, maxQueueLength = Infini
 
 /** Aggregate per-file progress into a `compressMultiple`-shaped batch event. */
 function wrapProgress(total, onProgress) {
-  if (!onProgress) return () => {};
   const progressByIndex = new Array(total).fill(0);
   return (fileIndex, progress, stage) => {
     progressByIndex[fileIndex] = progress;
     const overallProgress = progressByIndex.reduce((sum, p) => sum + p, 0) / total;
-    onProgress({ progress, stage, fileIndex, totalFiles: total, overallProgress });
+    onProgress?.({ progress, stage, fileIndex, totalFiles: total, overallProgress });
   };
 }
 
@@ -304,7 +303,8 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs,
   // options object can't change a job that is still waiting.
   async function compress(file, { ...options } = {}) {
     caps ??= await (capsPromise ??= ensureCapabilities());
-    if (reason) return onMainThread(file, options);
+    // SVG too: a worker can't decode it, and the main thread returns it as it is.
+    if (reason || detectFormat(file || '') === 'svg') return onMainThread(file, options);
     if (options.signal?.aborted) throw poolError('Compression cancelled', 'aborted');
 
     const id = `job-${++seq}`;

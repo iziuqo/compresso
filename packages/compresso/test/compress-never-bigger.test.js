@@ -172,6 +172,26 @@ describe('compress() — the never-bigger guarantee', () => {
     expect(encode).not.toHaveBeenCalled();
   });
 
+  it('returns an SVG untouched and labelled, whatever format was asked, without an encode (COR-16)', async () => {
+    const svg = new File(['<svg xmlns="http://www.w3.org/2000/svg" width="4" height="3"/>'], 'logo.svg', { type: 'image/svg+xml' });
+    encode.mockImplementation(async () => blobOfSize(10, 'image/png'));
+
+    for (const format of ['auto', 'png', 'webp']) {
+      const result = await compress(svg, { format });
+      expect([result.blob, result.kept, result.reason, result.format, result.mimeType, result.file.name], format)
+        .toEqual([svg, true, 'vector', 'svg', 'image/svg+xml', 'logo.svg']);
+    }
+    expect(encode).not.toHaveBeenCalled();
+  });
+
+  it('draws an SVG given by URL, since its bytes are never read', async () => {
+    encode.mockImplementation(async () => blobOfSize(10, 'image/png'));
+
+    const result = await compress('https://example.com/logo.svg', { format: 'png' });
+
+    expect([result.kept, result.reason, result.format]).toEqual([false, null, 'png']);
+  });
+
   it('flags a kept animation that misses a size target, and only a real one', async () => {
     const gif = new Blob([readFileSync(new URL('fixtures/animated.gif', import.meta.url))], { type: 'image/gif' });
 
