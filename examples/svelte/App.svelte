@@ -12,7 +12,7 @@
     result = await compress(file, {
       quality: 0.8,
       maxWidth: 1920,
-      format: 'webp',
+      format: 'auto',
       maxSizeMB: 2,
     });
     loading = false;
