@@ -94,7 +94,7 @@
     "@vitest/coverage-v8": "^4.1.12",
     "playwright": "^1.62.1",
     "rollup": "^4.62.4",
-    "size-limit": "^13.0.3",
+    "size-limit": "^14.3.0",
     "typescript": "^5.9.2",
     "vitest": "^4.1.12"
   },
