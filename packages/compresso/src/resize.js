@@ -23,16 +23,22 @@ const TRUSTED_PIXELS = 16_777_216;
  * Safari 17 returns a canvas that draws nothing, reads back empty and encodes
  * to nothing, without an error (24 MP on an iPhone 15). So a canvas past
  * TRUSTED_PIXELS paints one white pixel in its far corner and reads it back.
- * No context at all means the browser is out of canvas memory.
+ * No context at all, or a read-back that throws, means it didn't.
  */
 function accepted({ ctx }, width, height) {
   if (!ctx) return false;
   if (width * height <= TRUSTED_PIXELS) return true;
   ctx.fillStyle = '#fff';
   ctx.fillRect(width - 1, height - 1, 1, 1);
-  const [red, , , alpha] = ctx.getImageData(width - 1, height - 1, 1, 1).data;
-  ctx.clearRect(width - 1, height - 1, 1, 1);
-  return red > 127 && alpha > 127;
+  try {
+    const [red, , , alpha] = ctx.getImageData(width - 1, height - 1, 1, 1).data;
+    return red > 127 && alpha > 127;
+  } catch {
+    // An engine that throws on a canvas it couldn't back.
+    return false;
+  } finally {
+    ctx.clearRect(width - 1, height - 1, 1, 1);
+  }
 }
 
 /**

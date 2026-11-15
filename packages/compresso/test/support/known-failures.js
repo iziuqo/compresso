@@ -63,7 +63,6 @@ export const KNOWN_FAILURES = {
   'corpus/photo-gps-compact.jpg': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('format') },
   'compress/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   'benchmark/untyped-heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
-  'COR-06/explicit-format-and-resize': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('width') },
 
   // The rest: one case per finding, from test/browser/findings.test.js and the unit tests.
   'COR-02/avif-where-unsupported': { findings: ['COR-02'], where: BROWSERS, failsWith: liesAbout('format') },

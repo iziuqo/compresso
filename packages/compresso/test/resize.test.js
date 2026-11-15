@@ -77,6 +77,14 @@ describe('renderToCanvas: canvases the browser really accepts (CMP-03)', () => {
     expect(renderToCanvas(image, 100, 100, 100, 100)).toBeNull();
   });
 
+  it('returns null when reading the canvas back throws', () => {
+    createCanvas.mockImplementationOnce((width, height) => ({
+      canvas: { width, height },
+      ctx: { fillRect: vi.fn(), clearRect: vi.fn(), getImageData: () => { throw new Error('no backing store'); } },
+    }));
+    expect(renderToCanvas(image, 6000, 4000, 6000, 4000)).toBeNull();
+  });
+
   it('skips a halving step the browser refuses and draws the rest in one go', () => {
     limit = 16_777_216;
     createCanvas.mockClear();

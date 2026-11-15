@@ -301,6 +301,23 @@ describe('compatibility findings', () => {
     expect([result.originalWidth, result.originalHeight], 'CMP-17 original size').toEqual([800, 600]);
   });
 
+  it('the canvas check leaves no mark: a transparent corner stays transparent (CMP-03)', async () => {
+    // 4200 × 4200 is past 16.7 MP, so the canvas is checked with one pixel in its far corner.
+    const size = 4200;
+    const canvas = Object.assign(document.createElement('canvas'), { width: size, height: size });
+    canvas.getContext('2d').fillRect(1000, 1000, 2000, 2000);
+    const source = new File([await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'))], 'transparent.png', { type: 'image/png' });
+    canvas.width = canvas.height = 0;
+    const result = await compress(source, { format: 'png' });
+    const bitmap = await createImageBitmap(result.blob);
+    const check = Object.assign(document.createElement('canvas'), { width: bitmap.width, height: bitmap.height });
+    const ctx = check.getContext('2d');
+    ctx.drawImage(bitmap, 0, 0);
+    expect([bitmap.width, bitmap.height]).toEqual([size, size]);
+    expect(ctx.getImageData(size - 1, size - 1, 1, 1).data[3], 'the far corner is still transparent').toBe(0);
+    check.width = check.height = 0;
+  }, 60000);
+
   it("a photo past the browser's canvas limit comes back smaller, whole and honest (CMP-03)", async () => {
     // iOS Safari 17 on an iPhone 15: past 16.7 MP a canvas draws nothing,
     // reads back empty and encodes to nothing, without an error.

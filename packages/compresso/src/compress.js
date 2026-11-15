@@ -53,12 +53,14 @@ const DEFAULT_MAX_FLOORED_EDGE = 23040;
 
 /**
  * The longest edge each format can hold (px). WebP stores 14-bit sizes, and
- * past 16,383 Chromium cuts the image while Firefox refuses it (COR-01);
- * libjpeg-turbo stops at 65,500. Output past a limit is scaled to fit.
+ * past 16,383 Chromium cuts the image while Firefox refuses it (COR-01).
+ * Every other format stops at MAX_CANVAS_EDGE, the longest edge every
+ * engine's canvas holds (Firefox's limit). Output past a limit is scaled to fit.
  */
-const EDGE_LIMITS = { webp: 16383, jpeg: 65500 };
-/** The smallest long edge the canvas step-down tries before giving up (px). */
-const MIN_CANVAS_EDGE = 64;
+const EDGE_LIMITS = { webp: 16383 };
+const MAX_CANVAS_EDGE = 32767;
+/** The smallest long edge the canvas step-down tries before giving up (px), the planner's own floor. */
+const MIN_CANVAS_EDGE = 480;
 
 export async function compress(source, options = {}) {
   // Fail clearly, once, up front — rather than deep inside the pipeline on a
@@ -125,15 +127,12 @@ export async function compress(source, options = {}) {
   // the apps do; this canvas host draws and encodes for it.
   const originalSize = sourceSize(source);
   let canvas, width, height, encodes;
-  // Lowered when the browser refuses a canvas, so later sizes start below it.
-  let canvasEdge = Infinity;
   // Lower-cased for the planner, which tells PNG apart by name.
   const formats = [format.toLowerCase()];
   const host = {
     formats,
     async prepare(maxLongEdge = Infinity) {
-      for (;;) {
-        const edge = Math.min(maxLongEdge, EDGE_LIMITS[formats[0]] ?? Infinity, canvasEdge);
+      for (let edge = Math.min(maxLongEdge, EDGE_LIMITS[formats[0]] ?? MAX_CANVAS_EDGE); ; ) {
         ({ width, height } = calculateDimensions(
           originalWidth,
           originalHeight,
@@ -144,9 +143,9 @@ export async function compress(source, options = {}) {
         if (canvas) break;
         // The browser can't hold a canvas this big (CMP-03): halve the pixels.
         // `width` and `height` then report the size really encoded.
-        canvasEdge = Math.floor(Math.max(width, height) * Math.SQRT1_2);
+        edge = Math.floor(Math.max(width, height) * Math.SQRT1_2);
         // Too large for this browser at any size: it has no canvas memory left.
-        if (canvasEdge < MIN_CANVAS_EDGE) throw tooLargeError();
+        if (edge < MIN_CANVAS_EDGE) throw tooLargeError();
       }
       encodes = new Map();
       return {
@@ -182,6 +181,8 @@ export async function compress(source, options = {}) {
   if (decision.kept) {
     format = detectFormat(source) ?? format;
     mimeType = source.type || mimeType;
+    width = originalWidth;
+    height = originalHeight;
   }
   throwIfAborted(opts.signal);
 
