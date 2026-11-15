@@ -38,6 +38,12 @@ const DEFAULTS = {
  * Opt out on the fallback path too with `maxWidth: Infinity`.
  */
 const DEFAULT_MAX_DIMENSION = 2048;
+/**
+ * ...but the cap never takes the short edge below this (px), so a long
+ * screenshot or a panorama stays readable instead of becoming a sliver
+ * (COR-18). Shapes up to 2048 / 720, about 2.8 to 1, are unaffected.
+ */
+const DEFAULT_MIN_SHORT_EDGE = 720;
 
 export async function compress(source, options = {}) {
   // Fail clearly, once, up front — rather than deep inside the pipeline on a
@@ -90,9 +96,13 @@ export async function compress(source, options = {}) {
   report(opts, 0.3, 'resizing');
   // Cap only when auto-format had to fall back to JPEG (the browser can't encode
   // WebP/AVIF — Safari) and the caller constrained neither axis. Read from raw
-  // `options` so an unset axis differs from an explicit `Infinity`.
+  // `options` so an unset axis differs from an explicit `Infinity`. The limit is
+  // the larger of the default cap and the long edge that keeps the short edge at
+  // DEFAULT_MIN_SHORT_EDGE.
   const noExplicitCaps = options.maxWidth == null && options.maxHeight == null;
-  const cap = noExplicitCaps && opts.format === 'auto' && format === 'jpeg' ? DEFAULT_MAX_DIMENSION : Infinity;
+  const cap = noExplicitCaps && opts.format === 'auto' && format === 'jpeg'
+    ? Math.max(DEFAULT_MAX_DIMENSION, (DEFAULT_MIN_SHORT_EDGE * Math.max(originalWidth, originalHeight)) / Math.min(originalWidth, originalHeight))
+    : Infinity;
   const { width, height } = calculateDimensions(
     originalWidth,
     originalHeight,

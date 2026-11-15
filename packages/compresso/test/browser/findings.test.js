@@ -6,11 +6,12 @@
  */
 import { afterEach, describe, expect, it } from 'vitest';
 import { compress } from '../../src/compress.js';
-import { getBestFormat, __resetCapabilities, __setCapabilities } from '../../src/index.js';
+import { getBestFormat, isFormatSupported, __resetCapabilities, __setCapabilities } from '../../src/index.js';
 import { createPool } from '../../src/pool.js';
 import { fixture, generatedImage, fileFrom } from './support/fixtures.js';
 import { expectHonestResult } from './support/honest.js';
 import { itTracked } from './support/known-bugs.js';
+import { sniffFormat } from '../support/formats.js';
 import transparentUrl from '../../../../benchmark/corpus/transparent-graphic.png?url';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -199,15 +200,37 @@ describe('correctness findings', () => {
       expect([result.width, result.height]).toEqual([2048, 1536]);
     });
 
-    itTracked('COR-18/long-screenshot', 'keeps an 800 × 20000 screenshot at least 720 px wide', async () => {
+    itTracked('COR-18/long-screenshot', 'keeps an 800 × 20000 screenshot 720 px wide', async () => {
       __setCapabilities({ avif: false, webp: false });
       const result = await compress(await generatedImage(800, 20000));
-      expect(Math.min(result.width, result.height), 'COR-18 short edge').toBeGreaterThanOrEqual(720);
+      expect([result.width, result.height], 'COR-18 size').toEqual([720, 18000]);
     }, 60000);
   });
 });
 
 describe('compatibility findings', () => {
+  it('accepts exactly the encoders this browser really has, once, in under 20 ms (CMP-16)', async () => {
+    // The test's own verdict, from a larger canvas and the corpus's signature sniffer.
+    const canvas = Object.assign(document.createElement('canvas'), { width: 256, height: 256 });
+    const ctx = canvas.getContext('2d');
+    const noise = ctx.createImageData(256, 256);
+    for (let i = 0; i < noise.data.length; i++) noise.data[i] = i % 4 === 3 ? 255 : Math.floor(Math.random() * 256);
+    ctx.putImageData(noise, 0, 0);
+    const encodes = async (format) => {
+      const [low, high] = await Promise.all([0.3, 0.9].map((q) => new Promise((resolve) => canvas.toBlob(resolve, `image/${format}`, q))));
+      const real = async (blob) => blob && sniffFormat(await bytesOf(blob)) === format;
+      return (await real(low)) && (await real(high)) && low.size < high.size;
+    };
+    const expected = { avif: await encodes('avif'), webp: await encodes('webp') };
+
+    __resetCapabilities();
+    const started = performance.now();
+    const proven = { avif: isFormatSupported('avif'), webp: isFormatSupported('webp') };
+    const ms = performance.now() - started;
+    expect(proven).toEqual(expected);
+    expect(ms, 'the proof runs once per session').toBeLessThan(20);
+  });
+
   itTracked('CMP-16/fake-avif-label', 'an encoder that only labels its output AVIF is not believed', async () => {
     const png = await new Promise((resolve) => Object.assign(document.createElement('canvas'), { width: 1, height: 1 }).toBlob(resolve, 'image/png'));
     const proto = HTMLCanvasElement.prototype;

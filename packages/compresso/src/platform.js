@@ -125,27 +125,56 @@ export function encode(canvas, mimeType, quality) {
 
 let caps;
 
-function canEncodeSync(mimeType) {
+/**
+ * A format counts as encodable only when an encoder proves it, not when its
+ * output is merely labelled so: iOS 26 Safari labels lossless bytes
+ * `image/avif` and ignores quality (CMP-16). A seeded-noise square is encoded
+ * at two qualities; both results must carry the format's signature, and the
+ * lower quality must give the smaller file. Anything else, an encode that
+ * throws or returns nothing included, leaves the format out.
+ */
+const PROOF_EDGE = 32;
+const PROOF_QUALITIES = [0.3, 0.9];
+/** Leading bytes, as Latin-1 text: AVIF is an ISO-BMFF `ftyp` box naming an AVIF brand, WebP a RIFF `WEBP` file. */
+const SIGNATURES = { avif: /^[^]{4}ftyp[^]{0,24}avi[fs]/, webp: /^RIFF[^]{4}WEBP/ };
+/** How many leading bytes the signatures need: 44 base64 characters' worth. */
+const HEAD_BYTES = 33;
+
+/** Paints seeded noise, opaque, so a lossy encoder's output size has to follow its quality. */
+function paintProof(canvas) {
+  const ctx = canvas.getContext('2d');
+  const pixels = ctx.createImageData(PROOF_EDGE, PROOF_EDGE);
+  for (let i = 0; i < pixels.data.length; i++) pixels.data[i] = i % 4 > 2 ? 255 : Math.imul(i, 2654435761) >>> 24;
+  ctx.putImageData(pixels, 0, 0);
+  return canvas;
+}
+
+/** `[low, high]`: one `{ head, size }` per quality in `PROOF_QUALITIES`. */
+const proves = (format, [low, high]) =>
+  low.size < high.size && SIGNATURES[format].test(low.head) && SIGNATURES[format].test(high.head);
+
+/** Main thread: `toDataURL` is synchronous, so `capabilities()` can stay so too. */
+function canEncodeSync(format) {
   try {
-    const c = document.createElement('canvas');
-    c.width = c.height = 1;
-    return c.toDataURL(mimeType).startsWith(`data:${mimeType}`);
+    const canvas = paintProof(Object.assign(document.createElement('canvas'), { width: PROOF_EDGE, height: PROOF_EDGE }));
+    return proves(format, PROOF_QUALITIES.map((quality) => {
+      const url = canvas.toDataURL(`image/${format}`, quality);
+      const data = url.indexOf(',') + 1;
+      return { head: atob(url.slice(data, data + (HEAD_BYTES / 3) * 4)), size: url.length };
+    }));
   } catch {
     return false;
   }
 }
 
-/**
- * Worker probe. `OffscreenCanvas` has no `toDataURL`, so the only way to ask "can
- * you encode this?" is to encode a 1×1 and look at what comes back — engines
- * silently fall back to PNG for formats they don't support.
- */
-async function canEncodeAsync(mimeType) {
+/** Worker: `OffscreenCanvas` has no `toDataURL`, so the proof encodes asynchronously. */
+async function canEncodeAsync(format) {
   try {
-    const c = new OffscreenCanvas(1, 1);
-    c.getContext('2d').fillRect(0, 0, 1, 1);
-    const blob = await c.convertToBlob({ type: mimeType });
-    return blob.type === mimeType;
+    const canvas = paintProof(new OffscreenCanvas(PROOF_EDGE, PROOF_EDGE));
+    return proves(format, await Promise.all(PROOF_QUALITIES.map(async (quality) => {
+      const blob = await canvas.convertToBlob({ type: `image/${format}`, quality });
+      return { head: String.fromCharCode(...new Uint8Array(await blob.slice(0, HEAD_BYTES).arrayBuffer())), size: blob.size };
+    })));
   } catch {
     return false;
   }
@@ -158,7 +187,7 @@ export function capabilities() {
   // wrong — `ensureCapabilities()` (awaited by the pipeline) fills this in, and a
   // host can skip probing entirely with `__setCapabilities`.
   if (isWorker) return { avif: false, webp: false };
-  return (caps = { avif: canEncodeSync('image/avif'), webp: canEncodeSync('image/webp') });
+  return (caps = { avif: canEncodeSync('avif'), webp: canEncodeSync('webp') });
 }
 
 /**
@@ -169,8 +198,8 @@ export async function ensureCapabilities() {
   if (caps) return caps;
   if (!isWorker) return capabilities();
   return (caps = {
-    avif: await canEncodeAsync('image/avif'),
-    webp: await canEncodeAsync('image/webp'),
+    avif: await canEncodeAsync('avif'),
+    webp: await canEncodeAsync('webp'),
   });
 }
 
