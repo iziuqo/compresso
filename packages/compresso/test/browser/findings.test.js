@@ -173,12 +173,30 @@ describe('correctness findings', () => {
   });
 
   for (const file of ['animated.gif', 'animated.png', 'animated.webp']) {
-    itTracked(`COR-16/${file}`, `${file} comes back untouched, still animated`, async () => {
+    itTracked(`COR-16/${file}`, `${file} comes back untouched, still animated, on both paths, whatever was asked`, async () => {
       const source = await fixture(file);
-      const result = await compress(source);
-      expect(await bytesOf(result.blob), 'COR-16 animation kept').toEqual(await bytesOf(source));
+      const pool = createPool({ size: 1 });
+      try {
+        for (const format of ['auto', 'jpeg']) {
+          for (const result of [await compress(source, { format }), await pool.compress(source, { format })]) {
+            expect(await bytesOf(result.blob), 'COR-16 animation kept').toEqual(await bytesOf(source));
+            expect([result.kept, result.reason, result.file.name], format).toEqual([true, 'animated', file]);
+            await expectHonestResult(result, source);
+          }
+        }
+      } finally {
+        pool.destroy();
+      }
     });
   }
+
+  it('a still GIF is still compressed (COR-16)', async () => {
+    const source = await fixture('photo.gif');
+    const result = await compress(source);
+    expect([result.kept, result.reason]).toEqual([false, null]);
+    expect(result.compressedSize).toBeLessThan(source.size);
+    await expectHonestResult(result, source);
+  });
 
   itTracked('COR-16/svg-both-paths', 'an SVG comes back untouched on the main thread and in the pool', async () => {
     const source = await fixture('vector.svg');

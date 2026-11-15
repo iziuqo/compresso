@@ -166,6 +166,16 @@
       "stresses": "the first third of photo.jpg: a broken download (COR-07)"
     },
     {
+      "file": "photo.gif",
+      "type": "image/gif",
+      "bytes": 59192,
+      "sha256": "b58848eb9f0d3b6331beb0c748e20308292f38dc7709f93907dab02dcec80047",
+      "licence": "CC0-1.0; derived from photo.jpg by generate.py",
+      "stresses": "a still GIF, one frame, compressed like any photo, never taken for an animation (COR-16)",
+      "width": 400,
+      "height": 267
+    },
+    {
       "file": "photo.heic",
       "type": "image/heic",
       "bytes": 109666,

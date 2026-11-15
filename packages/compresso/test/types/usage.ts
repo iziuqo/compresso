@@ -77,7 +77,7 @@ async function compressOne(): Promise<CompressResult> {
   } = result;
   const flagged: boolean = missedTarget;
   const untouched: boolean = kept;
-  const why: 'not-smaller' | 'unsupported-format' | null = reason;
+  const why: 'not-smaller' | 'unsupported-format' | 'animated' | null = reason;
   console.log(
     `${savings}% smaller`,
     optimized,

@@ -17,6 +17,7 @@ browser tests draw them on the device with `generatedImage()` in
 | `photo-gps-compact.jpg`, `photo-gps.webp` | seeded noise at the lowest quality with the same GPS EXIF: no re-encode beats them, so they are kept |
 | `orientation-1.jpg` … `orientation-8.jpg` | All eight EXIF orientations; each displays as red, green / blue, white quadrants, 48 × 32 |
 | `animated.gif`, `animated.png`, `animated.webp` | Three frames each (APNG for the PNG) |
+| `photo.gif` | `photo.jpg` at 400 px as a still, one-frame GIF |
 | `vector.svg` | A vector source |
 | `pixel-flood.png` | 67 bytes whose header claims 100000 × 100000 |
 | `sample.jpg`, `.png`, `.heic`, `.avif` | The original tiny synthetic fixtures, 64 × 64 |

@@ -153,6 +153,7 @@ def from_photo():
     noise = Image.frombytes("RGB", (400, 300), random.Random(4).randbytes(400 * 300 * 3))
     save("photo-gps.webp", encoded(noise, "WEBP", quality=0, method=6, exif=exif_with_gps()))
     save("photo-gps-compact.jpg", encoded(noise, "JPEG", quality=5, exif=exif_with_gps()))
+    save("photo.gif", encoded(small.resize((400, small.height // 2)).quantize(256), "GIF"))
     return {
         "photo.heic": {"licence": DERIVED, "stresses": "a real HEVC-coded HEIC photo, decoded natively or by heic-to"},
         "photo-truncated.jpg": {"licence": DERIVED, "width": photo.width, "height": photo.height,
@@ -161,6 +162,8 @@ def from_photo():
                           "stresses": "EXIF with GPS: what a re-encode strips and a kept source leaks (COR-04)"},
         "photo-gps.webp": {"licence": DERIVED, "gps": True,
                            "stresses": "a compact WebP with GPS EXIF that no re-encode beats, so it is kept (COR-04, COR-05)"},
+        "photo.gif": {"licence": DERIVED,
+                      "stresses": "a still GIF, one frame, compressed like any photo, never taken for an animation (COR-16)"},
         "photo-gps-compact.jpg": {"licence": DERIVED, "gps": True,
                                   "stresses": "a compact JPEG with GPS EXIF that no re-encode beats, so it is kept (COR-04)"},
     }

@@ -73,6 +73,13 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - **An explicit `format` the browser can't encode falls back to the best one
   it can**, instead of returning the untouched source or mislabelled PNG
   bytes: `format: 'webp'` in iPhone Safari now gives a real JPEG.
+- **Animated GIF, APNG and animated WebP come back untouched**, on the main
+  thread and in the pool, whatever format or size was asked, with
+  `kept: true` and `reason: 'animated'`. A re-encode kept only the first
+  frame, and Firefox did so even with `format: 'auto'`. Frames are counted
+  from the file's headers, never decoded, so a still GIF is compressed as
+  before. Only File and Blob sources are checked: pass a URL's fetched Blob
+  to keep its animation.
 - **The pool's main-thread fallback runs jobs one at a time, as documented**,
   separate `compress()` calls included, the same way a pool that gave up on
   its workers does.
@@ -85,7 +92,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
   even at the smallest size tried, so a missed target is never silent.
 - **`kept` and `reason` on every result** (RFC 0001): `kept` is `true` when
   the source itself came back, and `reason` says why a result isn't exactly
-  what was asked, `'not-smaller'` or `'unsupported-format'`, or is `null`.
+  what was asked, `'not-smaller'`, `'unsupported-format'` or `'animated'`,
+  or is `null`.
 
 ### Changed
 - **An explicit `format` is always honoured.** `format: 'auto'` still never
@@ -103,7 +111,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
   the browser and the apps decide quality, size and never-bigger alike. The
   planner's `PhotoHost.prepare()` may report `transformed` (resized or in
   another format). Size budgets rise to
-  match: main entry 5 kB, pool 6.25 kB, worker 5 kB (from 4, 5.25 and 4).
+  match: main entry 5 kB, pool 6.25 kB, worker 5 kB (from 4, 5.25 and 4),
+  and a quarter of a kB more each for the animation check (5.25, 6.5, 5.25).
 - **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**
   (libheif 1.23.7, up from 1.5.2 and libheif 1.22.2). Same API, same
   LGPL-3.0 licence; the file grows from about 3.0 MB to 3.2 MB and still loads
