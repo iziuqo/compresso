@@ -33,7 +33,9 @@ and each one describes the bytes in `blob`:
 - `'animated'`: kept, because the source is an animated GIF, APNG or animated
   WebP, and a re-encode would keep only its first frame. Animations come back
   untouched whatever was asked, a size or format included; `missedTarget`
-  says when one is larger than `maxSizeMB`.
+  says when one is larger than `maxSizeMB`. Only a File or Blob source is
+  checked: a URL source's bytes aren't read before it is decoded, so pass
+  the fetched Blob to keep an animation.
 
 When more than one applies, the reason for a kept source wins, `'animated'`
 first: the bytes are the source's, whatever was asked.

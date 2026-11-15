@@ -28,22 +28,23 @@ export async function sniffFormat(blob) {
 /**
  * Whether a GIF, PNG or WebP holds more than one frame: animated GIF, APNG or
  * animated WebP. A re-encode would keep the first frame only (COR-16), so
- * these come back untouched. Read from headers, never decoded: a GIF is
- * walked block by block to its second frame, so it is read whole; an APNG
- * declares its frames before its first image data, and an animated WebP sets
- * a flag in its first chunk.
+ * these come back untouched. Read from headers, never decoded: an APNG
+ * declares its frames before its first image data, so its chunk headers are
+ * read up to there, however large the chunks before it; an animated WebP sets
+ * a flag in its first chunk; a GIF is walked block by block to its second
+ * frame, so it is read whole.
  */
 export async function isAnimated(blob, format) {
-  const b = await bytes(blob, format === 'gif' ? blob.size : MAX_PROBE_BYTES);
-  if (format === 'webp') return fourCC(b, 12) === 'VP8X' && (b[20] & 2) > 0;
   if (format === 'png') {
     // Chunks: length, type, data, CRC. https://www.w3.org/TR/png/#acTL-chunk
-    for (let o = 8; o + 12 <= b.length; o += 12 + readUint32BE(b, o)) {
-      const type = fourCC(b, o + 4);
-      if (type === 'acTL') return readUint32BE(b, o + 8) > 1;
+    for (let o = 8, c; (c = await bytes(blob.slice(o), 12)).length === 12; o += 12 + readUint32BE(c, 0)) {
+      const type = fourCC(c, 4);
+      if (type === 'acTL') return readUint32BE(c, 8) > 1;
       if (type === 'IDAT') break;
     }
   }
+  const b = await bytes(blob, format === 'gif' ? blob.size : 32);
+  if (format === 'webp') return fourCC(b, 12) === 'VP8X' && (b[20] & 2) > 0;
   if (format === 'gif') {
     // After the 13-byte header and the global colour table: extensions
     // (0x21) and frames (0x2C), each ending in data sub-blocks, until the

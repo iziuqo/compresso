@@ -175,6 +175,16 @@ describe('isAnimated — more than one frame, read from headers (COR-16)', () =>
     await expect(isAnimated(once, 'gif')).resolves.toBe(true);
   });
 
+  it('finds an APNG\'s frames past a large chunk ahead of them, such as a colour profile', async () => {
+    const png = new Uint8Array(await fixture('animated.png').arrayBuffer());
+    const ihdrEnd = 8 + 12 + 13;
+    const text = new Uint8Array(12 + 70_000);
+    text.set([0, 0x01, 0x11, 0x70], 0); // 70,000 bytes of data
+    text.set([...'tEXt'].map((c) => c.charCodeAt(0)), 4);
+    const big = new Blob([png.subarray(0, ihdrEnd), text, png.subarray(ihdrEnd)]);
+    await expect(isAnimated(big, 'png')).resolves.toBe(true);
+  });
+
   it('stops at a truncated file instead of reading past its end', async () => {
     const bytes = new Uint8Array(await fixture('animated.gif').arrayBuffer());
     await expect(isAnimated(new Blob([bytes.subarray(0, 40)]), 'gif')).resolves.toBe(false);

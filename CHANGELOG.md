@@ -78,7 +78,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
   `kept: true` and `reason: 'animated'`. A re-encode kept only the first
   frame, and Firefox did so even with `format: 'auto'`. Frames are counted
   from the file's headers, never decoded, so a still GIF is compressed as
-  before.
+  before. Only File and Blob sources are checked: pass a URL's fetched Blob
+  to keep its animation.
 - **The pool's main-thread fallback runs jobs one at a time, as documented**,
   separate `compress()` calls included, the same way a pool that gave up on
   its workers does.

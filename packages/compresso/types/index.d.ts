@@ -27,7 +27,8 @@ export interface CompressOptions {
    * aside, which is lossless and capped only by `maxSizeMB`). A format
    * the browser can't encode falls back to the best one it can, with
    * `reason: 'unsupported-format'`. An animated GIF, APNG or WebP comes back
-   * untouched whatever is asked, with `reason: 'animated'`.
+   * untouched whatever is asked, with `reason: 'animated'`, when passed as a
+   * File or Blob (a URL source isn't checked).
    */
   format?: 'jpeg' | 'png' | 'webp' | 'avif' | 'auto';
   /**
