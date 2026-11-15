@@ -23,19 +23,22 @@ and each one describes the bytes in `blob`:
 | `mimeType` | That format's MIME type; `blob.type` and `file.type` are the same. |
 | `kept` | `true` when the source itself came back, byte for byte. |
 | `reason` | Why the result isn't exactly what was asked, or `null` when it is. |
-| `missedTarget` | `true` when `maxSizeMB` was out of reach even at the smallest size tried. |
+| `missedTarget` | `true` when `maxSizeMB` was out of reach even at the smallest size tried, or a kept animation is larger than it. |
 
 `reason` is one of:
 
 - `'not-smaller'`: kept, because no encode was smaller than the source.
 - `'unsupported-format'`: this browser can't encode the asked format, so the
   result is in the best format it can encode.
+- `'animated'`: kept, because the source is an animated GIF, APNG or animated
+  WebP, and a re-encode would keep only its first frame. Animations come back
+  untouched whatever was asked, a size or format included; `missedTarget`
+  says when one is larger than `maxSizeMB`.
 
-When both apply, `'not-smaller'` wins: the bytes are the source's, whatever
-was asked.
+When more than one applies, the reason for a kept source wins, `'animated'`
+first: the bytes are the source's, whatever was asked.
 
-B6 and B7 add `'animated'` and `'vector'` for animated images and SVG, which
-come back kept. Later reasons are added the same way; code that reads
+B7 adds `'vector'` for SVG, which comes back kept. Later reasons are added the same way; code that reads
 `reason` treats an unknown one as "not what was asked".
 
 A kept result is the source: its own bytes, file name, width and height,

@@ -1,7 +1,7 @@
 import { canonicalFormat, detectFormat, formatToMime, getBestFormat, isFormatSupported, resultFile } from './utils.js';
 import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
-import { probeDimensions, sniffFormat } from './probe.js';
+import { isAnimated, probeDimensions, sniffFormat } from './probe.js';
 import { planPhoto } from './plan.js';
 
 /**
@@ -95,6 +95,9 @@ export async function compress(source, options = {}) {
   // and the result shows it (O4). `auto`, a fallback, and a source already in
   // the asked format never grow.
   const converting = opts.format !== 'auto' && !reason && sourceFormat !== format;
+  // A re-encode would keep only the first frame, so an animation comes back
+  // untouched, whatever was asked (COR-16).
+  const animated = source instanceof Blob && (await isAnimated(source, sourceFormat));
   const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;
 
   report(opts, 0.1, 'loading');
@@ -179,17 +182,20 @@ export async function compress(source, options = {}) {
     },
   };
   report(opts, 0.5, 'compressing');
-  const decision = await planPhoto(
-    host,
-    { formats, quality: opts.quality, maxLongEdge: cap, targetBytes: opts.maxSizeMB * 1024 * 1024 },
-    { signal: opts.signal, onProgress: (step) => report(opts, 0.5 + step * 0.4, 'compressing') }
-  );
+  const targetBytes = opts.maxSizeMB * 1024 * 1024;
+  const decision = animated
+    ? { result: source, kept: true, missedTarget: targetBytes > 0 && source.size > targetBytes }
+    : await planPhoto(
+      host,
+      { formats, quality: opts.quality, maxLongEdge: cap, targetBytes },
+      { signal: opts.signal, onProgress: (step) => report(opts, 0.5 + step * 0.4, 'compressing') }
+    );
   let { result: blob, kept, missedTarget } = decision;
   // Named by what the bytes are (COR-02, COR-06): a canvas may label bytes as
   // a format it can't encode, and a kept source is whatever it is, a format
   // this library doesn't know (BMP, say) included.
   if (kept) {
-    reason = 'not-smaller';
+    reason = animated ? 'animated' : 'not-smaller';
     format = sourceFormat ?? (source.type?.split('/')[1] || '');
     mimeType = sourceFormat ? formatToMime(sourceFormat) : source.type || '';
     width = originalWidth;

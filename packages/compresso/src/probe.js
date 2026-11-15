@@ -25,6 +25,40 @@ export async function sniffFormat(blob) {
   return formatOf(await bytes(blob, 64));
 }
 
+/**
+ * Whether a GIF, PNG or WebP holds more than one frame: animated GIF, APNG or
+ * animated WebP. A re-encode would keep the first frame only (COR-16), so
+ * these come back untouched. Read from headers, never decoded: a GIF is
+ * walked block by block to its second frame, so it is read whole; an APNG
+ * declares its frames before its first image data, and an animated WebP sets
+ * a flag in its first chunk.
+ */
+export async function isAnimated(blob, format) {
+  const b = await bytes(blob, format === 'gif' ? blob.size : MAX_PROBE_BYTES);
+  if (format === 'webp') return fourCC(b, 12) === 'VP8X' && (b[20] & 2) > 0;
+  if (format === 'png') {
+    // Chunks: length, type, data, CRC. https://www.w3.org/TR/png/#acTL-chunk
+    for (let o = 8; o + 12 <= b.length; o += 12 + readUint32BE(b, o)) {
+      const type = fourCC(b, o + 4);
+      if (type === 'acTL') return readUint32BE(b, o + 8) > 1;
+      if (type === 'IDAT') break;
+    }
+  }
+  if (format === 'gif') {
+    // After the 13-byte header and the global colour table: extensions
+    // (0x21) and frames (0x2C), each ending in data sub-blocks, until the
+    // trailer (0x3B). https://www.w3.org/Graphics/GIF/spec-gif89a.txt
+    const colours = (packed) => (packed & 0x80 ? 3 << ((packed & 7) + 1) : 0);
+    for (let o = 13 + colours(b[10]), frames = 0; o < b.length && b[o] !== 0x3b; o++) {
+      if (b[o] !== 0x2c) o += 2; // an extension: introducer, label
+      else if (++frames > 1) return true;
+      else o += 11 + colours(b[o + 9]); // a frame: descriptor, colour table, LZW code size
+      while (b[o]) o += b[o] + 1;
+    }
+  }
+  return false;
+}
+
 const bytes = async (blob, length) => new Uint8Array(await blob.slice(0, length).arrayBuffer());
 
 // An ISOBMFF file (`ftyp`, as MP4 also is) is AVIF when an AVIF brand

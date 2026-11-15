@@ -26,7 +26,8 @@ export interface CompressOptions {
    * already in that format is kept when re-encoding can't shrink it (PNG
    * aside, which is lossless and capped only by `maxSizeMB`). A format
    * the browser can't encode falls back to the best one it can, with
-   * `reason: 'unsupported-format'`.
+   * `reason: 'unsupported-format'`. An animated GIF, APNG or WebP comes back
+   * untouched whatever is asked, with `reason: 'animated'`.
    */
   format?: 'jpeg' | 'png' | 'webp' | 'avif' | 'auto';
   /**
@@ -105,27 +106,32 @@ export interface CompressResult {
   mimeType: string;
   /**
    * `true` when the source itself came back, byte for byte, with its own name,
-   * type and dimensions: no encode was smaller (`reason` says why).
+   * type and dimensions: no encode was smaller, or the source is an
+   * animation (`reason` says which).
    */
   kept: boolean;
   /**
    * Why the result isn't exactly what was asked, or `null` when it is:
    * `'not-smaller'` when the source was kept because no encode beat it, and
    * `'unsupported-format'` when this browser can't encode the asked format,
-   * so the result is in the best one it can. More reasons may be added; treat
+   * so the result is in the best one it can, and `'animated'` when the source
+   * is an animated GIF, APNG or animated WebP, which comes back untouched
+   * whatever was asked, since a re-encode would keep only its first frame.
+   * More reasons may be added; treat
    * an unknown one as "not what was asked".
    */
   reason: CompressReason | null;
   /**
    * `true` when `maxSizeMB` could not be met even at the smallest size the
    * search tried; the result is then the smallest file it made (or the
-   * source, when that is smaller). `false` with no `maxSizeMB`.
+   * source, when that is smaller). Also `true` when a kept animation is larger
+   * than `maxSizeMB`. `false` with no `maxSizeMB`.
    */
   missedTarget: boolean;
 }
 
 /** Why a result isn't exactly what was asked (see `CompressResult.reason`). */
-export type CompressReason = 'not-smaller' | 'unsupported-format';
+export type CompressReason = 'not-smaller' | 'unsupported-format' | 'animated';
 
 /**
  * Compress a single image file, blob, or URL.

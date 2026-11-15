@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
 
 // Satisfies compress()'s environment guard so the tests below reach the real
 // planner and its never-bigger rule.
@@ -157,6 +158,28 @@ describe('compress() — the never-bigger guarantee', () => {
     const result = await compress(blobOfSize(1000, 'image/png'), { format: 'webp' });
 
     expect([result.format, result.mimeType, result.reason, result.file.name]).toEqual(['jpeg', 'image/jpeg', 'unsupported-format', 'image.jpg']);
+  });
+
+  it('returns an animation untouched, whatever format was asked, without an encode (COR-16)', async () => {
+    const gif = new File([readFileSync(new URL('fixtures/animated.gif', import.meta.url))], 'loop.gif', { type: 'image/gif' });
+    encode.mockImplementation(async () => blobOfSize(10, 'image/jpeg'));
+
+    for (const format of ['auto', 'jpeg', 'png']) {
+      const result = await compress(gif, { format, maxWidth: 5 });
+      expect([result.blob, result.kept, result.reason, result.format, result.file.name, result.width], format)
+        .toEqual([gif, true, 'animated', 'gif', 'loop.gif', 10]);
+    }
+    expect(encode).not.toHaveBeenCalled();
+  });
+
+  it('flags a kept animation that misses a size target, and only a real one', async () => {
+    const gif = new Blob([readFileSync(new URL('fixtures/animated.gif', import.meta.url))], { type: 'image/gif' });
+
+    const missed = await compress(gif, { maxSizeMB: 100 / 1024 / 1024 });
+    const met = await compress(gif, { maxSizeMB: 1 });
+    const none = await compress(gif, { maxSizeMB: 0 });
+
+    expect([missed.missedTarget, met.missedTarget, none.missedTarget]).toEqual([true, false, false]);
   });
 
   for (const maxSizeMB of [undefined, null, 0, -1, Number.NaN]) {

@@ -73,6 +73,12 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - **An explicit `format` the browser can't encode falls back to the best one
   it can**, instead of returning the untouched source or mislabelled PNG
   bytes: `format: 'webp'` in iPhone Safari now gives a real JPEG.
+- **Animated GIF, APNG and animated WebP come back untouched**, on the main
+  thread and in the pool, whatever format or size was asked, with
+  `kept: true` and `reason: 'animated'`. A re-encode kept only the first
+  frame, and Firefox did so even with `format: 'auto'`. Frames are counted
+  from the file's headers, never decoded, so a still GIF is compressed as
+  before.
 - **The pool's main-thread fallback runs jobs one at a time, as documented**,
   separate `compress()` calls included, the same way a pool that gave up on
   its workers does.
@@ -85,7 +91,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
   even at the smallest size tried, so a missed target is never silent.
 - **`kept` and `reason` on every result** (RFC 0001): `kept` is `true` when
   the source itself came back, and `reason` says why a result isn't exactly
-  what was asked, `'not-smaller'` or `'unsupported-format'`, or is `null`.
+  what was asked, `'not-smaller'`, `'unsupported-format'` or `'animated'`,
+  or is `null`.
 
 ### Changed
 - **An explicit `format` is always honoured.** `format: 'auto'` still never

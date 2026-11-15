@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { probeDimensions, sniffFormat } from '../src/probe.js';
+import { isAnimated, probeDimensions, sniffFormat } from '../src/probe.js';
 
 const ASSETS_DIR = fileURLToPath(new URL('../../../_assets', import.meta.url));
 const hasCorpus = existsSync(ASSETS_DIR);
@@ -145,6 +145,41 @@ describe('sniffFormat — what the bytes are, whatever their label says (COR-02)
     await expect(sniffFormat(blob(ascii('<svg xmlns')))).resolves.toBeNull();
     await expect(sniffFormat(new Blob([]))).resolves.toBeNull();
     await expect(sniffFormat(blob(ascii('RIFF'), [0, 0, 0, 0], ascii('WAVE')))).resolves.toBeNull();
+  });
+});
+
+describe('isAnimated — more than one frame, read from headers (COR-16)', () => {
+  const fixture = (name) => new Blob([readFileSync(new URL(`fixtures/${name}`, import.meta.url))]);
+  const animated = async (name) => isAnimated(fixture(name), (await sniffFormat(fixture(name))));
+
+  it('finds the frames of an animated GIF, APNG and animated WebP', async () => {
+    for (const name of ['animated.gif', 'animated.png', 'animated.webp']) {
+      await expect(animated(name), name).resolves.toBe(true);
+    }
+  });
+
+  it('never takes a still image for an animation', async () => {
+    // photo-gps.webp is an extended WebP (VP8X) too, for its EXIF.
+    for (const name of ['photo.gif', 'sample.png', 'photo-gps.webp', 'photo.jpg', 'sample.avif', 'vector.svg']) {
+      await expect(animated(name), name).resolves.toBe(false);
+    }
+  });
+
+  it('counts a GIF\'s frames, so one that plays once, with no loop extension, is animated too', async () => {
+    const bytes = new Uint8Array(await fixture('animated.gif').arrayBuffer());
+    const loop = new TextDecoder('latin1').decode(bytes).indexOf('NETSCAPE2.0') - 3; // 0x21 0xFF 0x0B, then the name
+    expect(loop).toBeGreaterThan(0);
+    // The loop extension: its 3-byte header, an 11-byte name, a 4-byte sub-block and a terminator.
+    const once = new Blob([bytes.subarray(0, loop), bytes.subarray(loop + 19)]);
+    expect(new TextDecoder('latin1').decode(await once.arrayBuffer())).not.toContain('NETSCAPE');
+    await expect(isAnimated(once, 'gif')).resolves.toBe(true);
+  });
+
+  it('stops at a truncated file instead of reading past its end', async () => {
+    const bytes = new Uint8Array(await fixture('animated.gif').arrayBuffer());
+    await expect(isAnimated(new Blob([bytes.subarray(0, 40)]), 'gif')).resolves.toBe(false);
+    await expect(isAnimated(new Blob([bytes.subarray(0, 6)]), 'gif')).resolves.toBe(false);
+    await expect(isAnimated(new Blob([]), 'png')).resolves.toBe(false);
   });
 });
 
