@@ -242,10 +242,12 @@ describe('createPool() — real worker pool', () => {
     const promise = pool.compress(file);
     await vi.waitFor(() => expect(MockWorker.instances[0].posted).toHaveLength(1));
     const worker = MockWorker.instances[0];
-    worker.respond({ type: 'decode-heic', id: 'job-1' });
+    // The worker sends the bytes it has, so a URL source isn't fetched twice.
+    const bytes = new Blob(['heic bytes']);
+    worker.respond({ type: 'decode-heic', id: 'job-1', blob: bytes });
 
     await vi.waitFor(() => expect(worker.posted).toHaveLength(2));
-    expect(mockDecodeHeicToBitmap).toHaveBeenCalledWith(file);
+    expect(mockDecodeHeicToBitmap).toHaveBeenCalledWith(bytes);
     expect(worker.posted[1]).toEqual({ type: 'heic-decoded', id: 'job-1', image: bitmap });
     // Transferred, not copied: the worker owns the decoded pixels.
     expect(worker.transferred[1]).toEqual([bitmap]);
@@ -261,7 +263,7 @@ describe('createPool() — real worker pool', () => {
     pool.compress(new Blob(['heic']));
     await vi.waitFor(() => expect(MockWorker.instances[0].posted).toHaveLength(1));
     const worker = MockWorker.instances[0];
-    worker.respond({ type: 'decode-heic', id: 'job-1' });
+    worker.respond({ type: 'decode-heic', id: 'job-1', blob: new Blob(['heic']) });
 
     await vi.waitFor(() => expect(worker.posted).toHaveLength(2));
     expect(worker.posted[1]).toEqual({ type: 'heic-decoded', id: 'job-1', message: "HEIC input needs the optional 'heic-to' package" });
@@ -487,6 +489,25 @@ describe('resilience: crash and timeout recovery', () => {
     const newId = MockWorker.instances[1].posted[0].id;
     MockWorker.instances[1].respond({ type: 'done', id: newId, result: doneResult() });
     await expect(p2).resolves.toBeDefined();
+  });
+
+  it('timeoutMs allows a page HEIC decode to wait behind every other worker\'s, and stays bounded', async () => {
+    vi.useFakeTimers();
+    mockDecodeHeicToBitmap.mockReturnValue(new Promise(() => {}));
+    const pool = createPool({ size: 2, timeoutMs: 1000 });
+    pool.compress(new Blob(['heic']));
+    await vi.advanceTimersByTimeAsync(0);
+    const worker = MockWorker.instances.find((w) => w.posted.length);
+    const { id } = worker.posted[0];
+    worker.respond({ type: 'decode-heic', id, blob: new Blob(['heic']) });
+
+    // Two workers: two turns of timeoutMs.
+    await vi.advanceTimersByTimeAsync(1999);
+    expect(worker.terminated).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(worker.terminated).toBe(true);
+    mockDecodeHeicToBitmap.mockReset();
+    vi.useRealTimers();
   });
 
   it('timeoutMs is the longest silence: a job that keeps reporting progress runs past it and finishes (PERF-01)', async () => {

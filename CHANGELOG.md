@@ -100,8 +100,15 @@ All notable changes to `compresso.js` are documented here. The format is based o
   warning came from the worker's codec import, which is gone.
 - **`decodeHeic()` fails clearly outside a browser**, with the same error as
   `compress()`; in Node it threw `Worker is not defined`, and in Bun it never
-  settled. When `heic-to` fails to load, the error now says why, a blocked or
-  failed chunk load included, and carries the original as `cause`.
+  settled. It also works inside a Web Worker. When `heic-to` fails to load,
+  the error now says why, a blocked or failed chunk load included, and
+  carries the original as `cause`.
+- **A HEIC that fails to decode rejects with an Error that says why**
+  (`HEIC decoding failed: …`), on the main thread and in the pool. `heic-to`
+  rejects with a bare string, or with nothing when its own worker is blocked.
+- **The Content-Security-Policy docs name what HEIC decoding really needs**:
+  `'unsafe-eval'` in `script-src` and `blob:` in `worker-src`. The
+  `'wasm-unsafe-eval'` they gave isn't enough for `heic-to`'s default build.
 
 ### Added
 - **`pool.stats()` reports `mode` and `reason`**: whether the pool runs on
@@ -142,7 +149,9 @@ All notable changes to `compresso.js` are documented here. The format is based o
   app's bundler now emits one codec chunk, from its own `heic-to`, where
   Vite, webpack, Rspack and Parcel emitted three. Taking the decoded pixels
   on the page pauses it briefly: about 80 ms for a 12 MP photo in Chromium.
-  Safari decodes HEIC natively and skips all of this.
+  `heic-to` decodes in one worker of its own, so the pool's HEIC decodes run
+  one at a time, and a job's timeout allows for its wait. Safari decodes HEIC
+  natively and skips all of this.
 - **The package is 0.3 MB unpacked, from 7 MB.** Besides the codec, the
   source maps no longer embed the sources: they point at `src/`, which now
   ships once beside `dist/`, so devtools still show the original code.

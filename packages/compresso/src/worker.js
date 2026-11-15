@@ -17,20 +17,21 @@ import { __setCapabilities } from './platform.js';
 
 const aborts = new Map();
 /**
- * The HEIC decode this worker is waiting on the page for: its job's id and
- * what to do with the answer. One at a time, as the pool gives a worker one
- * job at a time; a job cancelled while it waits is simply never answered.
+ * Job id → the page decode it waits on. More than one can wait: a job the
+ * pool cancelled while it waited is still answered, while the worker already
+ * runs the next job.
  */
-let heicDecode = null;
+const heicDecodes = new Map();
 
 /**
  * HEIC that native decoding can't read is decoded on the page, by the app's
  * own `heic-to`, and handed back as an `ImageBitmap`: this file never
  * imports the codec, so an app's bundler emits it once (PKG-05).
  */
-const decodeHeicOnPage = (id) => () => new Promise((resolve, reject) => {
-  heicDecode = { id, settle: ({ image, message }) => (image ? resolve(image) : reject(new Error(message))) };
-  post({ type: 'decode-heic', id });
+const decodeHeicOnPage = (id) => (blob) => new Promise((resolve, reject) => {
+  heicDecodes.set(id, { settle: ({ image, message }) => (image ? resolve(image) : reject(new Error(message))) });
+  // The bytes this worker already has, so a URL source isn't fetched twice.
+  post({ type: 'decode-heic', id, blob });
 });
 
 function post(message) {
@@ -40,7 +41,11 @@ function post(message) {
 self.onmessage = async (event) => {
   const msg = event.data;
 
-  if (msg.type === 'heic-decoded') return heicDecode?.id === msg.id && heicDecode.settle(msg);
+  // An answer for a job that has finished frees its bitmap now.
+  if (msg.type === 'heic-decoded') {
+    const pending = heicDecodes.get(msg.id);
+    return pending ? pending.settle(msg) : msg.image?.close();
+  }
   if (msg.type === 'abort') {
     aborts.get(msg.id)?.abort();
     aborts.delete(msg.id);
@@ -78,7 +83,7 @@ self.onmessage = async (event) => {
     post({ type: 'error', id, message, kind });
   } finally {
     aborts.delete(id);
-    if (heicDecode?.id === id) heicDecode = null;
+    heicDecodes.delete(id);
   }
 };
 

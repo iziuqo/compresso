@@ -39,13 +39,11 @@ async function heicTo(source, type) {
   try {
     return await codec.heicTo({ blob, type });
   } catch (err) {
-    // heic-to's WASM decoder needs 'wasm-unsafe-eval' (or 'unsafe-eval') under a
-    // strict script-src CSP; without it, WebAssembly compilation rejects with an
-    // opaque, hard-to-diagnose error. Surface the likely cause instead of it.
-    if (/wasm|webassembly/i.test(err?.message)) {
-      throw new Error("HEIC decoding needs 'wasm-unsafe-eval' in the page's script-src", { cause: err });
-    }
-    throw err;
+    // heic-to rejects with its decoder's message as a string, or with
+    // undefined when its own worker fails, a CSP that blocks it say: always
+    // an Error here, naming what heic-to said. A page CSP that blocks its
+    // WebAssembly shows as the browser's own CompileError message.
+    throw new Error(`HEIC decoding failed: ${err?.message ?? err}`, { cause: err });
   }
 }
 
@@ -56,14 +54,21 @@ async function heicTo(source, type) {
 export async function decodeHeic(source) {
   // As compress() does: in Node the codec throws "Worker is not defined", and in Bun it never settles (PKG-12).
   assertBrowserEnvironment();
-  return heicTo(source, 'image/png');
+  if (typeof document !== 'undefined') return heicTo(source, 'image/png');
+  // In a worker: heic-to's own PNG output draws on a `document` canvas.
+  const image = await heicTo(source, 'bitmap');
+  const canvas = new OffscreenCanvas(image.width, image.height);
+  canvas.getContext('2d').drawImage(image, 0, 0);
+  image.close();
+  return canvas.convertToBlob({ type: 'image/png' });
 }
 
 /**
  * Decode a HEIC/HEIF source straight to an `ImageBitmap`, as the pipeline
  * does: no PNG round trip (PERF-07). The pool's workers never import the
  * codec: they ask the page to run this and hand them the bitmap, so an app
- * that bundles the pool still carries one codec copy.
+ * that bundles the pool still carries one codec copy. heic-to decodes in one
+ * worker of its own, so the page's decodes run one at a time.
  */
 export const decodeHeicToBitmap = (source) => heicTo(source, 'bitmap');
 

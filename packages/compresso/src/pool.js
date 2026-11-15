@@ -155,8 +155,11 @@ function createWorkerPool(size, workerUrl, maxQueueLength, timeoutMs, reason) {
 
     // The worker can't read this HEIC natively: decode it here, with the
     // app's own heic-to, and hand the worker the bitmap (see worker.js).
+    // Decodes queue in heic-to's one worker, so this one may wait for every
+    // other worker's: the watchdog allows for that, and stays bounded.
     if (msg.type === 'decode-heic') {
-      return void decodeHeicToBitmap(slot.task.file).then(
+      watch(slot, slots.length);
+      return void decodeHeicToBitmap(msg.blob).then(
         (image) => worker.postMessage({ type: 'heic-decoded', id: msg.id, image }, [image]),
         (err) => worker.postMessage({ type: 'heic-decoded', id: msg.id, message: err.message })
       );
@@ -220,11 +223,14 @@ function createWorkerPool(size, workerUrl, maxQueueLength, timeoutMs, reason) {
     for (const task of tasks) onMainThread(task.file, task.options).then(task.resolve, task.reject);
   }
 
-  /** (Re)start a busy slot's watchdog: the job has `timeoutMs`, scaled to its photo, until its next message. */
-  function watch(slot) {
+  /**
+   * (Re)start a busy slot's watchdog: the job has `timeoutMs`, scaled to its
+   * photo, until its next message, `turns` times over when it waits its turn.
+   */
+  function watch(slot, turns = 1) {
     clearTimeout(slot.timeoutHandle);
     if (timeoutMs !== Infinity) {
-      slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), Math.min(timeoutMs * slot.task.scale, MAX_TIMER_MS));
+      slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), Math.min(timeoutMs * slot.task.scale * turns, MAX_TIMER_MS));
     }
   }
 

@@ -69,13 +69,8 @@ draws large photo-like images on the device.
   directory isn't present, which is every CI run today. This is where the wider
   format/EXIF sweep lives; treat a pass here as a stronger signal than
   `compress.test.js` alone, but never treat a *skip* as a failure.
-- `pool.test.js`'s "decodes HEIC input through a real worker" case skips on
-  Chromium and Firefox, not compresso.js's fault: Vitest's browser-mode dev
-  server breaks dynamic `import()` calls made from inside a worker on those
-  two engines specifically (confirmed, open upstream bug,
-  [vitest-dev/vitest#6552](https://github.com/vitest-dev/vitest/issues/6552)).
-  WebKit isn't affected and still runs it for real. A gap here, not silently
-  assumed covered — the behavior this test exists to check was additionally
-  verified by hand against a real Vite production build (`compresso-app`'s
-  own), where the bug that prompted the test was originally found; see the M5
-  notes in `_docs/LIB_V1_WORKERS_PLAN.md`.
+- `pool.test.js`'s "decodes HEIC input through a real worker" case runs in
+  every engine. It used to skip on Chromium and Firefox, because Vitest's
+  browser-mode dev server breaks a dynamic `import()` made inside a worker
+  ([vitest-dev/vitest#6552](https://github.com/vitest-dev/vitest/issues/6552)).
+  Workers no longer import the HEIC codec: the page decodes for them.

@@ -193,12 +193,16 @@ even a pool on workers returns it from the main thread, the way the main-thread 
 ### Content-Security-Policy
 
 Constructing the worker needs `worker-src` (or the `script-src`/`default-src` fallback chain) to
-permit the worker's own origin — it ships same-origin, alongside your app's own bundle. If HEIC
-input reaches the pool, `heic-to`'s WASM decoder additionally needs `'wasm-unsafe-eval'` in
-`script-src` (the narrower, WASM-specific CSP source; the broader `'unsafe-eval'` also works but
-isn't required). A CSP that blocks worker construction doesn't throw — `createPool()` catches it
-and falls back to the serial main-thread path automatically; a CSP-blocked HEIC decode surfaces as
-a specific, actionable error instead of an opaque WASM failure.
+permit the worker's own origin — it ships same-origin, alongside your app's own bundle. A CSP that
+blocks worker construction doesn't throw — `createPool()` catches it and falls back to the serial
+main-thread path automatically.
+
+HEIC that the browser can't decode natively goes through `heic-to` on the page, for the main
+thread and the pool alike, and its decoder needs two more sources: `blob:` in `worker-src`, since
+it decodes in a worker it starts from a `blob:` URL, and `'unsafe-eval'` in `script-src`, since
+its default build doesn't run with `'wasm-unsafe-eval'` alone (tested in Chromium). A blocked
+decode rejects with `HEIC decoding failed`, and `heic-to`'s decoder then stays broken for the rest
+of that page: later HEIC decodes there never finish on the main thread, and time out in the pool.
 
 ### If you've rolled your own worker pool
 

@@ -87,6 +87,20 @@ describe.skipIf(skipOnWebKit)('createPool() — real engine, committed fixtures'
     }
   });
 
+  it('a corrupt HEIC rejects with what heic-to said, on the page and through a worker', async () => {
+    // A HEIC ftyp box and nothing decodable: heic-to rejects with a bare string.
+    const head = new Uint8Array(64);
+    head.set([0, 0, 0, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63]);
+    const file = new File([head], 'broken.heic', { type: 'image/heic' });
+    await expect(compress(file)).rejects.toThrow(/^HEIC decoding failed: \S/);
+    const pool = createPool({ size: 1 });
+    try {
+      await expect(pool.compress(file)).rejects.toThrow(/^HEIC decoding failed: \S/);
+    } finally {
+      pool.destroy();
+    }
+  });
+
   it('compressMany() through a real pool: Promise.allSettled shape, all fulfilled', async () => {
     const pool = createPool({ size: 2 });
     try {
