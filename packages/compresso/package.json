@@ -87,16 +87,16 @@
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
-    "@rollup/plugin-terser": "^1.0.0",
-    "@size-limit/file": "^13.0.3",
-    "@vitest/browser": "^4.1.12",
-    "@vitest/browser-playwright": "^4.1.12",
-    "@vitest/coverage-v8": "^4.1.12",
-    "playwright": "^1.62.1",
-    "rollup": "^4.62.4",
-    "size-limit": "^13.0.3",
+    "@rollup/plugin-terser": "^1.0.2",
+    "@size-limit/file": "^14.3.0",
+    "@vitest/browser": "^5.1.0",
+    "@vitest/browser-playwright": "^5.1.0",
+    "@vitest/coverage-v8": "^5.1.0",
+    "playwright": "^1.65.1",
+    "rollup": "^4.68.3",
+    "size-limit": "^14.3.0",
     "typescript": "^5.9.2",
-    "vitest": "^4.1.12"
+    "vitest": "^5.1.0"
   },
   "optionalDependencies": {
     "heic-to": "^1.5.2"
