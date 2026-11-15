@@ -6,6 +6,11 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+## [1.1.0-beta.2] — 2026-11-15
+
+Beta on the `next` tag (`npm i compresso.js@next`); `latest` stays 1.0.3.
+It carries the fixes for the eight most serious findings of the library's quality review.
+
 ### Fixed
 - **Output stays inside what the format and the browser can really hold.**
   WebP stores at most 16,383px per edge: past it Chromium cut the image while
