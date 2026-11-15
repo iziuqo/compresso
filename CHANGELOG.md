@@ -77,8 +77,9 @@ All notable changes to `compresso.js` are documented here. The format is based o
   `reason: 'vector'`, on the main thread and in the pool alike. The main
   thread drew it to pixels under the SVG label, and the pool rejected it as
   undecodable; the pool now hands SVG to the main thread, where nothing is
-  drawn. A File or Blob is known as SVG by its type or name; a URL source is
-  drawn as before.
+  drawn, as its main-thread fallback does. A File or Blob is known as SVG by
+  its type (exactly `image/svg+xml`) or, untyped, by its name; a URL source
+  is drawn as before.
 - **Animated GIF, APNG and animated WebP come back untouched**, on the main
   thread and in the pool, whatever format or size was asked, with
   `kept: true` and `reason: 'animated'`. A re-encode kept only the first

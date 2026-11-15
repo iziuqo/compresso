@@ -127,8 +127,8 @@ export interface CompressResult {
   /**
    * `true` when `maxSizeMB` could not be met even at the smallest size the
    * search tried; the result is then the smallest file it made (or the
-   * source, when that is smaller). Also `true` when a kept animation is larger
-   * than `maxSizeMB`. `false` with no `maxSizeMB`.
+   * source, when that is smaller). Also `true` when a kept animation or SVG
+   * is larger than `maxSizeMB`. `false` with no `maxSizeMB`.
    */
   missedTarget: boolean;
 }

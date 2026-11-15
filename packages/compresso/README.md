@@ -178,6 +178,10 @@ carry on on the main thread, one at a time, every later job runs there too, and 
 reports `mode: 'main-thread'` with the reason. From then on the pool behaves like the main-thread
 pool: `cancel()` and `destroy()` can't stop a job already running, but an `AbortSignal` still can.
 
+An SVG File or Blob comes back untouched, with `reason: 'vector'`. A worker can't decode SVG, so
+even a pool on workers returns it from the main thread, the way the main-thread pool does: outside
+`maxQueueLength` and `pool.stats()`, and only an `AbortSignal` can stop it.
+
 ### Content-Security-Policy
 
 Constructing the worker needs `worker-src` (or the `script-src`/`default-src` fallback chain) to

@@ -194,7 +194,7 @@ Compresses a single image.
 | `format` / `mimeType` | `string` | What the output's bytes really are, in canonical names (`'jpeg'`, never `'jpg'`) |
 | `kept` | `boolean` | The source itself came back, with its own name, type and size |
 | `reason` | `string \| null` | Why the result isn't what was asked: `'not-smaller'` (kept, no encode beat it), `'unsupported-format'` (this browser can't encode the asked format, so it's in the best one it can), `'animated'` (an animated GIF, APNG or WebP File or Blob, kept untouched, since a re-encode would keep only its first frame) or `'vector'` (an SVG File or Blob, kept untouched and labelled `svg`); `null` when it is |
-| `missedTarget` | `boolean` | `maxSizeMB` was out of reach even at the smallest size tried; the result is the smallest file made (or a kept animation larger than the target) |
+| `missedTarget` | `boolean` | `maxSizeMB` was out of reach even at the smallest size tried; the result is the smallest file made (or a kept animation or SVG larger than the target) |
 
 ### `compressMultiple(files, options?)`
 
