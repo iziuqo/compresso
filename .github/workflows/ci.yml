@@ -150,6 +150,14 @@ jobs:
           echo "$DEVICE on iOS $VERSION ($UDID)"
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
+          # bootstatus can report the boot finished while the system app is
+          # still starting, and then `simctl openurl` times out (error 60).
+          # Safari launching is the readiness the lab needs: retry for 3 min.
+          for attempt in $(seq 1 18); do
+            xcrun simctl launch "$UDID" com.apple.mobilesafari && break
+            [ "$attempt" = 18 ] && { echo "Safari never launched on the simulator"; exit 1; }
+            sleep 10
+          done
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
           echo "env=ios-${VERSION%%.*}" >> "$GITHUB_OUTPUT"
       - run: npm run test:lib:lab
