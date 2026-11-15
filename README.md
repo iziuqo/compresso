@@ -188,7 +188,7 @@ Compresses a single image.
 | `file` | `File` | Optimized File object |
 | `blob` | `Blob` | Optimized Blob |
 | `url` | `string` | Object URL for preview |
-| `width` / `height` | `number` | Output dimensions |
+| `width` / `height` | `number` | Output dimensions, as encoded: inside the format's edge limit (WebP: 16,383px) and the canvas the browser really gives |
 | `originalSize` / `compressedSize` | `number` | Bytes before / after |
 | `savings` | `number` | Reduction percentage |
 | `format` | `string` | Output format |

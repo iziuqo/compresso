@@ -66,11 +66,6 @@ export const KNOWN_FAILURES = {
   'COR-06/explicit-format-and-resize': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('width') },
 
   // The rest: one case per finding, from test/browser/findings.test.js and the unit tests.
-  'COR-01/webp-past-16383': {
-    findings: ['COR-01'], where: BROWSERS,
-    // Chromium cuts the image and reports the full size; Firefox and WebKit refuse the encode.
-    failsWith: (error) => liesAbout('width', 'height')(error) || /Failed to encode/.test(error?.message),
-  },
   'COR-02/avif-where-unsupported': { findings: ['COR-02'], where: BROWSERS, failsWith: liesAbout('format') },
   'COR-03/format': {
     findings: ['COR-03'], where: BROWSERS,

@@ -300,6 +300,33 @@ describe('compatibility findings', () => {
     }
     expect([result.originalWidth, result.originalHeight], 'CMP-17 original size').toEqual([800, 600]);
   });
+
+  it("a photo past the browser's canvas limit comes back smaller, whole and honest (CMP-03)", async () => {
+    // iOS Safari 17 on an iPhone 15: past 16.7 MP a canvas draws nothing,
+    // reads back empty and encodes to nothing, without an error.
+    const LIMIT = 16_777_216;
+    const source = await generatedImage(6000, 4000);
+    const tooBig = (canvas) => canvas.width * canvas.height > LIMIT;
+    const context = CanvasRenderingContext2D.prototype;
+    const proto = HTMLCanvasElement.prototype;
+    const { drawImage, fillRect, getImageData } = context;
+    const { toBlob } = proto;
+    context.drawImage = function (...args) { if (!tooBig(this.canvas)) drawImage.apply(this, args); };
+    context.fillRect = function (...args) { if (!tooBig(this.canvas)) fillRect.apply(this, args); };
+    context.getImageData = function (x, y, w, h) { return tooBig(this.canvas) ? new ImageData(w, h) : getImageData.call(this, x, y, w, h); };
+    proto.toBlob = function (callback, ...rest) { return tooBig(this) ? setTimeout(() => callback(null)) : toBlob.call(this, callback, ...rest); };
+    let result;
+    try {
+      result = await compress(source, { format: 'jpeg' });
+    } finally {
+      Object.assign(context, { drawImage, fillRect, getImageData });
+      proto.toBlob = toBlob;
+    }
+    expect(result.width * result.height, 'CMP-03 inside the canvas limit').toBeLessThanOrEqual(LIMIT);
+    expect(result.width / result.height).toBeCloseTo(1.5, 2);
+    expect(result.width, 'one step down, not more').toBeGreaterThan(3000);
+    await expectHonestResult(result, source);
+  }, 60000);
 });
 
 describe('packaging and performance findings', () => {

@@ -113,6 +113,57 @@ function generated(width, height, type = 'image/jpeg', options = {}) {
   return sources.get(key);
 }
 
+const CRC_TABLE = Array.from({ length: 256 }, (_, n) => {
+  for (let k = 0; k < 8; k++) n = n & 1 ? 0xedb88320 ^ (n >>> 1) : n >>> 1;
+  return n >>> 0;
+});
+const crc32 = (bytes) => ~bytes.reduce((c, b) => CRC_TABLE[(c ^ b) & 255] ^ (c >>> 8), ~0) >>> 0;
+
+/** A PNG chunk: length, type, data, CRC. */
+function chunk(type, data) {
+  const out = new Uint8Array(12 + data.length);
+  const view = new DataView(out.buffer);
+  view.setUint32(0, data.length);
+  out.set([...type].map((c) => c.charCodeAt(0)), 4);
+  out.set(data, 8);
+  view.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
+  return out;
+}
+
+/**
+ * The orientation fixtures' quadrants (red, green / blue, white) as a PNG of
+ * any size, written as bytes without a canvas: a phone can't draw a source
+ * bigger than its own canvas limit, which is what CMP-03 needs. Each half's
+ * first row is stored and every other row repeats the one above (PNG's "Up"
+ * filter, all zeros), so 48 MP deflates to about 150 KB.
+ */
+async function quadrantsPng(width, height) {
+  const header = new Uint8Array(13);
+  const view = new DataView(header.buffer);
+  view.setUint32(0, width);
+  view.setUint32(4, height);
+  header.set([8, 2, 0, 0, 0], 8); // 8-bit RGB, no interlace
+  const rowBytes = 1 + width * 3;
+  const firstRow = (left, right) => {
+    const row = new Uint8Array(rowBytes);
+    for (let x = 0; x < width; x++) row.set(QUADRANTS[x < width / 2 ? left : right], 1 + x * 3);
+    return row;
+  };
+  const repeats = new Uint8Array(rowBytes * 64);
+  for (let i = 0; i < 64; i++) repeats[i * rowBytes] = 2;
+  const stream = new CompressionStream('deflate');
+  const compressed = new Response(stream.readable).arrayBuffer();
+  const writer = stream.writable.getWriter();
+  for (const [top, bottom, left, right] of [[0, Math.floor(height / 2), 'red', 'green'], [Math.floor(height / 2), height, 'blue', 'white']]) {
+    await writer.write(firstRow(left, right));
+    for (let y = top + 1; y < bottom; y += 64) await writer.write(repeats.subarray(0, Math.min(64, bottom - y) * rowBytes));
+  }
+  await writer.close();
+  const signature = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const parts = [signature, chunk('IHDR', header), chunk('IDAT', new Uint8Array(await compressed)), chunk('IEND', new Uint8Array())];
+  return new File(parts, `quadrants-${width}x${height}.png`, { type: 'image/png' });
+}
+
 /** A committed fixture from test/fixtures/, as a File. */
 async function fixture(name, type) {
   const response = await fetch(new URL(name, FIXTURES));
@@ -602,44 +653,60 @@ export const CHECKS = [
   {
     name: 'canvas-size',
     finding: 'CMP-03',
-    title: 'draws, reads back and encodes 4096x4096, 6000x4000 and 8064x6048 canvases',
-    timeout: 2 * MINUTE,
+    title: '24 and 48 MP photos come back whole and upright, inside the canvas this browser really gives',
+    timeout: 3 * MINUTE,
     async run() {
       const rows = [];
-      for (const [width, height] of [[4096, 4096], [6000, 4000], [8064, 6048]]) {
-        const canvas = canvasOf(width, height);
-        const row = { size: `${width}x${height}`, megapixels: Math.round((width * height) / 1e5) / 10 };
+      for (const [width, height, path] of [[6000, 4000, 'main'], [8064, 6048, 'main'], [6000, 4000, 'pool']]) {
+        const row = { source: `${width}x${height}`, megapixels: Math.round((width * height) / 1e5) / 10, path };
         const started = performance.now();
         try {
-          const ctx = canvas.getContext('2d', { willReadFrequently: true });
-          if (!ctx) throw new Error('no 2d context');
-          const halves = [[0, 0, 'red'], [width / 2, 0, 'green'], [0, height / 2, 'blue'], [width / 2, height / 2, 'white']];
-          for (const [x, y, name] of halves) {
-            ctx.fillStyle = `rgb(${QUADRANTS[name]})`;
-            ctx.fillRect(x, y, width / 2, height / 2);
-          }
-          const read = [[1, 1], [width - 2, 1], [1, height - 2], [width - 2, height - 2]]
-            .map(([x, y]) => colourName(ctx.getImageData(x, y, 1, 1).data));
-          row.readBack = read.join() === UPRIGHT.join() ? 'ok' : read;
-          const blob = await toBlob(canvas, 'image/jpeg', 0.8);
-          row.encoded = blob ? { bytes: blob.size, bytesAre: sniffFormat(await head(blob)) } : null;
-          row.ok = row.readBack === 'ok' && row.encoded?.bytesAre === 'jpeg';
+          const source = await quadrantsPng(width, height);
+          const run = (file) => (path === 'pool' ? withPool({ size: 1 }, (pool) => pool.compress(file, { format: 'jpeg' })) : compress(file, { format: 'jpeg' }));
+          const result = await run(source);
+          const seen = await inspect(result);
+          const colours = await look(result.blob);
+          Object.assign(row, { result: said(seen), corners: colours.corners, note: colours.note });
+          row.ok = seen.honest && (!colours.corners || colours.corners.join() === UPRIGHT.join());
         } catch (e) {
           Object.assign(row, { ok: false, error: errorOf(e).message });
-        } finally {
-          release(canvas);
         }
         row.ms = Math.round(performance.now() - started);
         rows.push(row);
       }
       return {
         pass: rows.every((r) => r.ok),
-        summary: rows.map((r) => `${r.size} ${r.ok ? 'ok' : `failed (${r.error ?? `read-back ${r.readBack}, encoded ${r.encoded?.bytesAre ?? 'nothing'}`})`}`).join('; '),
-        details: { rows },
+        summary: rows.map((r) => `${r.path} ${r.source}: ${r.ok ? r.result : `failed (${r.error ?? `${r.result}; corners ${r.corners}`})`}`).join('; '),
+        // What the browser's own canvas does at each size: information, not the verdict.
+        details: { rows, browserCanvas: await browserCanvasRows() },
       };
     },
   },
 ];
+
+/** Whether this browser's own canvas draws, reads back and encodes at each size, as the device runs found it. */
+async function browserCanvasRows() {
+  const rows = [];
+  for (const [width, height] of [[4096, 4096], [6000, 4000], [8064, 6048]]) {
+    const canvas = canvasOf(width, height);
+    const row = { size: `${width}x${height}` };
+    try {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (!ctx) throw new Error('no 2d context');
+      ctx.fillStyle = 'rgb(220, 20, 20)';
+      ctx.fillRect(0, 0, width, height);
+      row.readBack = colourName(ctx.getImageData(width - 2, height - 2, 1, 1).data) === 'red' ? 'ok' : 'empty';
+      const blob = await toBlob(canvas, 'image/jpeg', 0.8);
+      row.encoded = blob ? sniffFormat(await head(blob)) : null;
+    } catch (e) {
+      row.error = errorOf(e).message;
+    } finally {
+      release(canvas);
+    }
+    rows.push(row);
+  }
+  return rows;
+}
 
 /** What the library itself says about this browser, for the report's environment. */
 function libraryEnv() {

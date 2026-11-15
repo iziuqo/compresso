@@ -105,7 +105,8 @@ export function createCanvas(width, height) {
     ? new OffscreenCanvas(width, height)
     : Object.assign(document.createElement('canvas'), { width, height });
   const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingQuality = 'high';
+  // No context: the browser is out of canvas memory (see `accepted` in resize.js).
+  if (ctx) ctx.imageSmoothingQuality = 'high';
   return { canvas, ctx };
 }
 
