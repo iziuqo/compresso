@@ -401,6 +401,19 @@ describe('packaging and performance findings', () => {
     expect(sniffFormat(await bytesOf(result.blob))).toBe('jpeg');
   }, 120000);
 
+  // B3's gate: the same photo in the pool, with the default timeout [rejected
+  // at 30.0 s before], since the pool now times silence, not the whole job.
+  it('PERF-01: a 48 MP photo with a size target finishes in the pool', async () => {
+    const pool = createPool({ size: 1 });
+    try {
+      const result = await pool.compress(await generatedImage(8000, 6000), { format: 'jpeg', maxSizeMB: 0.2 });
+      expect(result.compressedSize).toBeLessThanOrEqual(0.2 * 1024 * 1024);
+      expect(result.missedTarget).toBe(false);
+    } finally {
+      pool.destroy();
+    }
+  }, 180000);
+
   itTracked('PERF-02/size-target-encodes', 'a size target costs four encodes at most, and is met', async () => {
     const source = await generatedImage(3000, 2000);
     const maxSizeMB = 0.3;

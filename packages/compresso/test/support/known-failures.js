@@ -119,7 +119,6 @@ export const KNOWN_FAILURES = {
   'bundler/esbuild-iife': { findings: ['PKG-03'], where: ['chromium'], failsWith: matrixRow(row('ok', /Failed to construct 'URL'/)) },
   // Parcel ignores the exports map by default, so `compresso.js/pool` doesn't resolve.
   'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row(/Failed to resolve 'compresso\.js\/pool'/)) },
-  'PERF-01/slow-but-progressing': { findings: ['PERF-01'], where: BROWSERS },
 
   // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
   // encodes AVIF on a canvas.
