@@ -26,6 +26,8 @@ class MockWorker {
     this.posted = [];
     this.terminated = false;
     MockWorker.instances.push(this);
+    // The real worker.js posts `ready` once its module has loaded.
+    if (MockWorker.loads) queueMicrotask(() => this.respond({ type: 'ready' }));
   }
   postMessage(msg) {
     this.posted.push(msg);
@@ -38,6 +40,7 @@ class MockWorker {
   }
 }
 MockWorker.instances = [];
+MockWorker.loads = true;
 
 /** A Worker stand-in whose construction fails, simulating a CSP that blocks worker-src. */
 class ThrowingWorker {
@@ -68,6 +71,7 @@ if (!URL.revokeObjectURL) URL.revokeObjectURL = () => {};
 
 beforeEach(() => {
   MockWorker.instances = [];
+  MockWorker.loads = true;
   mockCompressOne.mockReset();
   mockEnsureCapabilities.mockClear();
 });
@@ -168,7 +172,7 @@ describe('createPool() — fallback path (no Worker/OffscreenCanvas support)', (
     const pool = createPool();
     expect(() => pool.cancel('anything')).not.toThrow();
     expect(() => pool.destroy()).not.toThrow();
-    expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0 });
+    expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0, mode: 'main-thread', reason: 'workers-unsupported' });
   });
 });
 
@@ -179,7 +183,7 @@ describe('createPool() — falls back when worker construction throws (e.g. CSP-
     mockCompressOne.mockResolvedValueOnce('RESULT');
 
     const pool = createPool({ size: 2 });
-    expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0 });
+    expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0, mode: 'main-thread', reason: 'worker-blocked' });
     await expect(pool.compress(new Blob(['x']))).resolves.toBe('RESULT');
   });
 });
@@ -409,8 +413,9 @@ describe('resilience: crash and timeout recovery', () => {
     expect(pool.stats().recoveries).toBe(1);
   });
 
-  it('a crash while idle still replaces the worker without touching the queue', () => {
+  it('a crash while idle still replaces the worker without touching the queue', async () => {
     const pool = createPool({ size: 1 });
+    await Promise.resolve(); // the worker reports ready
     const idle = MockWorker.instances[0];
     expect(() => idle.onerror()).not.toThrow();
     expect(idle.terminated).toBe(true);
@@ -474,6 +479,140 @@ describe('resilience: crash and timeout recovery', () => {
   });
 });
 
+describe('resilience: a worker that never loads, and repeated crashes (PKG-01)', () => {
+  beforeEach(() => {
+    vi.stubGlobal('Worker', MockWorker);
+    vi.stubGlobal('OffscreenCanvas', class {});
+  });
+
+  it('a worker that fails before it is ready stops all spawning; queued and in-flight jobs finish on the main thread', async () => {
+    MockWorker.loads = false; // e.g. a 404 worker URL
+    mockCompressOne.mockImplementation(async (file) => `main-thread ${await file.text()}`);
+    const pool = createPool({ size: 2 });
+    const jobs = ['1', '2', '3'].map((name) => pool.compress(new Blob([name])));
+    await vi.waitFor(() => expect(MockWorker.instances[1].posted).toHaveLength(1));
+
+    MockWorker.instances[0].onerror();
+    // The pool retired the second worker too, handlers and all.
+    expect(MockWorker.instances[1].onerror).toBeNull();
+
+    await expect(Promise.all(jobs)).resolves.toEqual(['main-thread 1', 'main-thread 2', 'main-thread 3']);
+    expect(MockWorker.instances).toHaveLength(2);
+    expect(MockWorker.instances.every((worker) => worker.terminated)).toBe(true);
+    expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0, mode: 'main-thread', reason: 'worker-failed-to-load' });
+
+    await expect(pool.compress(new Blob(['4']))).resolves.toBe('main-thread 4');
+    expect(MockWorker.instances).toHaveLength(2);
+  });
+
+  it('a loaded worker that crashes is replaced twice in a row, then the pool moves to the main thread', async () => {
+    mockCompressOne.mockResolvedValue('main-thread');
+    const pool = createPool({ size: 1 });
+    for (let crash = 1; crash <= 3; crash++) {
+      const job = pool.compress(new Blob([String(crash)]));
+      const worker = MockWorker.instances.at(-1);
+      await vi.waitFor(() => expect(worker.posted).toHaveLength(1));
+      worker.onerror();
+      await expect(job).rejects.toMatchObject({ kind: 'generic' });
+    }
+    expect(MockWorker.instances).toHaveLength(3);
+    expect(pool.stats()).toMatchObject({ size: 0, recoveries: 2, mode: 'main-thread', reason: 'worker-crashed-repeatedly' });
+    await expect(pool.compress(new Blob(['4']))).resolves.toBe('main-thread');
+  });
+
+  it('after giving up, runs main-thread jobs one at a time, the queue and later batches alike', async () => {
+    MockWorker.loads = false;
+    let running = 0;
+    let most = 0;
+    mockCompressOne.mockImplementation(async (file) => {
+      most = Math.max(most, ++running);
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      running--;
+      return `main-thread ${await file.text()}`;
+    });
+    const pool = createPool({ size: 2 });
+    const first = ['1', '2', '3', '4'].map((name) => pool.compress(new Blob([name])));
+    await vi.waitFor(() => expect(MockWorker.instances[1].posted).toHaveLength(1));
+    MockWorker.instances[0].onerror();
+    const later = await pool.compressMany(['5', '6', '7'].map((name) => new Blob([name])));
+
+    await expect(Promise.all(first)).resolves.toEqual(['main-thread 1', 'main-thread 2', 'main-thread 3', 'main-thread 4']);
+    expect(later.map((entry) => entry.value)).toEqual(['main-thread 5', 'main-thread 6', 'main-thread 7']);
+    expect(most).toBe(1);
+  });
+
+  it('a main-thread job that fails does not stop the ones after it', async () => {
+    MockWorker.loads = false;
+    mockCompressOne.mockRejectedValueOnce(new Error('undecodable')).mockResolvedValue('main-thread');
+    const pool = createPool({ size: 1 });
+    const jobs = [pool.compress(new Blob(['bad'])), pool.compress(new Blob(['good']))];
+    await vi.waitFor(() => expect(MockWorker.instances[0].posted).toHaveLength(1));
+    MockWorker.instances[0].onerror();
+    await expect(jobs[0]).rejects.toThrow('undecodable');
+    await expect(jobs[1]).resolves.toBe('main-thread');
+  });
+
+  it('on the third crash in a row, rejects the job that crashed and hands the other jobs to the main thread', async () => {
+    mockCompressOne.mockImplementation(async (file) => `main-thread ${await file.text()}`);
+    const pool = createPool({ size: 2 });
+    const workerWith = (file) => MockWorker.instances.find((w) => !w.terminated && w.posted.some((msg) => msg.file === file));
+    const dispatched = (file) => vi.waitFor(() => expect(workerWith(file)).toBeDefined());
+    for (let crash = 1; crash <= 2; crash++) {
+      const file = new Blob(['crash']);
+      const job = pool.compress(file);
+      await dispatched(file);
+      workerWith(file).onerror();
+      await expect(job).rejects.toMatchObject({ kind: 'generic' });
+    }
+    // One job on each live worker, and two more waiting in the queue.
+    const file = new Blob(['crash']);
+    const crashing = pool.compress(file);
+    const others = ['a', 'b', 'c'].map((name) => pool.compress(new Blob([name])));
+    await dispatched(file);
+    await vi.waitFor(() => expect(pool.stats()).toMatchObject({ busy: 2, queued: 2 }));
+    workerWith(file).onerror();
+
+    await expect(crashing).rejects.toMatchObject({ kind: 'generic' });
+    await expect(Promise.all(others)).resolves.toEqual(['main-thread a', 'main-thread b', 'main-thread c']);
+    expect(pool.stats()).toMatchObject({ size: 0, recoveries: 2, mode: 'main-thread', reason: 'worker-crashed-repeatedly' });
+  });
+
+  it('copies the options at the call, so reusing the object cannot change a queued job', async () => {
+    const pool = createPool({ size: 1 });
+    const options = { quality: 0.8 };
+    pool.compress(new Blob(['a']), options);
+    pool.compress(new Blob(['b']), options);
+    options.quality = 0.5;
+    const worker = MockWorker.instances[0];
+    await vi.waitFor(() => expect(worker.posted).toHaveLength(1));
+    worker.respond({ type: 'done', id: worker.posted[0].id, result: doneResult() });
+    await vi.waitFor(() => expect(worker.posted).toHaveLength(2));
+    expect(worker.posted.map((msg) => msg.params.quality)).toEqual([0.8, 0.8]);
+  });
+
+  it('a finished job resets the run of crashes', async () => {
+    const pool = createPool({ size: 1 });
+    const crashThenFinish = async () => {
+      for (const outcome of ['crash', 'crash', 'done']) {
+        const worker = MockWorker.instances.at(-1);
+        const sent = worker.posted.length;
+        const job = pool.compress(new Blob(['x']));
+        await vi.waitFor(() => expect(worker.posted).toHaveLength(sent + 1));
+        if (outcome === 'crash') {
+          worker.onerror();
+          await expect(job).rejects.toMatchObject({ kind: 'generic' });
+        } else {
+          worker.respond({ type: 'done', id: worker.posted.at(-1).id, result: doneResult() });
+          await expect(job).resolves.toBeDefined();
+        }
+      }
+    };
+    await crashThenFinish();
+    await crashThenFinish();
+    expect(pool.stats()).toMatchObject({ size: 1, recoveries: 4, mode: 'workers', reason: null });
+  });
+});
+
 describe('destroy()', () => {
   beforeEach(() => {
     vi.stubGlobal('Worker', MockWorker);
@@ -491,7 +630,7 @@ describe('destroy()', () => {
     await expect(p1).rejects.toMatchObject({ kind: 'aborted' });
     await expect(p2).rejects.toMatchObject({ kind: 'aborted' });
     expect(MockWorker.instances[0].terminated).toBe(true);
-    expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0 });
+    expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0, mode: 'workers', reason: null });
   });
 });
 

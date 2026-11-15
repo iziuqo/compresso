@@ -63,3 +63,7 @@ self.onmessage = async (event) => {
     aborts.delete(id);
   }
 };
+
+// The module has loaded: the pool may now treat a crash as this worker's own,
+// not as a worker file that can't load (see pool.js's crash).
+post({ type: 'ready' });
