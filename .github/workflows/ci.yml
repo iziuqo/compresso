@@ -21,10 +21,11 @@ jobs:
     strategy:
       matrix:
         # The Node releases still in support: 22 and 24 (LTS) and 26 (current).
-        # The floor is the dev tooling's, not the library's: rolldown (via
-        # vitest) needs ^20.19.0 || >=22.12.0, and nothing compresso.js ships
-        # needs Node at all. A new version here needs no ruleset change, since
-        # the ruleset requires only ci-ok.
+        # The floor is the dev tooling's, not the library's: size-limit needs
+        # ^22.19.0 || ^24.5.0 || >=26.0.0 and Vitest ^22.12.0 || ^24.0.0 ||
+        # >=26.0.0, and nothing compresso.js ships needs Node at all. A new
+        # version here needs no ruleset change, since the ruleset requires only
+        # ci-ok.
         node-version: [22, 24, 26]
 
     steps:

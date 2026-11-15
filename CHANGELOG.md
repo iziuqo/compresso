@@ -6,6 +6,12 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+### Changed
+- **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**
+  (libheif 1.23.7, up from 1.5.2 and libheif 1.22.2). Same API, same
+  LGPL-3.0 licence; the file grows from about 3.0 MB to 3.2 MB and still loads
+  only when a HEIC file reaches a worker. The `heic-to` range stays `^1.5.2`.
+
 ## [1.1.0-beta.1] — 2026-11-12
 
 Beta on the `next` tag (`npm i compresso.js@next`); `latest` stays 1.0.3.

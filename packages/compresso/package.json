@@ -96,6 +96,7 @@
     "rollup": "^4.68.3",
     "size-limit": "^14.3.0",
     "typescript": "^5.9.2",
+    "vite": "^8.3.8",
     "vitest": "^5.1.0"
   },
   "optionalDependencies": {
