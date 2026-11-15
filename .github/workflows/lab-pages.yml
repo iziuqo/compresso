@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - 'packages/compresso/**'
+      - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/lab-pages.yml'
   workflow_dispatch:
@@ -48,7 +49,6 @@ jobs:
           <title>compresso.js device lab</title>
           <a href="lab/">compresso.js device lab</a>
           HTML
-      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: packages/compresso/_site
