@@ -177,7 +177,7 @@ Compresses a single image.
 | `onProgress` | `function` | — | Progress callback `({ progress, stage })` |
 | `signal` | `AbortSignal` | — | Cancel compression |
 
-<sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode. Pass `Infinity` to never cap. <sup>‡</sup> Lossy output is never larger than the source, regardless of this value.
+<sup>†</sup> Original resolution is kept, except when neither dimension is set **and** the browser can't encode WebP/AVIF (auto falls back to JPEG, e.g. Safari) — then output is capped to a 2048px long edge to avoid a bloated re-encode, though never below a 720px short edge for shapes up to 32:1, so a long screenshot stays readable. Pass `Infinity` to never cap. <sup>‡</sup> Lossy output is never larger than the source, regardless of this value.
 
 #### Result
 

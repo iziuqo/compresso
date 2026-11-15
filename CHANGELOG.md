@@ -6,6 +6,22 @@ All notable changes to `compresso.js` are documented here. The format is based o
 
 ## [Unreleased]
 
+### Fixed
+- **A format is used only when the browser proves it can encode it.** The
+  check used to believe the label on the encoder's output, and Safari on iOS 26
+  labels lossless bytes `image/avif` while ignoring quality, so the default
+  path picked AVIF there and returned every photo unchanged. The check now
+  encodes a small noise image at two qualities and accepts AVIF or WebP only
+  when both results carry the format's signature and the lower quality is the
+  smaller file; otherwise `auto` moves on to the next format, down to JPEG. It
+  still runs once per session, and the pool still hands its answer to the
+  workers.
+- **The JPEG fallback's 2048px cap no longer turns long images into slivers.**
+  It still sets the long edge, but never takes the short edge below 720px: an
+  800 × 20000 screenshot now comes back 720 × 18000 instead of 82 × 2048.
+  Shapes up to about 2.8 to 1 keep exactly the size they had; past 32 to 1
+  the long edge stops at 23040px, inside iOS Safari's canvas limit.
+
 ### Changed
 - **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**
   (libheif 1.23.7, up from 1.5.2 and libheif 1.22.2). Same API, same

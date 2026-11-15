@@ -38,10 +38,17 @@ function brands(bytes) {
   return list;
 }
 
-/** True when the text, past a BOM, XML declaration, comments and a DOCTYPE, opens an `<svg>` element. */
+/**
+ * True when the text, past a BOM, an XML declaration, then comments and a
+ * DOCTYPE, opens an `<svg>` element. Comments and the DOCTYPE are skipped one
+ * at a time: one regex with a repeated group of them can backtrack
+ * exponentially (CodeQL js/redos).
+ */
 function isSvg(bytes) {
-  const text = new TextDecoder().decode(bytes.subarray(0, 1024)).replace(/^﻿/, '');
-  return /^\s*(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*|<!DOCTYPE[^>]*>\s*)*<svg[\s>]/i.test(text);
+  const piece = /^(?:<!--[\s\S]*?-->|<!DOCTYPE[^>]*>)\s*/i;
+  let text = new TextDecoder().decode(bytes.subarray(0, 1024)).replace(/^\uFEFF/, '').replace(/^\s*(<\?xml[^>]*>\s*)?/, '');
+  for (let found; (found = piece.exec(text)); ) text = text.slice(found[0].length);
+  return /^<svg[\s>]/i.test(text);
 }
 
 /** The canonical format the bytes really are, from their signature; `null` if unknown. */

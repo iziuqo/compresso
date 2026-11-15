@@ -105,7 +105,7 @@ choose AVIF for HEIC-class output compression.
 | `onProgress` | `function` | — | Progress callback |
 | `signal` | `AbortSignal` | — | Cancel compression |
 
-¹ Original resolution is kept by default. The one exception: when neither `maxWidth` nor `maxHeight` is set **and** the browser can't encode WebP/AVIF (auto-format falls back to JPEG — e.g. Safari), output is capped to a **2048px long edge**, because a full-resolution JPEG re-encode could otherwise grow larger than the original. Browsers with a modern format keep the original dimensions. Set either axis to constrain it yourself, or pass `maxWidth: Infinity` to never cap.
+¹ Original resolution is kept by default. The one exception: when neither `maxWidth` nor `maxHeight` is set **and** the browser can't encode WebP/AVIF (auto-format falls back to JPEG — e.g. Safari), output is capped to a **2048px long edge**, because a full-resolution JPEG re-encode could otherwise grow larger than the original. The cap never takes the short edge below 720px for shapes up to 32:1, so a long screenshot or a panorama stays readable. Browsers with a modern format keep the original dimensions. Set either axis to constrain it yourself, or pass `maxWidth: Infinity` to never cap.
 
 ² **Lossy output (JPEG/WebP/AVIF) is never larger than the source**, regardless of `maxSizeMB`. PNG output is exempt, since it's lossless and ignores quality.
 
