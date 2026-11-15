@@ -379,6 +379,28 @@ describe('packaging and performance findings', () => {
     throw new Error('no timeout fell between the job and its longest silence in 4 runs');
   }, 60000);
 
+  // B2's gates, on the real encoder: a 12 MP photo meets each target in four
+  // encodes at most [8 or 9 before], and a 48 MP photo meets "under 0.2 MB" by
+  // stepping its size down [1,370 KB before], instead of missing it.
+  for (const maxSizeMB of [1, 0.5, 0.2]) {
+    it(`PERF-02: a 12 MP photo meets a ${maxSizeMB} MB target in four encodes at most`, async () => {
+      const source = await generatedImage(4000, 3000);
+      const { value: result, encodes } = await countEncodes(() => compress(source, { format: 'jpeg', maxSizeMB }));
+      expect(result.compressedSize).toBeLessThanOrEqual(maxSizeMB * 1024 * 1024);
+      expect(result.missedTarget).toBe(false);
+      expect(encodes(), 'PERF-02 encodes').toBeLessThanOrEqual(4);
+    }, 60000);
+  }
+
+  it('COR-14: a 48 MP photo meets a 0.2 MB target by stepping its size down', async () => {
+    const source = await generatedImage(8000, 6000);
+    const result = await compress(source, { format: 'jpeg', maxSizeMB: 0.2 });
+    expect(result.compressedSize).toBeLessThanOrEqual(0.2 * 1024 * 1024);
+    expect(result.missedTarget).toBe(false);
+    expect(result.width).toBeLessThan(8000);
+    expect(sniffFormat(await bytesOf(result.blob))).toBe('jpeg');
+  }, 120000);
+
   itTracked('PERF-02/size-target-encodes', 'a size target costs four encodes at most, and is met', async () => {
     const source = await generatedImage(3000, 2000);
     const maxSizeMB = 0.3;

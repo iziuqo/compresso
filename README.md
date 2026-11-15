@@ -120,12 +120,14 @@ Perfect for systems with strict upload limits:
 
 ```js
 const result = await compress(file, {
-  maxSizeMB: 2,       // never exceeds 2 MB
+  maxSizeMB: 2,       // at or under 2 MB
   format: 'jpeg',
 });
 ```
 
-Compresso binary-searches for the highest quality that fits within your size constraint.
+Compresso searches for the highest quality that fits, in four encodes at most. When no quality fits,
+it steps the image's size down, never below a 480 px long edge. If even that misses,
+`result.missedTarget` is `true`.
 
 ## Batch & Parallel Compression
 
@@ -172,7 +174,7 @@ Compresses a single image.
 | `maxWidth` | `number` | unbounded <sup>†</sup> | Maximum output width in px |
 | `maxHeight` | `number` | unbounded <sup>†</sup> | Maximum output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'`, `'png'`, `'webp'`, `'avif'`, or `'auto'` |
-| `maxSizeMB` | `number` | source size <sup>‡</sup> | Maximum output file size in MB |
+| `maxSizeMB` | `number` | source size <sup>‡</sup> | Target output size in MB: quality is lowered, then the size steps down; `missedTarget` says when it's out of reach |
 | `backgroundColor` | `string` | `'#ffffff'` | Background for transparent → JPEG |
 | `onProgress` | `function` | — | Progress callback `({ progress, stage })` |
 | `signal` | `AbortSignal` | — | Cancel compression |
@@ -190,6 +192,7 @@ Compresses a single image.
 | `originalSize` / `compressedSize` | `number` | Bytes before / after |
 | `savings` | `number` | Reduction percentage |
 | `format` | `string` | Output format |
+| `missedTarget` | `boolean` | `maxSizeMB` was out of reach even at the smallest size tried; the result is the smallest file made |
 
 ### `compressMultiple(files, options?)`
 
@@ -501,7 +504,7 @@ Compresso's 3.6 KB core uses the browser's native Canvas API — no WASM, no hea
 1. **Load** — read the image into an `<img>` element
 2. **Resize** — compute target dimensions (preserving aspect ratio), with step-down resizing for quality
 3. **Compress** — draw to `<canvas>`, export as the target format at the chosen quality
-4. **Fit** — if a max size is set (or to honor the never-bigger guarantee), binary-search for the highest quality that fits
+4. **Fit** — if a max size is set (or to honor the never-bigger guarantee), search for the highest quality that fits, and step the size down when none does
 
 The result is a new `File` ready for upload, plus metadata about the optimization.
 

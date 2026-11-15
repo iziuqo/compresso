@@ -5,13 +5,22 @@
  * throw from `encode` and the search stops there.
  */
 
-/** Encodes tried after the first one, at most. */
-const MAX_QUALITY_STEPS = 10;
+/** Encodes per search, the first one included (PERF-02). */
+const MAX_ENCODES = 4;
+/** A fit this close under the ceiling is good enough to stop on. */
+const CLOSE_ENOUGH = 0.9;
+/** Where each guess aims, inside the good-enough band (best on measured encoder curves). */
+const AIM = 0.97;
+const MIN_QUALITY = 0.01;
 
 /**
- * Highest quality, at or below `quality`, whose encode fits in `ceiling` bytes;
- * `null` when even the lowest searched quality doesn't. Tries `quality` first,
- * then binary-searches down, so a source that already fits costs one encode.
+ * Highest quality found, at or below `quality`, whose encode fits in
+ * `ceiling` bytes; `null` when none of the tries does. Tries `quality` first,
+ * so a source that already fits costs one encode. Then each guess
+ * interpolates where size meets the ceiling, along the line through the two
+ * encodes that bound it best (at first the origin, then the last two misses,
+ * then the best fit and the nearest miss). It stops at a fit within 10% under
+ * the ceiling, or after four encodes.
  *
  * @param {(quality: number) => Promise<number>} encode Encoded size in bytes.
  * @param {number} quality Starting (and highest) quality, 0–1.
@@ -20,20 +29,30 @@ const MAX_QUALITY_STEPS = 10;
  * @returns {Promise<number | null>}
  */
 export async function findQuality(encode, quality, ceiling, onStep) {
-  if ((await encode(quality)) <= ceiling) return quality;
-
-  let low = 0;
-  let high = quality;
-  let best = null;
-  for (let i = 1; i <= MAX_QUALITY_STEPS && high - low >= 0.01; i++) {
+  // The nearest miss so far, and the point the next guess interpolates from:
+  // the origin at first, then the previous miss, then the best fit.
+  let q2 = quality;
+  let s2 = await encode(quality);
+  if (s2 <= ceiling) return quality;
+  let q1 = 0;
+  let s1 = 0;
+  let fit = null;
+  for (let i = 1; i < MAX_ENCODES; i++) {
+    // Two misses of the same size give no slope to follow: halve instead.
     // Rounded so repeated values hit a host's encode cache.
-    const mid = Math.round(((low + high) / 2) * 1000) / 1000;
-    if ((await encode(mid)) <= ceiling) {
-      best = low = mid;
+    const guess = s2 === s1 ? q2 / 2 : q1 + ((q2 - q1) * (ceiling * AIM - s1)) / (s2 - s1);
+    const q = Math.round(Math.min(q2 - MIN_QUALITY, Math.max(MIN_QUALITY, guess)) * 1000) / 1000;
+    if (q < MIN_QUALITY || q <= fit) break;
+    const size = await encode(q);
+    onStep?.(i / (MAX_ENCODES - 1));
+    if (size > ceiling) {
+      if (fit === null) [q1, s1] = [q2, s2];
+      [q2, s2] = [q, size];
     } else {
-      high = mid;
+      q1 = fit = q;
+      s1 = size;
+      if (size >= ceiling * CLOSE_ENOUGH) break;
     }
-    onStep?.(i / MAX_QUALITY_STEPS);
   }
-  return best;
+  return fit;
 }

@@ -56,16 +56,67 @@ describe('findQuality', () => {
     expect(encodes).toBe(1);
   });
 
-  it('finds the highest quality under the ceiling', async () => {
-    const q = await findQuality(async (q) => q * 100, 0.8, 50);
-    expect(q * 100).toBeLessThanOrEqual(50);
-    expect(q).toBeGreaterThan(0.48);
-  });
+  // Smooth size curves: through the origin, with a floor no quality gets
+  // under, and steep near the top.
+  const curves = {
+    linear: (q) => q * 100,
+    floored: (q) => 20 + 80 * q,
+    steep: (q) => 20 + 125 * q ** 2,
+  };
+  for (const [name, size] of Object.entries(curves)) {
+    for (const ceiling of [75, 50, 30]) {
+      it(`lands within 10% under the ceiling in four encodes (${name}, ${ceiling})`, async () => {
+        let encodes = 0;
+        const q = await findQuality(async (q) => (encodes++, size(q)), 0.8, ceiling);
+        expect(size(q)).toBeLessThanOrEqual(ceiling);
+        expect(size(q)).toBeGreaterThanOrEqual(0.9 * ceiling);
+        expect(q).toBeLessThanOrEqual(0.8);
+        expect(encodes).toBeLessThanOrEqual(4);
+      });
+    }
+  }
 
-  it('returns null when nothing fits, within 11 encodes', async () => {
+  // Chromium's own curves for photo.jpg (1600 × 1067), as a share of the size
+  // at 0.8, at qualities 0.01, 0.05, 0.1, 0.2 … 0.8. Its JPEG encoder nearly
+  // halves between 0.8 and 0.7, so four encodes can land further under.
+  const QUALITIES = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
+  const measured = {
+    jpeg: [0.07, 0.08, 0.1, 0.15, 0.2, 0.25, 0.31, 0.4, 0.46, 1],
+    webp: [0.19, 0.22, 0.25, 0.3, 0.35, 0.41, 0.48, 0.56, 0.64, 1],
+  };
+  const along = (shares) => (q) => {
+    const i = Math.max(0, QUALITIES.findIndex((at) => at >= q) - 1);
+    const t = (q - QUALITIES[i]) / (QUALITIES[i + 1] - QUALITIES[i]);
+    return 1000 * (shares[i] + t * (shares[i + 1] - shares[i]));
+  };
+  for (const [format, shares] of Object.entries(measured)) {
+    it(`meets every reachable target on Chromium's ${format} curve in four encodes, at 70% of it or more`, async () => {
+      const size = along(shares);
+      for (const ceiling of [250, 300, 400, 500, 600, 700, 800, 900]) {
+        let encodes = 0;
+        const q = await findQuality(async (q) => (encodes++, size(q)), 0.8, ceiling);
+        expect(size(q), `ceiling ${ceiling}`).toBeLessThanOrEqual(ceiling);
+        expect(size(q), `ceiling ${ceiling}`).toBeGreaterThanOrEqual(0.7 * ceiling);
+        expect(encodes, `ceiling ${ceiling}`).toBeLessThanOrEqual(4);
+      }
+    });
+  }
+
+  it('returns null when nothing fits, within 4 encodes', async () => {
     let encodes = 0;
     expect(await findQuality(async () => (encodes++, 1000), 0.8, 10)).toBeNull();
-    expect(encodes).toBeLessThanOrEqual(11);
+    expect(encodes).toBeLessThanOrEqual(4);
+  });
+
+  it('returns null, never a quality that misses, when the floor is above the ceiling', async () => {
+    expect(await findQuality(async (q) => curves.floored(q), 0.8, 15)).toBeNull();
+  });
+
+  it('halves the quality when two misses are the same size, instead of creeping down', async () => {
+    const tried = [];
+    const size = (q) => (q > 0.1 ? 500 : 50);
+    expect(await findQuality(async (q) => (tried.push(q), size(q)), 0.8, 100)).not.toBeNull();
+    expect(tried.length).toBeLessThanOrEqual(4);
   });
 
   it('reports its progress up to 1', async () => {
@@ -115,8 +166,35 @@ describe('planPhoto', () => {
   it('gives the smallest file and says so when the target is out of reach', async () => {
     const { host } = fakeHost({ width: 1000, height: 1000, size: 5 * MB, bpp: 50 });
     const out = await planPhoto(host, recipe({ targetBytes: 10 * KB }));
-    expect(out).toMatchObject({ kept: false, quality: 0.05, missedTarget: true });
-    expect(Math.max(out.result.width, out.result.height)).toBeGreaterThanOrEqual(480);
+    expect(out).toMatchObject({ kept: false, missedTarget: true });
+    expect(out.quality).toBeLessThanOrEqual(0.05);
+    expect(Math.max(out.result.width, out.result.height)).toBe(480);
+  });
+
+  it('keeps the source after one encode when no target or resize asks for less (COR-05)', async () => {
+    const { host, calls } = fakeHost({ width: 1000, height: 1000, size: 300 * KB });
+    const out = await planPhoto(host, recipe());
+    expect(out).toMatchObject({ kept: true, missedTarget: false });
+    expect(calls).toMatchObject({ measures: 1, writes: 0 });
+  });
+
+  it('still searches when the output is resized or converted, since the source is not what was asked', async () => {
+    const { host, calls } = fakeHost({ width: 1000, height: 1000, size: 300 * KB });
+    const prepare = host.prepare;
+    host.prepare = async (edge) => ({ ...(await prepare(edge)), transformed: true });
+    const out = await planPhoto(host, recipe());
+    expect(out).toMatchObject({ kept: false, missedTarget: false });
+    expect(out.result.size).toBeLessThanOrEqual(300 * KB);
+    expect(calls.measures).toBeGreaterThan(1);
+  });
+
+  it('measures at most four times per size, and steps a 48 MP photo down in few sizes', async () => {
+    const { host, calls } = fakeHost({ width: 8000, height: 6000, size: 20 * MB, bpp: 2 });
+    const out = await planPhoto(host, recipe({ targetBytes: 200 * KB }));
+    expect(out.result.size).toBeLessThanOrEqual(200 * KB);
+    expect(out.result.size).toBeGreaterThanOrEqual(0.9 * 200 * KB);
+    expect(calls.measures).toBeLessThanOrEqual(4 * calls.prepares);
+    expect(calls.prepares).toBeLessThanOrEqual(3);
   });
 
   it('keeps the source when even the smallest file would be bigger', async () => {
@@ -124,6 +202,15 @@ describe('planPhoto', () => {
     const out = await planPhoto(host, recipe({ targetBytes: 500 }));
     expect(out).toMatchObject({ kept: true, missedTarget: true });
   });
+
+  for (const targetBytes of [undefined, null, 0, -1, Number.NaN]) {
+    it(`treats targetBytes ${targetBytes} as no target`, async () => {
+      const { host, calls } = fakeHost({ width: 1000, height: 1000, size: 2 * MB });
+      const out = await planPhoto(host, recipe({ targetBytes }));
+      expect(out).toMatchObject({ kept: false, quality: 0.8, missedTarget: false });
+      expect(calls).toMatchObject({ prepares: 1, measures: 1 });
+    });
+  }
 
   it('keeps the source when a PNG would grow', async () => {
     const { host } = fakeHost({ width: 500, height: 500, size: 100 * KB });

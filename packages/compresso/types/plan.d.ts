@@ -16,7 +16,10 @@ export interface PhotoRecipe {
   quality?: number;
   /** Cap on the long edge, in pixels. Default: none */
   maxLongEdge?: number | null;
-  /** Output must be at or under this many bytes. Default: none (the source's own size still caps it) */
+  /**
+   * Output must be at or under this many bytes. A missing, zero, negative or
+   * non-number value means none. Default: none (the source's own size still caps it)
+   */
   targetBytes?: number | null;
 }
 
@@ -28,6 +31,13 @@ export interface PreparedPhoto {
   height: number;
   /** Size of the source in bytes, 0 when unknown (then only `targetBytes` caps the output). */
   originalSize: number;
+  /**
+   * True when the output can't be the source as it is: the prepared photo is
+   * smaller, or in another format. Then quality is searched under the source's
+   * size. When false and no target binds, the planner encodes only the asked
+   * quality, and keeps the source when that can't beat it. Default: false
+   */
+  transformed?: boolean;
 }
 
 /**
@@ -59,7 +69,7 @@ export interface PhotoDecision<R> {
   format: PhotoFormat | null;
   /** Quality written at; null when kept or PNG. */
   quality: number | null;
-  /** The source came back unchanged: nothing smaller was possible. */
+  /** The source came back unchanged: no encode tried was smaller. */
   kept: boolean;
   /** `targetBytes` could not be met even at the smallest size tried. */
   missedTarget: boolean;
@@ -79,9 +89,10 @@ export function planPhoto<R>(host: PhotoHost<R>, recipe: PhotoRecipe, options?: 
 export function resolveFormat<F extends string>(preferred: readonly F[], writable: readonly F[], fallback?: F): F;
 
 /**
- * Highest quality, at or below `quality`, whose encode fits in `ceiling`
- * bytes; null when none does. Tries `quality` first, then binary-searches
- * down. To cancel, throw from `encode`.
+ * Highest quality found, at or below `quality`, whose encode fits in
+ * `ceiling` bytes; null when none of the tries does. Tries `quality` first,
+ * then interpolates where size meets the ceiling, and stops at a fit within
+ * 10% under it, or after four encodes in all. To cancel, throw from `encode`.
  */
 export function findQuality(
   encode: (quality: number) => Promise<number>,

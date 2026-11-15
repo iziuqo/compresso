@@ -100,7 +100,7 @@ choose AVIF for HEIC-class output compression.
 | `maxWidth` | `number` | unbounded¹ | Max output width in px |
 | `maxHeight` | `number` | unbounded¹ | Max output height in px |
 | `format` | `string` | `'auto'` | `'jpeg'` \| `'png'` \| `'webp'` \| `'avif'` \| `'auto'` |
-| `maxSizeMB` | `number` | source size² | Max file size in MB |
+| `maxSizeMB` | `number` | source size² | Target file size in MB: quality is lowered, then the size steps down; the result's `missedTarget` says when it's out of reach |
 | `maxInputPixels` | `number` | `100_000_000` | Max decodable input resolution (width × height). Guards against a crafted file declaring an enormous resolution from a tiny file. `Infinity` to disable |
 | `onProgress` | `function` | — | Progress callback |
 | `signal` | `AbortSignal` | — | Cancel compression |
@@ -214,10 +214,10 @@ const targets = allocateBudget(10_000_000, photos.map((photo) => photo.size));
 const decision = await planPhoto(
   {
     formats: ['webp', 'jpeg'], // what this host can write, best first
-    prepare: (maxLongEdge) => myDecode(photo, maxLongEdge), // → { width, height, originalSize }
+    prepare: (maxLongEdge) => myDecode(photo, maxLongEdge), // → { width, height, originalSize, transformed? }
     measure: (format, quality) => myEncodedSize(format, quality), // bytes, in memory
     write: (format, quality) => myWrite(format, quality),
-    keep: () => photo, // nothing smaller was possible
+    keep: () => photo, // no encode tried was smaller
     release: () => myFree(),
   },
   { formats: ['avif', 'webp', 'jpeg'], quality: 0.8, targetBytes: targets[0] },
@@ -225,8 +225,8 @@ const decision = await planPhoto(
 // → { result, format, quality, kept, missedTarget }
 ```
 
-When no quality meets `targetBytes`, the planner steps the long edge down by 20% and searches
-again (never below 480 px), then gives the smallest file it can make with `missedTarget: true`.
+When no quality meets `targetBytes`, the planner steps the long edge down, by 20% or by as much as
+the bytes still missing say, and searches again (never below 480 px), then gives the smallest file it can make with `missedTarget: true`.
 `findQuality` (the quality search on its own) and `resolveFormat` are exported too; see
 `types/plan.d.ts` for the full contract.
 
