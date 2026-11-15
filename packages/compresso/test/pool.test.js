@@ -495,7 +495,7 @@ describe('resilience: crash and timeout recovery', () => {
     vi.useFakeTimers();
     mockDecodeHeicToBitmap.mockReturnValue(new Promise(() => {}));
     const pool = createPool({ size: 2, timeoutMs: 1000 });
-    pool.compress(new Blob(['heic']));
+    const timedOut = expect(pool.compress(new Blob(['heic']))).rejects.toThrow(/timed out/);
     await vi.advanceTimersByTimeAsync(0);
     const worker = MockWorker.instances.find((w) => w.posted.length);
     const { id } = worker.posted[0];
@@ -506,6 +506,7 @@ describe('resilience: crash and timeout recovery', () => {
     expect(worker.terminated).toBe(false);
     await vi.advanceTimersByTimeAsync(1);
     expect(worker.terminated).toBe(true);
+    await timedOut;
     mockDecodeHeicToBitmap.mockReset();
     vi.useRealTimers();
   });
