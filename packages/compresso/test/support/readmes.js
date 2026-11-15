@@ -49,6 +49,24 @@ const SCRIPT_FENCES = { js: 'js', javascript: 'js', mjs: 'js', jsx: 'jsx', ts: '
 const MARKUP_FENCES = ['html', 'vue', 'svelte'];
 
 /**
+ * The text inside each `<script …>…</script …>` element of a markup snippet,
+ * found by position rather than a pattern: the READMEs' own snippets, read
+ * for type-checking, not HTML from anywhere else.
+ */
+function scriptBodies(markup) {
+  const lower = markup.toLowerCase();
+  const bodies = [];
+  for (let at = lower.indexOf('<script'); at !== -1; at = lower.indexOf('<script', at)) {
+    const open = lower.indexOf('>', at);
+    const close = lower.indexOf('</script', open);
+    if (open === -1 || close === -1) break;
+    bodies.push(markup.slice(open + 1, close));
+    at = close + 1;
+  }
+  return bodies;
+}
+
+/**
  * The README's code snippets that hold JavaScript or TypeScript, as
  * `{ language, code }`, `language` being the extension to check it as:
  * script fences whole, and the `<script>` of an html, vue or svelte fence. A
@@ -60,7 +78,7 @@ export function snippets(text) {
     const language = SCRIPT_FENCES[fence.toLowerCase()];
     if (language) found.push({ language, code });
     if (MARKUP_FENCES.includes(fence.toLowerCase())) {
-      for (const [, script] of code.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) {
+      for (const script of scriptBodies(code)) {
         if (script.trim()) found.push({ language: 'js', code: script });
       }
     }
