@@ -55,9 +55,10 @@ const POOL_ON_MAIN_THREAD = row('ok', 'ok', 'ok', NO_WORKERS, NO_WORKERS, 'ok');
 /** Case key → the findings it exposes, where they reproduce, and (optionally) how. */
 export const KNOWN_FAILURES = {
   // COR-06: a returned source keeps its own bytes, but the result names another
-  // format. Firefox re-encodes these small sources instead of returning them.
+  // format. Firefox's encodes beat the GIF and HEIC sources, so it returns them
+  // re-encoded; no encode beats the SVG, so every engine returns that one.
   'corpus/animated.gif': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
-  'corpus/vector.svg': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
+  'corpus/vector.svg': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('format') },
   'corpus/sample.heic': { findings: ['COR-06'], where: ['chromium', 'webkit'], failsWith: liesAbout('format') },
   // A kept JPEG is named `jpg`, not the canonical `jpeg`.
   'corpus/photo-gps-compact.jpg': { findings: ['COR-06'], where: BROWSERS, failsWith: liesAbout('format') },
