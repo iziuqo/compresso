@@ -1,6 +1,6 @@
 {
   "name": "compresso.js",
-  "version": "1.1.0-beta.1",
+  "version": "1.1.0-beta.2",
   "description": "Small image optimizer that runs entirely in the browser: compress, resize and convert images before upload, with no server. About 5 KB gzipped with no runtime dependencies in its core, HEIC/HEIF input through an optional decoder, never-bigger output when it picks the format, and parallel Web Worker batching.",
   "type": "module",
   "main": "dist/compresso.cjs",
