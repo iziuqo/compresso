@@ -96,7 +96,7 @@
     "rollup": "^4.62.4",
     "size-limit": "^13.0.3",
     "typescript": "^5.9.2",
-    "vitest": "^4.1.12"
+    "vitest": "^5.1.0"
   },
   "optionalDependencies": {
     "heic-to": "^1.5.2"
