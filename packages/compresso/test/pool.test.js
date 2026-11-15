@@ -449,6 +449,68 @@ describe('resilience: crash and timeout recovery', () => {
     await expect(p2).resolves.toBeDefined();
   });
 
+  it('timeoutMs is the longest silence: a job that keeps reporting progress runs past it and finishes (PERF-01)', async () => {
+    vi.useFakeTimers();
+    const pool = createPool({ size: 1, timeoutMs: 1000 });
+    const onProgress = vi.fn();
+    const job = pool.compress(new Blob(['1']), { onProgress });
+    await vi.advanceTimersByTimeAsync(0);
+    const worker = MockWorker.instances[0];
+    const { id } = worker.posted[0];
+
+    // Five seconds of work, reporting every 900 ms: never 1000 ms of silence.
+    for (let t = 0; t < 5000; t += 900) {
+      await vi.advanceTimersByTimeAsync(900);
+      worker.respond({ type: 'progress', id, progress: t / 5000, stage: 'compressing' });
+    }
+    worker.respond({ type: 'done', id, result: doneResult() });
+    await expect(job).resolves.toBeDefined();
+    expect(onProgress).toHaveBeenCalledTimes(6);
+    expect(pool.stats()).toMatchObject({ recoveries: 0 });
+  });
+
+  it('a job that reports progress and then hangs is still stopped, and the pool runs the next job', async () => {
+    vi.useFakeTimers();
+    const pool = createPool({ size: 1, timeoutMs: 1000 });
+    const hung = pool.compress(new Blob(['1']));
+    const next = pool.compress(new Blob(['2']));
+    await vi.advanceTimersByTimeAsync(0);
+    const stuck = MockWorker.instances[0];
+    stuck.respond({ type: 'progress', id: stuck.posted[0].id, progress: 0.3, stage: 'resizing' });
+
+    const rejection = expect(hung).rejects.toMatchObject({ kind: 'timeout' });
+    await vi.advanceTimersByTimeAsync(999);
+    expect(stuck.terminated).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    await rejection;
+    expect(stuck.terminated).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(0);
+    const replacement = MockWorker.instances[1];
+    replacement.respond({ type: 'done', id: replacement.posted[0].id, result: doneResult() });
+    await expect(next).resolves.toBeDefined();
+  });
+
+  it('a bigger photo may stay silent longer: 48 MP gets four times timeoutMs', async () => {
+    // A JPEG header declaring 8000 × 6000, read by probe.js.
+    const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xc0, 0x00, 0x0b, 0x08, 0x17, 0x70, 0x1f, 0x40, 0x03]);
+    vi.useFakeTimers();
+    const pool = createPool({ size: 1, timeoutMs: 1000 });
+    const job = pool.compress(new Blob([jpeg], { type: 'image/jpeg' }));
+    await vi.advanceTimersByTimeAsync(0);
+    const worker = MockWorker.instances[0];
+    const { id } = worker.posted[0];
+    await vi.waitFor(() => expect(worker.posted).toHaveLength(1)); // let the header probe settle
+    worker.respond({ type: 'progress', id, progress: 0.1, stage: 'loading' });
+
+    await vi.advanceTimersByTimeAsync(3999);
+    expect(worker.terminated).toBe(false);
+    const rejection = expect(job).rejects.toMatchObject({ kind: 'timeout' });
+    await vi.advanceTimersByTimeAsync(1);
+    await rejection;
+    expect(worker.terminated).toBe(true);
+  });
+
   it('timeoutMs: Infinity disables the timeout entirely', async () => {
     vi.useFakeTimers();
     const pool = createPool({ size: 1, timeoutMs: Infinity });

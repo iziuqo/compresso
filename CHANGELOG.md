@@ -7,6 +7,13 @@ All notable changes to `compresso.js` are documented here. The format is based o
 ## [Unreleased]
 
 ### Fixed
+- **A long pool job that keeps working is no longer timed out.** `timeoutMs`
+  is now the longest a job may go without reporting progress, not the longest
+  it may run: the clock restarts on every progress message, and it scales with
+  the photo (a 48 MP photo gets four times the 12 MP allowance). A 48 MP photo
+  with `maxSizeMB` now finishes in the pool instead of failing at 30 s. A
+  worker that truly hangs is still stopped and replaced, and the pool carries
+  on with the next job.
 - **A format is used only when the browser proves it can encode it.** The
   check used to believe the label on the encoder's output, and Safari on iOS 26
   labels lossless bytes `image/avif` while ignoring quality, so the default

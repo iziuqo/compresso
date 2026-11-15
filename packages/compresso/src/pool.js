@@ -1,5 +1,6 @@
 import { compress as compressOne } from './compress.js';
 import { ensureCapabilities } from './platform.js';
+import { probeDimensions } from './probe.js';
 import { generateFileName } from './utils.js';
 
 /**
@@ -18,7 +19,15 @@ import { generateFileName } from './utils.js';
  * slot, forever. See `failSlot` below.
  */
 
+/**
+ * The longest a job may go without a progress message, for a photo up to
+ * PIXELS_PER_TIMEOUT; bigger photos get proportionally longer (PERF-01). A
+ * job that keeps reporting progress is never cut off, however long it takes.
+ */
 const DEFAULT_TIMEOUT_MS = 30_000;
+const PIXELS_PER_TIMEOUT = 12_000_000;
+/** Pixels per byte of a typical photo, for files whose header probe.js can't read (HEIC, AVIF). */
+const PIXELS_PER_BYTE = 6;
 /** Replacements for workers that crash one after another, before the pool gives up on workers. */
 const MAX_CRASH_REPLACEMENTS = 2;
 const DEFAULT_WORKER_URL = new URL('./worker.js', import.meta.url);
@@ -184,6 +193,7 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
     if (!slot?.task || slot.task.id !== msg.id) return;
 
     if (msg.type === 'progress') {
+      watch(slot);
       slot.task.options.onProgress?.({ progress: msg.progress, stage: msg.stage });
       return;
     }
@@ -241,14 +251,20 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
     for (const task of tasks) onMainThread(task.file, task.options).then(task.resolve, task.reject);
   }
 
+  /** (Re)start a busy slot's watchdog: the job has `timeoutMs`, scaled to its photo, until its next message. */
+  function watch(slot) {
+    clearTimeout(slot.timeoutHandle);
+    if (timeoutMs !== Infinity) {
+      slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), timeoutMs * slot.task.scale);
+    }
+  }
+
   function pump() {
     for (const slot of slots) {
       if (slot.task || queue.length === 0) continue;
       const task = queue.shift();
       slot.task = task;
-      if (timeoutMs !== Infinity) {
-        slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), timeoutMs);
-      }
+      watch(slot);
       slot.worker.postMessage({
         type: 'run', id: task.id, file: task.file, params: paramsFor(task.options), caps, heicToUrl: heicToUrlString,
       });
@@ -261,7 +277,13 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
         reject(poolError('Pool queue is full', 'queue-full'));
         return;
       }
-      queue.push({ id, file, options, resolve, reject });
+      const task = { id, file, options, scale: silenceScale(file?.size * PIXELS_PER_BYTE), resolve, reject };
+      // The header gives the real pixel count a moment later; the next
+      // progress message restarts the watchdog with it.
+      if (file instanceof Blob) {
+        probeDimensions(file).then((size) => size && (task.scale = silenceScale(size.width * size.height)), () => {});
+      }
+      queue.push(task);
       pump();
     });
   }
@@ -335,6 +357,9 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
 
   return { compress, compressMany, cancel, destroy, stats };
 }
+
+/** How many `timeoutMs` a job of this many pixels may stay silent: one per 12 MP, at least one (`|| 1`: a URL source). */
+const silenceScale = (pixels) => Math.max(1, pixels / PIXELS_PER_TIMEOUT || 1);
 
 function paramsFor(options) {
   const params = {};

@@ -150,7 +150,7 @@ pool.destroy();
 ```
 
 - **Same shape everywhere.** `createPool()` never throws for lack of Worker support (or a CSP that blocks worker construction) — it silently falls back to the exact same API on the main thread. You call it unconditionally; it decides how much parallelism the environment can actually offer.
-- **Self-healing.** A worker that crashes (OOM, driver fault) or goes silent past a per-job timeout — e.g. iOS backgrounding a tab — is detected and replaced automatically. `pool.stats().recoveries` tells you if it happened. A worker file that never loads, or a worker that keeps crashing, moves the pool to the main thread instead of retrying forever, and `pool.stats()` says so.
+- **Self-healing.** A worker that crashes (OOM, driver fault) or goes silent past its timeout — e.g. iOS backgrounding a tab — is detected and replaced automatically. `pool.stats().recoveries` tells you if it happened. A worker file that never loads, or a worker that keeps crashing, moves the pool to the main thread instead of retrying forever, and `pool.stats()` says so.
 - **Never a whole-batch failure.** `compressMany()` results are `Promise.allSettled`-shaped — one file failing doesn't sink the other 49.
 
 Full API (`createPool` options, `pool.stats()`, CSP requirements) is in the [package README](packages/compresso/README.md#batch--workers).
