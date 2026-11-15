@@ -3,6 +3,8 @@ import { decode, encode, ensureCapabilities } from './platform.js';
 import { calculateDimensions, renderToCanvas } from './resize.js';
 import { isAnimated, probeDimensions, sniffFormat } from './probe.js';
 import { planPhoto } from './plan.js';
+import { assertBrowserEnvironment } from './environment.js';
+import { decodeHeicToBitmap } from './heic.js';
 
 /**
  * Ceiling on decodable input resolution (width × height). A crafted file can
@@ -61,14 +63,16 @@ const MAX_CANVAS_EDGE = 32767;
 /** The smallest long edge the canvas step-down tries before giving up (px), the planner's own floor. */
 const MIN_CANVAS_EDGE = 480;
 
-export async function compress(source, options = {}) {
-  // Fail clearly, once, up front — rather than deep inside the pipeline on a
-  // confusing "X is not a function" — if called somewhere that is neither a
-  // browser main thread nor a Web Worker (e.g. Node.js, or a framework's SSR
-  // pass). Guard call sites with `typeof window !== 'undefined'` instead.
-  if (typeof Image === 'undefined' && typeof OffscreenCanvas === 'undefined') {
-    throw new Error('compresso.js requires a browser or Web Worker environment, not Node.js or server-side rendering');
-  }
+/** Compress one image. HEIC that native decoding can't read goes through the app's own `heic-to`. */
+export const compress = (source, options) => compressWithHeicDecoder(decodeHeicToBitmap, source, options);
+
+/**
+ * The pipeline, with the decoder for HEIC that native decoding can't read
+ * passed in: `heic-to` on the page, a request to the page in a pool worker,
+ * so the worker's own bundle never reaches the codec.
+ */
+export async function compressWithHeicDecoder(decodeHeic, source, options = {}) {
+  assertBrowserEnvironment();
 
   const opts = { ...DEFAULTS, ...options };
   throwIfAborted(opts.signal);
@@ -113,7 +117,7 @@ export async function compress(source, options = {}) {
       throw tooLargeError();
     }
   }
-  const { image, width: originalWidth, height: originalHeight } = await decode(source);
+  const { image, width: originalWidth, height: originalHeight } = await decode(source, decodeHeic);
   throwIfAborted(opts.signal);
 
   // Post-decode: defense-in-depth, and the only guard for HEIC/AVIF/URL sources,

@@ -55,9 +55,10 @@ The finished report is also `window.labReport`, and the page sets
   `../dist/compresso.pool.mjs`, as a page without a bundler would, and
   registers the checks. If it fails to load or parse, the page says "library
   did not load" with the error.
-- An import map points the main thread's `import('heic-to')` at
-  `dist/heic-to.js`, which is how a host without a bundler serves HEIC
-  decoding.
+- An import map points `import('heic-to')` at `../heic-to/heic-to.js`
+  (beside `lab/`), a copy of the `heic-to` package's own `dist/heic-to.js`, which is how a host
+  without a bundler serves HEIC decoding. The page decodes HEIC for the pool's
+  workers too, so this one file serves both.
 - Generated images are drawn with `putImageData` from integer hashes, so
   every browser encodes exactly the same pixels and sizes compare across
   browsers.

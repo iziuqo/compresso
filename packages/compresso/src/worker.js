@@ -1,4 +1,5 @@
-import { compress, __setCapabilities, __setHeicToUrl } from './index.js';
+import { compressWithHeicDecoder } from './compress.js';
+import { __setCapabilities } from './platform.js';
 
 /**
  * One compression worker. It holds no state beyond in-flight aborts — the
@@ -15,6 +16,23 @@ import { compress, __setCapabilities, __setHeicToUrl } from './index.js';
  */
 
 const aborts = new Map();
+/**
+ * Job id → the page decode it waits on. More than one can wait: a job the
+ * pool cancelled while it waited is still answered, while the worker already
+ * runs the next job.
+ */
+const heicDecodes = new Map();
+
+/**
+ * HEIC that native decoding can't read is decoded on the page, by the app's
+ * own `heic-to`, and handed back as an `ImageBitmap`: this file never
+ * imports the codec, so an app's bundler emits it once (PKG-05).
+ */
+const decodeHeicOnPage = (id) => (blob) => new Promise((resolve, reject) => {
+  heicDecodes.set(id, { settle: ({ image, message }) => (image ? resolve(image) : reject(new Error(message))) });
+  // The bytes this worker already has, so a URL source isn't fetched twice.
+  post({ type: 'decode-heic', id, blob });
+});
 
 function post(message) {
   self.postMessage(message);
@@ -23,21 +41,25 @@ function post(message) {
 self.onmessage = async (event) => {
   const msg = event.data;
 
+  // An answer for a job that has finished frees its bitmap now.
+  if (msg.type === 'heic-decoded') {
+    const pending = heicDecodes.get(msg.id);
+    return pending ? pending.settle(msg) : msg.image?.close();
+  }
   if (msg.type === 'abort') {
     aborts.get(msg.id)?.abort();
     aborts.delete(msg.id);
     return;
   }
 
-  const { id, file, params, caps, heicToUrl } = msg;
+  const { id, file, params, caps } = msg;
   __setCapabilities(caps);
-  __setHeicToUrl(heicToUrl);
 
   const controller = new AbortController();
   aborts.set(id, controller);
 
   try {
-    const result = await compress(file, {
+    const result = await compressWithHeicDecoder(decodeHeicOnPage(id), file, {
       ...params,
       signal: controller.signal,
       onProgress: ({ progress, stage }) => post({ type: 'progress', id, progress, stage }),
@@ -61,6 +83,7 @@ self.onmessage = async (event) => {
     post({ type: 'error', id, message, kind });
   } finally {
     aborts.delete(id);
+    heicDecodes.delete(id);
   }
 };
 

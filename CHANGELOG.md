@@ -91,6 +91,25 @@ All notable changes to `compresso.js` are documented here. The format is based o
   separate `compress()` calls included, the same way a pool that gave up on
   its workers does.
 
+- **Parcel builds an app that imports `compresso.js/pool` with its defaults.**
+  Parcel ignores the exports map unless told otherwise, so `pool/` and
+  `plan/` folders now point it, and Node's older resolution, at the builds.
+  Pool HEIC works there too.
+- **webpack and Rspack build the package without a warning.** The
+  `Critical dependency: the request of a dependency is an expression`
+  warning came from the worker's codec import, which is gone.
+- **`decodeHeic()` fails clearly outside a browser**, with the same error as
+  `compress()`; in Node it threw `Worker is not defined`, and in Bun it never
+  settled. It also works inside a Web Worker. When `heic-to` fails to load,
+  the error now says why, a blocked or failed chunk load included, and
+  carries the original as `cause`.
+- **A HEIC that fails to decode rejects with an Error that says why**
+  (`HEIC decoding failed: …`), on the main thread and in the pool. `heic-to`
+  rejects with a bare string, or with nothing when its own worker is blocked.
+- **The Content-Security-Policy docs name what HEIC decoding really needs**:
+  `'unsafe-eval'` in `script-src` and `blob:` in `worker-src`. The
+  `'wasm-unsafe-eval'` they gave isn't enough for `heic-to`'s default build.
+
 ### Added
 - **`pool.stats()` reports `mode` and `reason`**: whether the pool runs on
   workers or the main thread, and why (`workers-unsupported`,
@@ -120,10 +139,26 @@ All notable changes to `compresso.js` are documented here. The format is based o
   another format). Size budgets rise to
   match: main entry 5 kB, pool 6.25 kB, worker 5 kB (from 4, 5.25 and 4),
   and a quarter of a kB more each for the animation check (5.25, 6.5, 5.25).
-- **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**
-  (libheif 1.23.7, up from 1.5.2 and libheif 1.22.2). Same API, same
-  LGPL-3.0 licence; the file grows from about 3.0 MB to 3.2 MB and still loads
-  only when a HEIC file reaches a worker. The `heic-to` range stays `^1.5.2`.
+- **The HEIC codec no longer ships inside compresso.js** (decision O1).
+  `dist/heic-to.js` and its 3 MB source map are gone. HEIC that the browser
+  can't decode natively goes through your app's own `heic-to`, the optional
+  dependency npm installs beside compresso.js as its own LGPL-3.0 package
+  (see `THIRD-PARTY-NOTICES.md`), straight to a bitmap with no PNG round trip.
+  In the pool, a worker that can't decode a HEIC asks the page, which decodes
+  it and hands the worker the bitmap. Workers never import the codec, so an
+  app's bundler now emits one codec chunk, from its own `heic-to`, where
+  Vite, webpack, Rspack and Parcel emitted three. Taking the decoded pixels
+  on the page pauses it briefly: about 80 ms for a 12 MP photo in Chromium.
+  `heic-to` decodes in one worker of its own, so the pool's HEIC decodes run
+  one at a time, and a job's timeout allows for its wait. Safari decodes HEIC
+  natively and skips all of this.
+- **The package is 0.3 MB unpacked, from 7 MB.** Besides the codec, the
+  source maps no longer embed the sources: they point at `src/`, which now
+  ships once beside `dist/`, so devtools still show the original code.
+
+### Deprecated
+- **The pool's `heicToUrl` option does nothing.** Workers no longer load the
+  HEIC codec. It is still accepted, so existing code keeps working.
 
 ## [1.1.0-beta.1] — 2026-11-12
 

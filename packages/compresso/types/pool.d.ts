@@ -19,10 +19,9 @@ export interface PoolOptions {
    */
   workerUrl?: string | URL;
   /**
-   * Override where a worker loads the lazy HEIC codec chunk from — the same
-   * class of escape hatch as `workerUrl`, for the same class of bundler/
-   * hosting edge case. Most hosts never need this. Default: the built HEIC
-   * codec chunk shipped alongside `pool.js`/`worker.js`.
+   * @deprecated Since 1.1 this does nothing: workers no longer load the HEIC
+   * codec. The page decodes HEIC for them with the app's own `heic-to`.
+   * Still accepted, so existing code keeps working.
    */
   heicToUrl?: string | URL;
   /**

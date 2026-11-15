@@ -1,0 +1,5 @@
+{
+  "main": "../dist/compresso.pool.mjs",
+  "module": "../dist/compresso.pool.mjs",
+  "types": "../types/pool.d.ts"
+}

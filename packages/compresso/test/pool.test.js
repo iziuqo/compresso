@@ -6,6 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // in plain Node against a dependency-injected mock Worker, matching this
 // project's established mocking style (see compress-guard.test.js).
 vi.mock('../src/compress.js', async (importOriginal) => ({ ...(await importOriginal()), compress: vi.fn() }));
+// The page decodes HEIC for its workers with heic.js's decodeHeicToBitmap.
+vi.mock('../src/heic.js', async (importOriginal) => ({ ...(await importOriginal()), decodeHeicToBitmap: vi.fn() }));
 vi.mock('../src/platform.js', () => ({
   ensureCapabilities: vi.fn().mockResolvedValue({ avif: false, webp: false }),
   capabilities: () => ({ avif: false, webp: false }),
@@ -13,6 +15,7 @@ vi.mock('../src/platform.js', () => ({
 
 const { compress: mockCompressOne } = await import('../src/compress.js');
 const { ensureCapabilities: mockEnsureCapabilities } = await import('../src/platform.js');
+const { decodeHeicToBitmap: mockDecodeHeicToBitmap } = await import('../src/heic.js');
 const { isPoolSupported, defaultPoolSize, createPool } = await import('../src/pool.js');
 
 /** A dependency-injected stand-in for the real `Worker`, per §7.2. */
@@ -24,13 +27,15 @@ class MockWorker {
     this.onerror = null;
     this.onmessageerror = null;
     this.posted = [];
+    this.transferred = [];
     this.terminated = false;
     MockWorker.instances.push(this);
     // The real worker.js posts `ready` once its module has loaded.
     if (MockWorker.loads) queueMicrotask(() => this.respond({ type: 'ready' }));
   }
-  postMessage(msg) {
+  postMessage(msg, transfer) {
     this.posted.push(msg);
+    this.transferred.push(transfer);
   }
   terminate() {
     this.terminated = true;
@@ -74,6 +79,7 @@ beforeEach(() => {
   MockWorker.loads = true;
   mockCompressOne.mockReset();
   mockEnsureCapabilities.mockClear();
+  mockDecodeHeicToBitmap.mockReset();
 });
 
 afterEach(() => {
@@ -213,18 +219,54 @@ describe('createPool() — real worker pool', () => {
       file,
       params: { quality: 0.5, format: 'jpeg' },
       caps: { avif: true, webp: false },
-      heicToUrl: expect.any(String),
     });
   });
 
-  it('lets a host override where the worker imports the lazy HEIC codec from', async () => {
+  it('still accepts the deprecated heicToUrl, which does nothing: workers no longer load the codec', async () => {
     const pool = createPool({ size: 1, heicToUrl: 'https://example.com/heic-to.js' });
     const file = new Blob(['x']);
 
     pool.compress(file, {});
     await vi.waitFor(() => expect(MockWorker.instances[0].posted).toHaveLength(1));
 
-    expect(MockWorker.instances[0].posted[0].heicToUrl).toBe('https://example.com/heic-to.js');
+    expect(MockWorker.instances).toHaveLength(1);
+    expect(MockWorker.instances[0].posted[0]).not.toHaveProperty('heicToUrl');
+  });
+
+  it('decodes HEIC on the page when its worker asks, and hands the worker the bitmap', async () => {
+    const bitmap = { width: 4, height: 3 };
+    mockDecodeHeicToBitmap.mockResolvedValueOnce(bitmap);
+    const pool = createPool({ size: 1 });
+    const file = new File([new Blob(['heic'])], 'IMG_0001.HEIC');
+
+    const promise = pool.compress(file);
+    await vi.waitFor(() => expect(MockWorker.instances[0].posted).toHaveLength(1));
+    const worker = MockWorker.instances[0];
+    // The worker sends the bytes it has, so a URL source isn't fetched twice.
+    const bytes = new Blob(['heic bytes']);
+    worker.respond({ type: 'decode-heic', id: 'job-1', blob: bytes });
+
+    await vi.waitFor(() => expect(worker.posted).toHaveLength(2));
+    expect(mockDecodeHeicToBitmap).toHaveBeenCalledWith(bytes);
+    expect(worker.posted[1]).toEqual({ type: 'heic-decoded', id: 'job-1', image: bitmap });
+    // Transferred, not copied: the worker owns the decoded pixels.
+    expect(worker.transferred[1]).toEqual([bitmap]);
+
+    worker.respond({ type: 'done', id: 'job-1', result: doneResult() });
+    await expect(promise).resolves.toMatchObject({ compressedSize: 500 });
+  });
+
+  it('tells the worker why a page-side HEIC decode failed, so the job rejects with the real cause', async () => {
+    mockDecodeHeicToBitmap.mockRejectedValueOnce(new Error("HEIC input needs the optional 'heic-to' package"));
+    const pool = createPool({ size: 1 });
+
+    pool.compress(new Blob(['heic']));
+    await vi.waitFor(() => expect(MockWorker.instances[0].posted).toHaveLength(1));
+    const worker = MockWorker.instances[0];
+    worker.respond({ type: 'decode-heic', id: 'job-1', blob: new Blob(['heic']) });
+
+    await vi.waitFor(() => expect(worker.posted).toHaveLength(2));
+    expect(worker.posted[1]).toEqual({ type: 'heic-decoded', id: 'job-1', message: "HEIC input needs the optional 'heic-to' package" });
   });
 
   it('resolves with a reconstructed CompressResult (file + url) on a done message', async () => {
@@ -447,6 +489,26 @@ describe('resilience: crash and timeout recovery', () => {
     const newId = MockWorker.instances[1].posted[0].id;
     MockWorker.instances[1].respond({ type: 'done', id: newId, result: doneResult() });
     await expect(p2).resolves.toBeDefined();
+  });
+
+  it('timeoutMs allows a page HEIC decode to wait behind every other worker\'s, and stays bounded', async () => {
+    vi.useFakeTimers();
+    mockDecodeHeicToBitmap.mockReturnValue(new Promise(() => {}));
+    const pool = createPool({ size: 2, timeoutMs: 1000 });
+    const timedOut = expect(pool.compress(new Blob(['heic']))).rejects.toThrow(/timed out/);
+    await vi.advanceTimersByTimeAsync(0);
+    const worker = MockWorker.instances.find((w) => w.posted.length);
+    const { id } = worker.posted[0];
+    worker.respond({ type: 'decode-heic', id, blob: new Blob(['heic']) });
+
+    // Two workers: two turns of timeoutMs.
+    await vi.advanceTimersByTimeAsync(1999);
+    expect(worker.terminated).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(worker.terminated).toBe(true);
+    await timedOut;
+    mockDecodeHeicToBitmap.mockReset();
+    vi.useRealTimers();
   });
 
   it('timeoutMs is the longest silence: a job that keeps reporting progress runs past it and finishes (PERF-01)', async () => {

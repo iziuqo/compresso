@@ -455,7 +455,7 @@ Full working versions: [`examples/nextjs/UploadForm.jsx`](examples/nextjs/Upload
 
 With `format: 'auto'`, Compresso picks the best format each browser supports. Safari can't *encode* WebP/AVIF from a canvas, so it falls back to JPEG — and Compresso caps resolution there to keep the file small (see the never-bigger guarantee).
 
-**HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression).
+**HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression). `heic-to` is an optional dependency under the LGPL-3.0, installed beside compresso.js as its own package and never bundled into it; see [THIRD-PARTY-NOTICES.md](packages/compresso/THIRD-PARTY-NOTICES.md).
 
 Every pull request runs the tests in Chromium, Firefox and WebKit and on Node 22, 24 and 26, and the device lab in iPhone Safari on the oldest and newest iOS simulators. This project is tested with BrowserStack. Its real iPhones, Android phones and Macs cover what simulators cannot.
 
@@ -463,7 +463,8 @@ Every pull request runs the tests in Chromium, Firefox and WebKit and on Node 22
 
 Compresso itself needs nothing beyond `script-src 'self'`. The one exception is **HEIC/HEIF input on non-Safari browsers**, which lazily loads the `heic-to` WASM decoder — a strict CSP needs a couple of extra directives for that path specifically:
 
-- **`script-src`: add `'wasm-unsafe-eval'`** (fall back to `'unsafe-eval'` for older browsers that don't yet support the narrower directive). WebAssembly compilation is blocked without one of these, and the failure otherwise surfaces as an opaque WASM error rather than an obvious CSP violation.
+- **`script-src`: add `'unsafe-eval'`.** `heic-to`'s default build doesn't run with the narrower `'wasm-unsafe-eval'` alone (tested in Chromium).
+- **`worker-src`: add `blob:`.** `heic-to` decodes in a worker it starts from a `blob:` URL. A blocked decode rejects with `HEIC decoding failed`, and the decoder then stays broken for the rest of that page.
 - **`worker-src 'self'`** (plus `child-src 'self'` as a fallback for browsers that predate `worker-src`) if you use `compresso.js/pool` for batch compression — it runs a same-origin module Worker (`new Worker(new URL('./worker.js', import.meta.url))`), no third-party origin involved.
 - **`img-src` needs `blob:`** if you render `result.url` directly in an `<img>` — it's an object URL, not an http(s) URL.
 - Using the CDN build (`<script src="https://unpkg.com/compresso.js/...">`) instead of installing from npm? Add `unpkg.com` to `script-src` too, or self-host the file to avoid a third-party origin in your policy.
@@ -473,7 +474,7 @@ Everything else — the core compressor, `compress()`, `compressMultiple()` — 
 Example policy covering both the pool and HEIC input:
 
 ```
-Content-Security-Policy: script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; img-src 'self' blob:;
+Content-Security-Policy: script-src 'self' 'unsafe-eval'; worker-src 'self' blob:; img-src 'self' blob:;
 ```
 
 ## FAQ
@@ -497,7 +498,7 @@ Yes — it's framework-agnostic. See [Framework Examples](#framework-examples).
 Import `createPool` from `compresso.js/pool` instead of using `compress()` directly — it runs a Web Worker pool with the same API, falling back to the main thread automatically where Workers aren't available. See [Batch & Parallel Compression](#batch--parallel-compression).
 
 ### My site has a strict CSP — why does HEIC input fail?
-It's almost always a missing `'wasm-unsafe-eval'` in `script-src` (the HEIC decoder is WASM-based), or a missing `worker-src 'self'` if you're using `compresso.js/pool`. See [Content-Security-Policy](#content-security-policy-csp) for a full policy example.
+It's almost always a missing `'unsafe-eval'` in `script-src` or `blob:` in `worker-src`, both of which the HEIC decoder needs, or a missing `worker-src 'self'` if you're using `compresso.js/pool`. See [Content-Security-Policy](#content-security-policy-csp) for a full policy example.
 
 ## How It Works
 

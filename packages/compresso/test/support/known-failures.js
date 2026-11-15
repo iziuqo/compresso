@@ -44,13 +44,15 @@ export const matrixRow = (row) => (error) => {
 /** A `failsWith` for a list check: true when the failed assertion saw exactly `list`. */
 export const saw = (list) => (error) => JSON.stringify(error?.actual) === JSON.stringify(list);
 
-/** The bundler matrix's columns: the build, the page load, then each check in test/bundlers/app.js. */
-export const MATRIX = ['build', 'load', 'mainJpeg', 'poolJpeg', 'poolHeic', 'mainHeic'];
+/** The bundler matrix's columns: the build, the page load, each check in test/bundlers/app.js, then the build's warnings. */
+export const MATRIX = ['build', 'load', 'mainJpeg', 'poolJpeg', 'poolHeic', 'mainHeic', 'warnings'];
 
 /** A matrix row: the given cells in column order, the rest `NOT_RUN`. */
 const row = (...cells) => Object.fromEntries(MATRIX.map((key, i) => [key, cells[i] ?? NOT_RUN]));
 const NO_WORKERS = /ran without real workers/;
-const POOL_ON_MAIN_THREAD = row('ok', 'ok', 'ok', NO_WORKERS, NO_WORKERS, 'ok');
+const POOL_ON_MAIN_THREAD = ['ok', 'ok', 'ok', NO_WORKERS, NO_WORKERS, 'ok'];
+/** esbuild's warning about the exports map listing `types` last (PKG-07). */
+const TYPES_LAST = /The condition "types" here will never be used/;
 
 /** Case key → the findings it exposes, where they reproduce, and (optionally) how. */
 export const KNOWN_FAILURES = {
@@ -87,16 +89,16 @@ export const KNOWN_FAILURES = {
       'FallbackCondition ./pool bundler', 'FallbackCondition ./pool node16-esm',
       'FalseESM types/index.d.ts', 'FalseESM types/plan.d.ts',
       'InternalResolutionError types/pool.d.ts',
-      'NoResolution ./plan node10', 'NoResolution ./pool node10',
     ]),
   },
   // The pool can't find its worker file, so it compresses on the main thread.
-  'bundler/rollup': { findings: ['PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_ON_MAIN_THREAD) },
-  'bundler/esbuild-esm': { findings: ['PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_ON_MAIN_THREAD) },
+  'bundler/rollup': { findings: ['PKG-02'], where: ['chromium'], failsWith: matrixRow(row(...POOL_ON_MAIN_THREAD, 'ok')) },
+  'bundler/esbuild-esm': { findings: ['PKG-02', 'PKG-07'], where: ['chromium'], failsWith: matrixRow(row(...POOL_ON_MAIN_THREAD, TYPES_LAST)) },
   // Importing the pool resolves a URL against `import.meta.url`, which an IIFE lacks.
-  'bundler/esbuild-iife': { findings: ['PKG-03'], where: ['chromium'], failsWith: matrixRow(row('ok', /Failed to construct 'URL'/)) },
-  // Parcel ignores the exports map by default, so `compresso.js/pool` doesn't resolve.
-  'bundler/parcel': { findings: ['PKG-04'], where: ['chromium'], failsWith: matrixRow(row(/Failed to resolve 'compresso\.js\/pool'/)) },
+  'bundler/esbuild-iife': {
+    findings: ['PKG-03', 'PKG-07'], where: ['chromium'],
+    failsWith: matrixRow(row('ok', /Failed to construct 'URL'/, NOT_RUN, NOT_RUN, NOT_RUN, NOT_RUN, TYPES_LAST)),
+  },
 
   // test/lab: the device lab page's checks (lab/checks.mjs). iPhone Safari:
   // iOS 26's canvas labels bytes that aren't AVIF as image/avif and ignores
