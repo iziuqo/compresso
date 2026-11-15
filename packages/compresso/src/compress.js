@@ -89,10 +89,12 @@ export async function compress(source, options = {}) {
     reason = 'unsupported-format';
   }
   let mimeType = formatToMime(format);
+  // What the source really is: its bytes, else its type or name.
+  const sourceFormat = (source instanceof Blob ? await sniffFormat(source) : null) ?? (source && detectFormat(source));
   // A conversion the caller asked for is honoured even when the file grows,
   // and the result shows it (O4). `auto`, a fallback, and a source already in
   // the asked format never grow.
-  const converting = opts.format !== 'auto' && !reason && detectFormat(source) !== format;
+  const converting = opts.format !== 'auto' && !reason && sourceFormat !== format;
   const bgColor = mimeType === 'image/jpeg' ? opts.backgroundColor : null;
 
   report(opts, 0.1, 'loading');
@@ -183,22 +185,25 @@ export async function compress(source, options = {}) {
     { signal: opts.signal, onProgress: (step) => report(opts, 0.5 + step * 0.4, 'compressing') }
   );
   let { result: blob, kept, missedTarget } = decision;
-  // Named by what the bytes are (COR-02, COR-06): a canvas may label bytes as a
-  // format it can't encode, and a kept source is whatever it is.
-  const real = (await sniffFormat(blob)) ?? (kept ? detectFormat(source) : null) ?? format;
+  // Named by what the bytes are (COR-02, COR-06): a canvas may label bytes as
+  // a format it can't encode, and a kept source is whatever it is, a format
+  // this library doesn't know (BMP, say) included.
   if (kept) {
-    // Kept: no encode beat the source, which comes back as itself.
     reason = 'not-smaller';
-    mimeType = source.type || formatToMime(real);
-    // An untyped source still comes back labelled, as its file is.
-    if (blob.type !== mimeType) blob = new Blob([blob], { type: mimeType });
+    format = sourceFormat ?? (source.type?.split('/')[1] || '');
+    mimeType = sourceFormat ? formatToMime(sourceFormat) : source.type || '';
     width = originalWidth;
     height = originalHeight;
-  } else if (real !== format) {
-    reason = 'unsupported-format';
-    mimeType = formatToMime(real);
+  } else {
+    const real = await sniffFormat(blob);
+    if (real && real !== format) {
+      reason = 'unsupported-format';
+      format = real;
+      mimeType = formatToMime(real);
+    }
   }
-  format = real;
+  // The blob is labelled as its bytes are, an untyped kept source included.
+  if (blob.type !== mimeType) blob = new Blob([blob], { type: mimeType });
   throwIfAborted(opts.signal);
 
   report(opts, 1, 'done');

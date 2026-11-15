@@ -19,7 +19,7 @@ and each one describes the bytes in `blob`:
 
 | Field | Meaning |
 | --- | --- |
-| `format` | The format the bytes really are, read from their signature, in canonical names: `jpeg`, `png`, `webp`, `avif`, and for a kept source its own `gif`, `heic` or `svg`. Never `jpg` or `heif`. |
+| `format` | The format the bytes really are, read from their signature, in canonical names: `jpeg`, `png`, `webp`, `avif`, and for a kept source its own `gif`, `heic` or `svg`. Never `jpg` or `heif`. A kept source in a format the library doesn't know keeps its own type's name (`bmp`), or `''` when it has none. |
 | `mimeType` | That format's MIME type; `blob.type` and `file.type` are the same. |
 | `kept` | `true` when the source itself came back, byte for byte. |
 | `reason` | Why the result isn't exactly what was asked, or `null` when it is. |
@@ -31,21 +31,28 @@ and each one describes the bytes in `blob`:
 - `'unsupported-format'`: this browser can't encode the asked format, so the
   result is in the best format it can encode.
 
+When both apply, `'not-smaller'` wins: the bytes are the source's, whatever
+was asked.
+
 B6 and B7 add `'animated'` and `'vector'` for animated images and SVG, which
 come back kept. Later reasons are added the same way; code that reads
 `reason` treats an unknown one as "not what was asked".
 
-A kept result is the source: its own bytes, file name, MIME type, width and
-height. An untyped source (an iPhone HEIC often has no type) comes back
-labelled with the type its name or bytes give.
+A kept result is the source: its own bytes, file name, width and height,
+and the MIME type its bytes give. An untyped source (an iPhone HEIC often has
+no type) comes back labelled. A source whose name or label says another
+format than its bytes (JPEG bytes in `photo.png`) comes back named and
+labelled as what it is.
 
 ## Explicit formats (O4)
 
 - `format: 'auto'` never returns a bigger file.
 - An explicit format is always honoured, at the asked quality, and the result
   shows when the file grew: `savings` is negative.
-- A source already in the asked format is kept when re-encoding can't shrink
-  it, so that case never grows either.
+- A source already in the asked format, judged by its bytes, is kept when
+  re-encoding can't shrink it, so that case never grows either. PNG is the
+  exception, as before: it is lossless and ignores quality, so only
+  `maxSizeMB` caps it.
 - A format the browser can't encode falls back to the best one it can, with
   `reason: 'unsupported-format'`.
 

@@ -29,10 +29,10 @@ function loadElement(source) {
     } else if (source instanceof Blob) {
       const url = URL.createObjectURL(source);
       img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image from Blob')); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Failed to load image')); };
       img.src = url;
     } else {
-      reject(new Error('Invalid source: expected File, Blob, or URL string'));
+      reject(new Error('Invalid source: expected a File, Blob or URL'));
     }
   });
 }

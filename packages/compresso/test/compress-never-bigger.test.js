@@ -109,6 +109,48 @@ describe('compress() — the never-bigger guarantee', () => {
       .toEqual([true, 'heic', 'image/heic', 'image/heic', 'IMG_0001.HEIC', 'image/heic']);
   });
 
+  it('names a kept source by its bytes, not its label or name (COR-06)', async () => {
+    const jpeg = new Uint8Array(1000);
+    jpeg.set([0xff, 0xd8, 0xff, 0xe0]);
+    encode.mockImplementation(async () => blobOfSize(1500, 'image/jpeg'));
+
+    const result = await compress(new File([jpeg], 'pic.png', { type: 'image/png' }));
+
+    expect([result.kept, result.format, result.mimeType, result.blob.type, result.file.name])
+      .toEqual([true, 'jpeg', 'image/jpeg', 'image/jpeg', 'pic.jpg']);
+  });
+
+  it('never names a kept source of a format it does not know after the target', async () => {
+    encode.mockImplementation(async () => blobOfSize(1500, 'image/jpeg'));
+
+    const typed = await compress(blobOfSize(1000, 'image/bmp'));
+    const untyped = await compress(blobOfSize(1000, ''));
+
+    expect([typed.kept, typed.format, typed.mimeType, typed.blob.type]).toEqual([true, 'bmp', 'image/bmp', 'image/bmp']);
+    expect([untyped.kept, untyped.format, untyped.mimeType, untyped.blob.type]).toEqual([true, '', '', '']);
+  });
+
+  it('labels the blob as its bytes when the encoder returned another format (COR-02)', async () => {
+    const png = new Uint8Array(500);
+    png.set([0x89, 0x50, 0x4e, 0x47]);
+    encode.mockImplementation(async () => new Blob([png], { type: 'image/jpeg' }));
+
+    const result = await compress(blobOfSize(1000, 'image/webp'), { format: 'jpeg' });
+
+    expect([result.format, result.mimeType, result.blob.type, result.file.type, result.reason])
+      .toEqual(['png', 'image/png', 'image/png', 'image/png', 'unsupported-format']);
+  });
+
+  it('judges "already in the asked format" by the bytes, so an untyped JPEG never grows', async () => {
+    const jpeg = new Uint8Array(1000);
+    jpeg.set([0xff, 0xd8, 0xff, 0xe0]);
+    encode.mockImplementation(async () => blobOfSize(1500, 'image/jpeg'));
+
+    const result = await compress(new Blob([jpeg]), { format: 'jpeg' });
+
+    expect([result.kept, result.reason, result.compressedSize]).toEqual([true, 'not-smaller', 1000]);
+  });
+
   it('a format this browser can\'t encode falls back to the best one it can, and says so (O4)', async () => {
     encode.mockImplementation(async () => blobOfSize(500, 'image/jpeg'));
 

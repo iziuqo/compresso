@@ -108,7 +108,8 @@ describe('probeDimensions — synthetic fixtures (always run, no corpus needed)'
 describe('sniffFormat — what the bytes are, whatever their label says (COR-02)', () => {
   const ascii = (text) => [...text].map((c) => c.charCodeAt(0));
   const blob = (...bytes) => new Blob([new Uint8Array(bytes.flat())], { type: 'image/avif' });
-  const ftyp = (brand) => blob([0, 0, 0, 0x18], ascii('ftyp'), ascii(brand), [0, 0, 0, 0], ascii('mif1'));
+  // An ftyp box: its size, the major brand, a minor version, then the compatible brands.
+  const ftyp = (major, ...compatible) => blob([0, 0, 0, 16 + 4 * compatible.length], ascii('ftyp'), ascii(major), [0, 0, 0, 0], ...compatible.map(ascii));
 
   it('names each format by its magic numbers', async () => {
     await expect(sniffFormat(blob([0xff, 0xd8, 0xff, 0xe0]))).resolves.toBe('jpeg');
@@ -118,10 +119,21 @@ describe('sniffFormat — what the bytes are, whatever their label says (COR-02)
   });
 
   it('tells AVIF from HEIC by the ftyp brands', async () => {
-    await expect(sniffFormat(ftyp('avif'))).resolves.toBe('avif');
+    await expect(sniffFormat(ftyp('avif', 'mif1', 'miaf'))).resolves.toBe('avif');
     await expect(sniffFormat(ftyp('avis'))).resolves.toBe('avif');
     await expect(sniffFormat(ftyp('heic'))).resolves.toBe('heic');
     await expect(sniffFormat(ftyp('hevc'))).resolves.toBe('heic');
+    await expect(sniffFormat(ftyp('mif1', 'heic'))).resolves.toBe('heic');
+  });
+
+  it('finds an AVIF brand anywhere in the ftyp box, not just the first few', async () => {
+    await expect(sniffFormat(ftyp('mif1', 'miaf', 'MA1B', 'iso8', 'avif'))).resolves.toBe('avif');
+  });
+
+  it('reads no brands past the ftyp box', async () => {
+    const box = await ftyp('isom', 'iso2').arrayBuffer();
+    const next = new Uint8Array([0, 0, 0, 16, ...ascii('free'), ...ascii('heicavif')]);
+    await expect(sniffFormat(new Blob([box, next]))).resolves.toBeNull();
   });
 
   it('does not take another ISOBMFF file, such as an MP4, for an image', async () => {

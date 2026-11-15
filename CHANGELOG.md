@@ -94,9 +94,10 @@ All notable changes to `compresso.js` are documented here. The format is based o
   written at the asked quality even when the file grows, and a negative
   `savings` shows it; it used to return the untouched source in its own
   format.
-- **Shorter error messages** for a non-browser environment and for HEIC's
-  optional decoder; the README's HEIC and Content-Security-Policy sections
-  carry the detail.
+- **Shorter error messages** for a non-browser environment, HEIC's optional
+  decoder and a source that won't load (one message, `Failed to load image`,
+  for a URL and a Blob alike); the README's HEIC and Content-Security-Policy
+  sections carry the detail.
 - **`compress()` and `compresso.js/plan` share one engine.** `compress()` now
   runs the same `planPhoto` planner the apps use, through a canvas host, so
   the browser and the apps decide quality, size and never-bigger alike. The

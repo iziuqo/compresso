@@ -22,16 +22,16 @@ export async function probeDimensions(blob) {
  * never by a label.
  */
 export async function sniffFormat(blob) {
-  return formatOf(await bytes(blob, 32));
+  return formatOf(await bytes(blob, 64));
 }
 
 const bytes = async (blob, length) => new Uint8Array(await blob.slice(0, length).arrayBuffer());
 
 // An ISOBMFF file (`ftyp`, as MP4 also is) is AVIF when an AVIF brand
-// appears among its first brands, else HEIC when a HEIF one does.
+// appears in its ftyp box, else HEIC when a HEIF one does.
 function formatOf(b) {
   const tag = fourCC(b, 0);
-  const brands = fourCC(b, 4) === 'ftyp' ? String.fromCharCode(...b.subarray(8, 32)) : '';
+  const brands = fourCC(b, 4) === 'ftyp' ? String.fromCharCode(...b.subarray(8, readUint32BE(b, 0))) : '';
   return b[0] === 0xff && b[1] === 0xd8 ? 'jpeg'
     : tag === '\x89PNG' ? 'png'
     : tag === 'GIF8' ? 'gif'

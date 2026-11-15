@@ -23,7 +23,8 @@ export interface CompressOptions {
    * Output format. Default: 'auto', the best this browser can encode, which
    * never returns a bigger file. An explicit format is always honoured, even
    * when the file grows (`savings` is then negative), except that a source
-   * already in that format is kept when re-encoding can't shrink it. A format
+   * already in that format is kept when re-encoding can't shrink it (PNG
+   * aside, which is lossless and capped only by `maxSizeMB`). A format
    * the browser can't encode falls back to the best one it can, with
    * `reason: 'unsupported-format'`.
    */

@@ -23,8 +23,8 @@ export function canonicalFormat(format) {
 }
 
 /** `name`'s canonical format, if it names one we know. */
-function known(name = '') {
-  const format = canonicalFormat(name);
+function known(name) {
+  const format = canonicalFormat(name || '');
   return FORMATS[format] ? format : null;
 }
 
@@ -48,17 +48,19 @@ export function detectFormat(file) {
 }
 
 export function generateFileName(source, format) {
-  const ext = mimeToExtension(formatToMime(format));
+  const ext = FORMATS[known(format) ?? 'jpeg'][1];
   const baseName = source?.name ? source.name.replace(/\.[^.]+$/, '') : 'image';
   return `${baseName}.${ext}`;
 }
 
 /**
- * The result's file: a new name for new bytes, and the source's own name and
- * type when the source itself came back (COR-06).
+ * The result's file: a new name for new bytes, and the source's own name
+ * when the source itself came back (COR-06), unless that name's extension
+ * says another format than its bytes are.
  */
 export function resultFile(source, blob, { kept, format, mimeType }) {
-  return new File([blob], kept && source?.name ? source.name : generateFileName(source, format), { type: mimeType });
+  const own = kept && source?.name && formatFromName(source.name) === known(format);
+  return new File([blob], own ? source.name : generateFileName(source, format), { type: mimeType });
 }
 
 /** Can this browser *encode* the given output format? JPEG/PNG are always available. */
