@@ -1,0 +1,67 @@
+# Publishes the device lab page to GitHub Pages, so any phone or browser can
+# open it: https://iziuqo.github.io/compresso/lab/. The page is noindex and
+# sends nothing anywhere unless its link says where (packages/compresso/lab/README.md).
+name: Lab page
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/compresso/**'
+      - 'package-lock.json'
+      - '.github/workflows/lab-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deployment at a time, and a newer one waits instead of cancelling.
+concurrency:
+  group: lab-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build:lib
+      # The paths the page needs, side by side as in the package, and a root
+      # page that sends visitors on to lab/.
+      - name: Lay out the site
+        working-directory: packages/compresso
+        run: |
+          mkdir -p _site/test/support
+          cp -R lab dist _site/
+          cp -R test/fixtures _site/test/
+          cp test/support/formats.js _site/test/support/
+          cat > _site/index.html <<'HTML'
+          <!doctype html>
+          <meta charset="utf-8">
+          <meta name="robots" content="noindex, nofollow">
+          <meta http-equiv="refresh" content="0; url=lab/">
+          <title>compresso.js device lab</title>
+          <a href="lab/">compresso.js device lab</a>
+          HTML
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: packages/compresso/_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write # publish the site
+      id-token: write # prove the deployment comes from this workflow
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}lab/
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
