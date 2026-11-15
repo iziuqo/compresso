@@ -19,7 +19,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - **The JPEG fallback's 2048px cap no longer turns long images into slivers.**
   It still sets the long edge, but never takes the short edge below 720px: an
   800 × 20000 screenshot now comes back 720 × 18000 instead of 82 × 2048.
-  Shapes up to about 2.8 to 1 keep exactly the size they had.
+  Shapes up to about 2.8 to 1 keep exactly the size they had; past 32 to 1
+  the long edge stops at 23040px, inside iOS Safari's canvas limit.
 
 ### Changed
 - **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**

@@ -128,7 +128,7 @@ let caps;
 /**
  * A format counts as encodable only when an encoder proves it, not when its
  * output is merely labelled so: iOS 26 Safari labels lossless bytes
- * `image/avif` and ignores quality (CMP-16). A seeded-noise square is encoded
+ * `image/avif` and ignores quality (CMP-16). A pseudo-random square is encoded
  * at two qualities; both results must carry the format's signature, and the
  * lower quality must give the smaller file. Anything else, an encode that
  * throws or returns nothing included, leaves the format out.
@@ -137,10 +137,10 @@ const PROOF_EDGE = 32;
 const PROOF_QUALITIES = [0.3, 0.9];
 /** Leading bytes, as Latin-1 text: AVIF is an ISO-BMFF `ftyp` box naming an AVIF brand, WebP a RIFF `WEBP` file. */
 const SIGNATURES = { avif: /^[^]{4}ftyp[^]{0,24}avi[fs]/, webp: /^RIFF[^]{4}WEBP/ };
-/** How many leading bytes the signatures need: 44 base64 characters' worth. */
-const HEAD_BYTES = 33;
+/** Leading bytes the signatures can need (4 + 4 + 24 + 4), read as 48 base64 characters. */
+const HEAD_BYTES = 36;
 
-/** Paints seeded noise, opaque, so a lossy encoder's output size has to follow its quality. */
+/** Paints a fixed, opaque pseudo-random pattern, so a lossy encoder's output size has to follow its quality. */
 function paintProof(canvas) {
   const ctx = canvas.getContext('2d');
   const pixels = ctx.createImageData(PROOF_EDGE, PROOF_EDGE);

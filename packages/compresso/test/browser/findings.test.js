@@ -12,6 +12,7 @@ import { fixture, generatedImage, fileFrom } from './support/fixtures.js';
 import { expectHonestResult } from './support/honest.js';
 import { itTracked } from './support/known-bugs.js';
 import { sniffFormat } from '../support/formats.js';
+import { server } from 'vitest/browser';
 import transparentUrl from '../../../../benchmark/corpus/transparent-graphic.png?url';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -205,11 +206,17 @@ describe('correctness findings', () => {
       const result = await compress(await generatedImage(800, 20000));
       expect([result.width, result.height], 'COR-18 size').toEqual([720, 18000]);
     }, 60000);
+
+    it('never lifts the long edge past 23040, so a 600 × 24000 strip comes back 576 × 23040', async () => {
+      __setCapabilities({ avif: false, webp: false });
+      const result = await compress(await generatedImage(600, 24000));
+      expect([result.width, result.height]).toEqual([576, 23040]);
+    }, 60000);
   });
 });
 
 describe('compatibility findings', () => {
-  it('accepts exactly the encoders this browser really has, once, in under 20 ms (CMP-16)', async () => {
+  it('accepts exactly the encoders this browser really has (CMP-16)', async () => {
     // The test's own verdict, from a larger canvas and the corpus's signature sniffer.
     const canvas = Object.assign(document.createElement('canvas'), { width: 256, height: 256 });
     const ctx = canvas.getContext('2d');
@@ -222,13 +229,35 @@ describe('compatibility findings', () => {
       return (await real(low)) && (await real(high)) && low.size < high.size;
     };
     const expected = { avif: await encodes('avif'), webp: await encodes('webp') };
-
     __resetCapabilities();
-    const started = performance.now();
-    const proven = { avif: isFormatSupported('avif'), webp: isFormatSupported('webp') };
-    const ms = performance.now() - started;
-    expect(proven).toEqual(expected);
-    expect(ms, 'the proof runs once per session').toBeLessThan(20);
+    expect({ avif: isFormatSupported('avif'), webp: isFormatSupported('webp') }).toEqual(expected);
+  });
+
+  // Engines with a real lossy WebP encoder keep it. WebKit's answer is the test above's.
+  it.runIf(['chromium', 'firefox'].includes(server.browser))('keeps WebP in Chromium and Firefox (CMP-16)', () => {
+    __resetCapabilities();
+    expect(getBestFormat()).toBe('webp');
+  });
+
+  it('proves once per session, in under 20 ms', () => {
+    const proto = HTMLCanvasElement.prototype;
+    const { toDataURL } = proto;
+    let encodes = 0;
+    proto.toDataURL = function (...args) { encodes++; return toDataURL.apply(this, args); };
+    try {
+      __resetCapabilities();
+      const started = performance.now();
+      getBestFormat();
+      const ms = performance.now() - started;
+      const first = encodes;
+      getBestFormat();
+      isFormatSupported('webp');
+      expect(first, 'two qualities for each of AVIF and WebP').toBe(4);
+      expect(encodes, 'no encode after the first answer').toBe(first);
+      expect(ms).toBeLessThan(20);
+    } finally {
+      proto.toDataURL = toDataURL;
+    }
   });
 
   itTracked('CMP-16/fake-avif-label', 'an encoder that only labels its output AVIF is not believed', async () => {

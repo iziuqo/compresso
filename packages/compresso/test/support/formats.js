@@ -39,14 +39,15 @@ function brands(bytes) {
 }
 
 /**
- * True when the text, past a BOM, XML declaration, comments and a DOCTYPE,
- * opens an `<svg>` element. The prologue is skipped one piece at a time: one
- * regex with a repeated group of those pieces can backtrack exponentially.
+ * True when the text, past a BOM, an XML declaration, then comments and a
+ * DOCTYPE, opens an `<svg>` element. Comments and the DOCTYPE are skipped one
+ * at a time: one regex with a repeated group of them can backtrack
+ * exponentially (CodeQL js/redos).
  */
 function isSvg(bytes) {
-  const prologue = /^(?:<\?xml[^>]*>|<!--[\s\S]*?-->|<!DOCTYPE[^>]*>)/i;
-  let text = new TextDecoder().decode(bytes.subarray(0, 1024)).replace(/^\uFEFF/, '').trimStart();
-  for (let piece; (piece = prologue.exec(text)); ) text = text.slice(piece[0].length).trimStart();
+  const piece = /^(?:<!--[\s\S]*?-->|<!DOCTYPE[^>]*>)\s*/i;
+  let text = new TextDecoder().decode(bytes.subarray(0, 1024)).replace(/^\uFEFF/, '').replace(/^\s*(<\?xml[^>]*>\s*)?/, '');
+  for (let found; (found = piece.exec(text)); ) text = text.slice(found[0].length);
   return /^<svg[\s>]/i.test(text);
 }
 

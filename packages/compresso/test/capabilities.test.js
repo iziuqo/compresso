@@ -13,11 +13,11 @@ const AVIF_HEAD = '\0\0\0\x1cftypavif\0\0\0\0avifmif1miaf';
 const WEBP_HEAD = 'RIFF\0\0\0\0WEBPVP8 ';
 const PNG_HEAD = '\x89PNG\r\n\x1a\n\0\0\0\rIHDR';
 
-/** Output bytes: `head`, padded to `size` bytes. */
-const bytes = (head, size) => ({ head, size });
+/** What an encode returns: bytes that start with `head`, `size` bytes in all. */
+const output = (head, size) => ({ head, size });
 
 /** A lossy encoder: the format's signature, and more bytes at a higher quality. */
-const lossy = (head) => (quality) => bytes(head, 100 + Math.round(quality * 1000));
+const lossy = (head) => (quality) => output(head, 100 + Math.round(quality * 1000));
 
 /** A blob of `output`'s bytes, labelled `type`, or `null` for no output. */
 const blobOf = (output, type) =>
@@ -31,7 +31,7 @@ function withEncoders(encoders) {
     async convertToBlob({ type, quality }) {
       // An engine without the encoder falls back to PNG, labelled as such.
       const encoder = encoders[type];
-      return encoder ? blobOf(encoder(quality), type) : blobOf(bytes(PNG_HEAD, 3000), 'image/png');
+      return encoder ? blobOf(encoder(quality), type) : blobOf(output(PNG_HEAD, 3000), 'image/png');
     }
   });
   __resetCapabilities();
@@ -50,13 +50,13 @@ describe('format proof in a worker', () => {
   });
 
   it('rejects PNG bytes labelled AVIF, the same at every quality (CMP-16 on iOS 26)', async () => {
-    withEncoders({ 'image/avif': () => bytes(PNG_HEAD, 4000), 'image/webp': lossy(WEBP_HEAD) });
+    withEncoders({ 'image/avif': () => output(PNG_HEAD, 4000), 'image/webp': lossy(WEBP_HEAD) });
     expect(await ensureCapabilities()).toEqual({ avif: false, webp: true });
     expect(getBestFormat()).toBe('webp');
   });
 
   it('rejects real AVIF bytes that ignore quality', async () => {
-    withEncoders({ 'image/avif': () => bytes(AVIF_HEAD, 4000) });
+    withEncoders({ 'image/avif': () => output(AVIF_HEAD, 4000) });
     expect(await ensureCapabilities()).toEqual({ avif: false, webp: false });
     expect(getBestFormat()).toBe('jpeg');
   });

@@ -6,7 +6,8 @@ export interface CompressOptions {
    * `maxWidth` nor `maxHeight` is set AND the browser can't encode WebP/AVIF (so
    * auto-format falls back to JPEG, e.g. Safari) — then output is capped to a
    * 2048px long edge to avoid a bloated re-encode, though never below a 720px
-   * short edge, so a long screenshot stays readable. Pass `Infinity` to never cap.
+   * short edge for shapes up to 32:1, so a long screenshot stays readable. Pass
+   * `Infinity` to never cap.
    */
   maxWidth?: number;
   /**
@@ -14,7 +15,8 @@ export interface CompressOptions {
    * `maxWidth` nor `maxHeight` is set AND the browser can't encode WebP/AVIF (so
    * auto-format falls back to JPEG, e.g. Safari) — then output is capped to a
    * 2048px long edge to avoid a bloated re-encode, though never below a 720px
-   * short edge, so a long screenshot stays readable. Pass `Infinity` to never cap.
+   * short edge for shapes up to 32:1, so a long screenshot stays readable. Pass
+   * `Infinity` to never cap.
    */
   maxHeight?: number;
   /** Output format. Default: 'auto' (best supported) */
