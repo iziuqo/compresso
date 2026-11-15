@@ -452,6 +452,8 @@ With `format: 'auto'`, Compresso picks the best format each browser supports. Sa
 
 **HEIC/HEIF input** works everywhere: Safari 17+/iOS 17+ decode natively; other browsers lazily load a WASM decoder ([`heic-to`](https://www.npmjs.com/package/heic-to)) the first time they meet a HEIC image — a one-time download that leaves the core untouched for every other format. Output is always a web format (HEIC is input-only; use AVIF for HEIC-class output compression).
 
+Every pull request runs the tests in Chromium, Firefox and WebKit and on Node 22, 24 and 26, and the device lab in iPhone Safari on the oldest and newest iOS simulators. This project is tested with BrowserStack. Its real iPhones, Android phones and Macs cover what simulators cannot.
+
 ## Content-Security-Policy (CSP)
 
 Compresso itself needs nothing beyond `script-src 'self'`. The one exception is **HEIC/HEIF input on non-Safari browsers**, which lazily loads the `heic-to` WASM decoder — a strict CSP needs a couple of extra directives for that path specifically:
