@@ -310,17 +310,26 @@ function colourName(pixel) {
   return best;
 }
 
-/** Reads the centre of each quadrant back from a canvas; `{ error }` where read-back fails. */
+/** The longest edge `look` draws at: a canvas every engine really gives. */
+const LOOK_EDGE = 2048;
+
+/**
+ * Reads the centre of each quadrant back from a canvas, drawn at most
+ * LOOK_EDGE px long so a big photo fits the phone's own canvas limit (CMP-03);
+ * `{ note }` where read-back fails.
+ */
 async function look(blob) {
   const img = await loadImage(blob);
   if (!img) return { size: null, corners: null, note: 'undecodable' };
   const [width, height] = [img.naturalWidth, img.naturalHeight];
-  const canvas = canvasOf(width, height);
+  const scale = Math.min(1, LOOK_EDGE / Math.max(width, height));
+  const [drawnWidth, drawnHeight] = [Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))];
+  const canvas = canvasOf(drawnWidth, drawnHeight);
   try {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, drawnWidth, drawnHeight);
     const corners = [[0.25, 0.25], [0.75, 0.25], [0.25, 0.75], [0.75, 0.75]]
-      .map(([fx, fy]) => colourName(ctx.getImageData(Math.floor(fx * width), Math.floor(fy * height), 1, 1).data));
+      .map(([fx, fy]) => colourName(ctx.getImageData(Math.floor(fx * drawnWidth), Math.floor(fy * drawnHeight), 1, 1).data));
     return { size: [width, height], corners };
   } catch (e) {
     return { size: [width, height], corners: null, note: `colours not checked: canvas read-back failed (${errorOf(e).message})` };
@@ -662,12 +671,17 @@ export const CHECKS = [
         const started = performance.now();
         try {
           const source = await quadrantsPng(width, height);
-          const run = (file) => (path === 'pool' ? withPool({ size: 1 }, (pool) => pool.compress(file, { format: 'jpeg' })) : compress(file, { format: 'jpeg' }));
+          // To PNG: it has no never-bigger cap, so the photo is really drawn
+          // and encoded. A JPEG of these flat quadrants is bigger than the
+          // source, so the source would come back untouched and prove nothing.
+          const options = { format: 'png' };
+          const run = (file) => (path === 'pool' ? withPool({ size: 1 }, (pool) => pool.compress(file, options)) : compress(file, options));
           const result = await run(source);
           const seen = await inspect(result);
           const colours = await look(result.blob);
           Object.assign(row, { result: said(seen), corners: colours.corners, note: colours.note });
-          row.ok = seen.honest && (!colours.corners || colours.corners.join() === UPRIGHT.join());
+          // The source back untouched would prove nothing about the canvas.
+          row.ok = seen.honest && seen.actual.bytes !== source.size && colours.corners?.join() === UPRIGHT.join();
         } catch (e) {
           Object.assign(row, { ok: false, error: errorOf(e).message });
         }

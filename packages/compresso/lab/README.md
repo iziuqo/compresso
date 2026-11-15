@@ -84,7 +84,7 @@ names none.
 | `pool-timeout` | `timeoutMs: 1` rejects with kind `timeout`, and the worker is replaced. | |
 | `pool-fallback` | With `OffscreenCanvas` removed, `createPool()` falls back to the main thread and stays honest. | |
 | `pool-missing-worker` | A `workerUrl` that answers 404 is retried at most twice in 3 s (counted as pool recoveries, and as requests where Resource Timing sees them), and the job settles. | PKG-01 |
-| `canvas-size` | 24 and 48 MP photos sent to JPEG come back honest, whole and upright, on the main thread and in the pool, inside whatever canvas the browser really gives. The sources are PNGs written as bytes, since a phone can't draw a source past its own canvas limit. The details also show whether the browser's own canvas draws, reads back and encodes at 4096 × 4096, 6000 × 4000 and 8064 × 6048. Runs last: on a phone short of memory it can end the tab. | CMP-03 |
+| `canvas-size` | 24 and 48 MP photos sent to PNG come back re-encoded, honest, whole and upright, on the main thread and in the pool, inside whatever canvas the browser really gives. The sources are PNGs written as bytes, since a phone can't draw a source past its own canvas limit, and go to PNG because a JPEG of them is bigger and the source would come back untouched. Colours are read on a canvas at most 2048 px long. The details also show whether the browser's own canvas draws, reads back and encodes at 4096 × 4096, 6000 × 4000 and 8064 × 6048. Runs last: on a phone short of memory it can end the tab. | CMP-03 |
 
 Every pool test that `test/browser/pool.test.js` skips on WebKit has a check
 here except its two timing smoke tests (pool against serial, warm against
