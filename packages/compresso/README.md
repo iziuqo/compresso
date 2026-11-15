@@ -153,7 +153,7 @@ the pool itself works correctly either way. Every `compress()` option, including
 | `pool.compressMany(files, options?, onProgress?)` | Compress many files. See above. |
 | `pool.cancel(id)` | Cancel a queued or in-flight job by id. No-op for an unknown id. |
 | `pool.destroy()` | Cancel every queued and in-flight job, then terminate all workers. |
-| `pool.stats()` | `{ size, busy, queued, recoveries }` — a snapshot of the pool's current load. `recoveries` counts workers replaced after a crash or timeout; a nonzero value is a real, actionable signal for a bug report. |
+| `pool.stats()` | `{ size, busy, queued, recoveries, mode, reason }` — a snapshot of the pool's current load. `recoveries` counts workers replaced after a crash or timeout; a nonzero value is a real, actionable signal for a bug report. `mode` is `'workers'` or `'main-thread'`, and `reason` says why a pool runs on the main thread (`'workers-unsupported'`, `'worker-blocked'`, `'worker-failed-to-load'` or `'worker-crashed-repeatedly'`), or is `null` while it uses workers. |
 
 `createPool(options)`:
 
@@ -168,6 +168,15 @@ the pool itself works correctly either way. Every `compress()` option, including
 A worker that crashes natively (OOM, a driver fault) or goes silent past `timeoutMs` is detected
 and replaced automatically — a batch never hangs forever on one bad worker. `pool.stats().recoveries`
 is how you'd notice this happened.
+
+The pool never retries without end. Each worker says it is ready once its script has loaded; a
+worker that fails before that (a wrong `workerUrl`, a 404, a bundler that didn't emit the file)
+stops the pool spawning workers at all, and its jobs carry on on the main thread. A worker that
+crashes mid-job is replaced at most twice in a row; on a third crash in a row, the job that crashed
+is rejected and the pool stops spawning workers too. Either way the other running and queued jobs
+carry on on the main thread, one at a time, every later job runs there too, and `pool.stats()`
+reports `mode: 'main-thread'` with the reason. From then on the pool behaves like the main-thread
+pool: `cancel()` and `destroy()` can't stop a job already running, but an `AbortSignal` still can.
 
 ### Content-Security-Policy
 

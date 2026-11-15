@@ -60,6 +60,17 @@ export interface PoolStats {
   queued: number;
   /** Running count of crash/timeout-triggered worker replacements since the pool was created. */
   recoveries: number;
+  /** Where jobs run: in workers, or serially on the main thread. */
+  mode: 'workers' | 'main-thread';
+  /**
+   * Why the pool runs on the main thread; `null` while it uses workers.
+   * `workers-unsupported`: no Worker or OffscreenCanvas. `worker-blocked`:
+   * constructing a worker threw (e.g. a CSP). `worker-failed-to-load`: a
+   * worker failed before it loaded (e.g. a 404 worker URL), so the pool
+   * stopped spawning them. `worker-crashed-repeatedly`: loaded workers
+   * crashed three times in a row.
+   */
+  reason: null | 'workers-unsupported' | 'worker-blocked' | 'worker-failed-to-load' | 'worker-crashed-repeatedly';
 }
 
 /**

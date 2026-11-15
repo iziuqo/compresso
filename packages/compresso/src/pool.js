@@ -19,6 +19,8 @@ import { generateFileName } from './utils.js';
  */
 
 const DEFAULT_TIMEOUT_MS = 30_000;
+/** Replacements for workers that crash one after another, before the pool gives up on workers. */
+const MAX_CRASH_REPLACEMENTS = 2;
 const DEFAULT_WORKER_URL = new URL('./worker.js', import.meta.url);
 // Resolved here, not inside worker.js, and handed to each worker over
 // postMessage — see heic.js's __setHeicToUrl for why: a bare `import('heic-to')`
@@ -50,7 +52,7 @@ export function defaultPoolSize() {
 }
 
 export function createPool({ size, workerUrl, heicToUrl, maxQueueLength = Infinity, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
-  if (!isPoolSupported()) return createFallbackPool();
+  if (!isPoolSupported()) return createFallbackPool('workers-unsupported');
   try {
     return createWorkerPool(
       size ?? defaultPoolSize(),
@@ -63,7 +65,7 @@ export function createPool({ size, workerUrl, heicToUrl, maxQueueLength = Infini
     // Most likely a CSP blocking worker construction (see README's "Batch &
     // Workers" section) — a restricted host still gets correct, serial
     // behavior instead of an uncaught throw.
-    return createFallbackPool();
+    return createFallbackPool('worker-blocked');
   }
 }
 
@@ -91,7 +93,7 @@ function invalidFilesError() {
  * `if` statements, because the degradation lives here, once, instead of
  * being re-implemented by every consumer.
  */
-function createFallbackPool() {
+function createFallbackPool(reason) {
   return {
     compress: (file, options = {}) => compressOne(file, options),
     async compressMany(files, options = {}, onProgress) {
@@ -113,7 +115,7 @@ function createFallbackPool() {
     },
     cancel() {},
     destroy() {},
-    stats: () => ({ size: 0, busy: 0, queued: 0, recoveries: 0 }),
+    stats: () => ({ size: 0, busy: 0, queued: 0, recoveries: 0, mode: 'main-thread', reason }),
   };
 }
 
@@ -129,6 +131,9 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
   let recoveries = 0;
   let caps = null;
   let capsPromise = null;
+  // Why the pool gave up on workers and runs on the main thread; null while it uses them.
+  let reason = null;
+  let crashesInARow = 0;
   const queue = [];
   const slots = [];
 
@@ -138,9 +143,9 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
     // Failures a cooperative postMessage protocol cannot self-report: a
     // native crash (onerror) or an undeserializable message (onmessageerror,
     // e.g. a worker that died mid-postMessage). Both are treated as fatal to
-    // that worker — see failSlot.
-    worker.onerror = () => failSlot(slotFor(worker), 'generic', 'Worker crashed unexpectedly');
-    worker.onmessageerror = () => failSlot(slotFor(worker), 'generic', 'Worker sent an unreadable message');
+    // that worker — see crash.
+    worker.onerror = () => crash(slotFor(worker), 'Worker crashed unexpectedly');
+    worker.onmessageerror = () => crash(slotFor(worker), 'Worker sent an unreadable message');
     return worker;
   }
 
@@ -148,7 +153,7 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
   // `new Worker()` throws here, synchronously, where createPool() can catch
   // it and fall back — rather than surfacing later on the first compress().
   try {
-    for (let i = 0; i < size; i++) slots.push({ worker: spawn(), task: null, timeoutHandle: null });
+    for (let i = 0; i < size; i++) slots.push({ worker: spawn(), task: null, ready: false });
   } catch (err) {
     for (const slot of slots) slot.worker.terminate();
     throw err;
@@ -158,15 +163,20 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
     return slots.find((s) => s.worker === worker);
   }
 
-  function clearSlotTimeout(slot) {
-    if (slot.timeoutHandle != null) {
-      clearTimeout(slot.timeoutHandle);
-      slot.timeoutHandle = null;
-    }
-  }
+  /**
+   * Run a job on the main thread once the pool has given up on workers. Jobs
+   * run one at a time, as in the fallback pool: each holds a decoded bitmap,
+   * and a batch all at once could run the tab out of memory.
+   */
+  let mainThread = Promise.resolve();
+  const onMainThread = (file, options) =>
+    (mainThread = mainThread.catch(() => {}).then(() => compressOne(file, options)));
 
   function receive(worker, msg) {
     const slot = slotFor(worker);
+    // worker.js posts `ready` once its module has loaded; see crash. A
+    // retired worker's messages never get here: retire() drops its handler.
+    if (msg.type === 'ready') return void (slot.ready = true);
     // Guards against a late message from a just-cancelled or just-timed-out
     // job being misattributed to whatever new job this worker slot picks up
     // next. Load-bearing, not incidental — preserved exactly from the
@@ -174,32 +184,61 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
     if (!slot?.task || slot.task.id !== msg.id) return;
 
     if (msg.type === 'progress') {
-      slot.task.onProgress(msg.progress, msg.stage);
+      slot.task.options.onProgress?.({ progress: msg.progress, stage: msg.stage });
       return;
     }
 
-    clearSlotTimeout(slot);
+    clearTimeout(slot.timeoutHandle);
     const task = slot.task;
     slot.task = null;
+    crashesInARow = 0;
     if (msg.type === 'done') task.resolve(toResult(task.file, msg.result));
     else task.reject(poolError(msg.message, msg.kind));
     pump();
   }
 
+  /** Stop a slot's worker for good: no timer, no handlers. */
+  function retire(slot) {
+    clearTimeout(slot.timeoutHandle);
+    slot.worker.onmessage = slot.worker.onerror = slot.worker.onmessageerror = null;
+    slot.worker.terminate();
+  }
+
   /** Crash or timeout: reject the in-flight job (if any), replace the worker. */
   function failSlot(slot, kind, message) {
     if (!slot) return; // already replaced/cleared by a concurrent failure or destroy()
-    const task = slot.task;
-    clearSlotTimeout(slot);
+    slot.task?.reject(poolError(message, kind));
+    retire(slot);
     slot.task = null;
-    slot.worker.onmessage = null;
-    slot.worker.onerror = null;
-    slot.worker.onmessageerror = null;
-    slot.worker.terminate();
+    slot.ready = false;
     slot.worker = spawn();
     recoveries++;
-    if (task) task.reject(poolError(message, kind));
     pump();
+  }
+
+  /**
+   * A worker that fails before it is ready can't load at all (a 404 or
+   * blocked worker URL, a broken bundle), and every replacement would fail
+   * the same way, in a loop (PKG-01). The pool then gives up on workers.
+   * A worker that crashes after loading rejects its own job and is
+   * replaced, but only MAX_CRASH_REPLACEMENTS times in a row.
+   */
+  function crash(slot, message) {
+    if (!slot) return;
+    if (!slot.ready) return giveUp('worker-failed-to-load');
+    if (crashesInARow++ < MAX_CRASH_REPLACEMENTS) return failSlot(slot, 'generic', message);
+    slot.task?.reject(poolError(message, 'generic'));
+    slot.task = null;
+    giveUp('worker-crashed-repeatedly');
+  }
+
+  /** Retire every worker; queued and in-flight jobs carry on on the main thread, in order. */
+  function giveUp(why) {
+    reason = why;
+    const tasks = [...slots.map((slot) => slot.task).filter(Boolean), ...queue.splice(0)];
+    slots.forEach(retire);
+    slots.length = 0;
+    for (const task of tasks) onMainThread(task.file, task.options).then(task.resolve, task.reject);
   }
 
   function pump() {
@@ -211,18 +250,18 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
         slot.timeoutHandle = setTimeout(() => failSlot(slot, 'timeout', 'Compression timed out'), timeoutMs);
       }
       slot.worker.postMessage({
-        type: 'run', id: task.id, file: task.file, params: task.params, caps, heicToUrl: heicToUrlString,
+        type: 'run', id: task.id, file: task.file, params: paramsFor(task.options), caps, heicToUrl: heicToUrlString,
       });
     }
   }
 
-  function run(id, file, params, onProgress) {
+  function run(id, file, options) {
     return new Promise((resolve, reject) => {
       if (queue.length >= maxQueueLength) {
         reject(poolError('Pool queue is full', 'queue-full'));
         return;
       }
-      queue.push({ id, file, params, onProgress, resolve, reject });
+      queue.push({ id, file, options, resolve, reject });
       pump();
     });
   }
@@ -247,39 +286,40 @@ function createWorkerPool(size, workerUrl, heicToUrl, maxQueueLength, timeoutMs)
     const slot = slots.find((s) => s.task?.id === id);
     if (!slot) return;
     slot.worker.postMessage({ type: 'abort', id });
-    clearSlotTimeout(slot);
-    const task = slot.task;
+    clearTimeout(slot.timeoutHandle);
+    slot.task.reject(poolError('Compression cancelled', 'aborted'));
     slot.task = null;
-    task.reject(poolError('Compression cancelled', 'aborted'));
     pump();
   }
 
   function destroy() {
     for (const task of queue.splice(0)) task.reject(poolError('Compression cancelled', 'aborted'));
     for (const slot of slots) {
-      clearSlotTimeout(slot);
-      if (slot.task) slot.task.reject(poolError('Compression cancelled', 'aborted'));
-      slot.worker.onmessage = null;
-      slot.worker.onerror = null;
-      slot.worker.onmessageerror = null;
-      slot.worker.terminate();
+      retire(slot);
+      slot.task?.reject(poolError('Compression cancelled', 'aborted'));
     }
     slots.length = 0;
   }
 
   function stats() {
-    return { size: slots.length, busy: slots.filter((s) => s.task).length, queued: queue.length, recoveries };
+    return {
+      size: slots.length, busy: slots.filter((s) => s.task).length, queued: queue.length, recoveries,
+      mode: reason ? 'main-thread' : 'workers', reason,
+    };
   }
 
-  async function compress(file, options = {}) {
+  // `{ ...options }`: a copy, taken at the call, so a caller that reuses its
+  // options object can't change a job that is still waiting.
+  async function compress(file, { ...options } = {}) {
     caps ??= await (capsPromise ??= ensureCapabilities());
     if (options.signal?.aborted) throw poolError('Compression cancelled', 'aborted');
+    if (reason) return onMainThread(file, options);
 
     const id = `job-${++seq}`;
     const onAbort = () => cancel(id);
     options.signal?.addEventListener('abort', onAbort, { once: true });
     try {
-      return await run(id, file, paramsFor(options), (progress, stage) => options.onProgress?.({ progress, stage }));
+      return await run(id, file, options);
     } finally {
       options.signal?.removeEventListener('abort', onAbort);
     }

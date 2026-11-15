@@ -21,6 +21,16 @@ All notable changes to `compresso.js` are documented here. The format is based o
   800 × 20000 screenshot now comes back 720 × 18000 instead of 82 × 2048.
   Shapes up to about 2.8 to 1 keep exactly the size they had; past 32 to 1
   the long edge stops at 23040px, inside iOS Safari's canvas limit.
+- **The pool can no longer respawn workers forever.** A worker now says it is
+  ready once its script has loaded. One that fails before that, such as a
+  `workerUrl` that 404s, stops the pool spawning workers. A worker that
+  crashes mid-job is replaced at most twice in a row; the third crash in a row
+  rejects that job and stops the spawning too. Either way the pool carries on
+  with the other running and queued jobs on the main thread, one at a time.
+  With the Rollup and esbuild ESM defaults, which don't emit the worker file,
+  batches now compress on the main thread instead of failing.
+- **The pool copies a job's options when `compress()` is called**, so a
+  caller that reuses one options object can't change a job still waiting.
 - **A size target costs four encodes at most, and is met.** The quality
   search interpolates instead of bisecting and stops within 10% under the
   target: a 12 MP photo meets 1, 0.5 or 0.2 MB in four encodes at most (it
@@ -32,6 +42,9 @@ All notable changes to `compresso.js` are documented here. The format is based o
   longer pushed near zero for a saving under 1%.
 
 ### Added
+- **`pool.stats()` reports `mode` and `reason`**: whether the pool runs on
+  workers or the main thread, and why (`workers-unsupported`,
+  `worker-blocked`, `worker-failed-to-load` or `worker-crashed-repeatedly`).
 - **`missedTarget` on every result**: `true` when `maxSizeMB` was out of reach
   even at the smallest size tried, so a missed target is never silent.
 

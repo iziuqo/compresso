@@ -270,7 +270,7 @@ describe.skipIf(skipOnWebKit)('createPool() — fallback path, forced', () => {
     try {
       expect(isPoolSupported()).toBe(false);
       const pool = createPool();
-      expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0 });
+      expect(pool.stats()).toEqual({ size: 0, busy: 0, queued: 0, recoveries: 0, mode: 'main-thread', reason: 'workers-unsupported' });
 
       const file = await fixture('sample.jpg');
       const result = await pool.compress(file, { format: 'auto' });

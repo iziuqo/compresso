@@ -303,20 +303,26 @@ describe('compatibility findings', () => {
 });
 
 describe('packaging and performance findings', () => {
-  itTracked('PKG-01/unreachable-worker', 'an unreachable worker file stops respawning, and jobs still finish', async () => {
+  itTracked('PKG-01/unreachable-worker', 'an unreachable worker file is requested once per worker, and every job still finishes', async () => {
+    // Each `new Worker()` is one request for the worker file.
+    const RealWorker = globalThis.Worker;
+    let requests = 0;
+    globalThis.Worker = class extends RealWorker {
+      constructor(...args) { requests++; super(...args); }
+    };
+    const files = await Promise.all([fixture('sample.jpg'), fixture('sample.png')]);
     const pool = createPool({ size: 2, workerUrl: '/no-such-worker.js' });
     try {
-      // Watch for 2 s, but stop as soon as the loop shows: the storm is heavy on WebKit.
-      const started = performance.now();
-      while (pool.stats().recoveries <= 2 && performance.now() - started < 2000) await sleep(20);
-      expect(pool.stats().recoveries, 'PKG-01 respawns').toBeLessThanOrEqual(2);
-      const outcome = await Promise.race([settled(pool.compress(await fixture('sample.jpg'))), sleep(5000).then(() => 'pending')]);
-      expect(outcome, 'PKG-01 a job still finishes').not.toBeInstanceOf(Error);
-      expect(outcome, 'PKG-01 a job still finishes').not.toBe('pending');
+      const jobs = Promise.all(files.map((file) => settled(pool.compress(file))));
+      await sleep(5000);
+      expect(requests, 'PKG-01 worker file requests in 5 s').toBeLessThanOrEqual(2);
+      for (const outcome of await jobs) expect(outcome, 'PKG-01 a job still finishes').not.toBeInstanceOf(Error);
+      expect(pool.stats(), 'PKG-01 the pool says why').toMatchObject({ mode: 'main-thread', reason: 'worker-failed-to-load' });
     } finally {
       pool.destroy();
+      globalThis.Worker = RealWorker;
     }
-  }, 15000);
+  }, 30000);
 
   itTracked('PERF-01/slow-but-progressing', 'a pool job that keeps reporting progress is not timed out', async () => {
     const source = await generatedImage(4000, 3000);

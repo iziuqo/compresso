@@ -49,8 +49,8 @@ export const MATRIX = ['build', 'load', 'mainJpeg', 'poolJpeg', 'poolHeic', 'mai
 
 /** A matrix row: the given cells in column order, the rest `NOT_RUN`. */
 const row = (...cells) => Object.fromEntries(MATRIX.map((key, i) => [key, cells[i] ?? NOT_RUN]));
-const WORKER_CRASH = /Worker crashed unexpectedly/;
-const POOL_FAILS = row('ok', 'ok', 'ok', WORKER_CRASH, WORKER_CRASH, 'ok');
+const NO_WORKERS = /ran without real workers/;
+const POOL_ON_MAIN_THREAD = row('ok', 'ok', 'ok', NO_WORKERS, NO_WORKERS, 'ok');
 
 /** Case key → the findings it exposes, where they reproduce, and (optionally) how. */
 export const KNOWN_FAILURES = {
@@ -95,7 +95,6 @@ export const KNOWN_FAILURES = {
   'COR-16/animated.webp': { findings: ['COR-16'], where: ['firefox'] },
   'COR-16/svg-both-paths': { findings: ['COR-16'], where: BROWSERS },
   'CMP-17/decoded-smaller': { findings: ['CMP-17'], where: BROWSERS },
-  'PKG-01/unreachable-worker': { findings: ['PKG-01'], where: BROWSERS },
 
   // test/bundlers: the packed tarball and the seven bundler apps, in Chromium.
   'package/publint': {
@@ -114,9 +113,9 @@ export const KNOWN_FAILURES = {
       'NoResolution ./plan node10', 'NoResolution ./pool node10',
     ]),
   },
-  // The pool can't find its worker file, so it never gets a real worker.
-  'bundler/rollup': { findings: ['PKG-01', 'PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_FAILS) },
-  'bundler/esbuild-esm': { findings: ['PKG-01', 'PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_FAILS) },
+  // The pool can't find its worker file, so it compresses on the main thread.
+  'bundler/rollup': { findings: ['PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_ON_MAIN_THREAD) },
+  'bundler/esbuild-esm': { findings: ['PKG-02'], where: ['chromium'], failsWith: matrixRow(POOL_ON_MAIN_THREAD) },
   // Importing the pool resolves a URL against `import.meta.url`, which an IIFE lacks.
   'bundler/esbuild-iife': { findings: ['PKG-03'], where: ['chromium'], failsWith: matrixRow(row('ok', /Failed to construct 'URL'/)) },
   // Parcel ignores the exports map by default, so `compresso.js/pool` doesn't resolve.
@@ -124,9 +123,8 @@ export const KNOWN_FAILURES = {
   'PERF-01/slow-but-progressing': { findings: ['PERF-01'], where: BROWSERS },
 
   // test/lab: the device lab page's checks (lab/checks.mjs). No engine here
-  // encodes AVIF on a canvas, and none stops retrying a missing worker.
+  // encodes AVIF on a canvas.
   'lab/explicit-avif': { findings: ['COR-02'], where: [...BROWSERS, ...IOS] },
-  'lab/pool-missing-worker': { findings: ['PKG-01'], where: [...BROWSERS, ...IOS] },
   // iPhone Safari can't encode WebP, and the PNG it gets instead is labelled WebP.
   'lab/explicit-webp': { findings: ['COR-02'], where: IOS },
   // iPhone Safari: iOS 26's canvas labels bytes that aren't AVIF as
