@@ -107,19 +107,19 @@
     {
       "name": "main entry (import { compress } from 'compresso.js')",
       "path": "dist/compresso.mjs",
-      "limit": "5 KB",
+      "limit": "5.25 KB",
       "gzip": true
     },
     {
       "name": "pool entry (import { createPool } from 'compresso.js/pool')",
       "path": "dist/compresso.pool.mjs",
-      "limit": "6.25 KB",
+      "limit": "6.5 KB",
       "gzip": true
     },
     {
       "name": "worker script (dist/worker.js, loaded by the pool, not imported directly)",
       "path": "dist/worker.js",
-      "limit": "5 KB",
+      "limit": "5.25 KB",
       "gzip": true
     },
     {

@@ -49,7 +49,8 @@ export async function isAnimated(blob, format) {
     // After the 13-byte header and the global colour table: extensions
     // (0x21) and frames (0x2C), each ending in data sub-blocks, until the
     // trailer (0x3B). https://www.w3.org/Graphics/GIF/spec-gif89a.txt
-    const colours = (packed) => (packed & 0x80 ? 3 << ((packed & 7) + 1) : 0);
+    // A colour table, when the flag (0x80) is set, of 2 ** (n + 1) RGB entries.
+    const colours = (packed) => packed >> 7 && 6 << (packed & 7);
     for (let o = 13 + colours(b[10]), frames = 0; o < b.length && b[o] !== 0x3b; o++) {
       if (b[o] !== 0x2c) o += 2; // an extension: introducer, label
       else if (++frames > 1) return true;

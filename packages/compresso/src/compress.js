@@ -17,16 +17,15 @@ import { planPhoto } from './plan.js';
  */
 export const DEFAULT_MAX_INPUT_PIXELS = 100_000_000;
 
+// The defaults compress() reads from `opts`. `maxWidth` and `maxHeight` are
+// read from the caller's own options, where unset differs from `Infinity`;
+// `signal` and `onProgress` are optional.
 const DEFAULTS = {
   quality: 0.8,
-  maxWidth: Infinity,
-  maxHeight: Infinity,
   format: 'auto',
   maxSizeMB: Infinity,
   maxInputPixels: DEFAULT_MAX_INPUT_PIXELS,
   backgroundColor: '#ffffff',
-  signal: null,
-  onProgress: null,
 };
 
 /**
@@ -183,14 +182,13 @@ export async function compress(source, options = {}) {
   };
   report(opts, 0.5, 'compressing');
   const targetBytes = opts.maxSizeMB * 1024 * 1024;
-  const decision = animated
+  let { result: blob, kept, missedTarget } = animated
     ? { result: source, kept: true, missedTarget: targetBytes > 0 && source.size > targetBytes }
     : await planPhoto(
       host,
       { formats, quality: opts.quality, maxLongEdge: cap, targetBytes },
       { signal: opts.signal, onProgress: (step) => report(opts, 0.5 + step * 0.4, 'compressing') }
     );
-  let { result: blob, kept, missedTarget } = decision;
   // Named by what the bytes are (COR-02, COR-06): a canvas may label bytes as
   // a format it can't encode, and a kept source is whatever it is, a format
   // this library doesn't know (BMP, say) included.

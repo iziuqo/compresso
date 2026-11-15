@@ -111,7 +111,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
   the browser and the apps decide quality, size and never-bigger alike. The
   planner's `PhotoHost.prepare()` may report `transformed` (resized or in
   another format). Size budgets rise to
-  match: main entry 5 kB, pool 6.25 kB, worker 5 kB (from 4, 5.25 and 4).
+  match: main entry 5 kB, pool 6.25 kB, worker 5 kB (from 4, 5.25 and 4),
+  and a quarter of a kB more each for the animation check (5.25, 6.5, 5.25).
 - **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**
   (libheif 1.23.7, up from 1.5.2 and libheif 1.22.2). Same API, same
   LGPL-3.0 licence; the file grows from about 3.0 MB to 3.2 MB and still loads
