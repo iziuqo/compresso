@@ -16,7 +16,10 @@ export interface PhotoRecipe {
   quality?: number;
   /** Cap on the long edge, in pixels. Default: none */
   maxLongEdge?: number | null;
-  /** Output must be at or under this many bytes. Default: none (the source's own size still caps it) */
+  /**
+   * Output must be at or under this many bytes. A missing, zero, negative or
+   * non-number value means none. Default: none (the source's own size still caps it)
+   */
   targetBytes?: number | null;
 }
 
@@ -29,11 +32,12 @@ export interface PreparedPhoto {
   /** Size of the source in bytes, 0 when unknown (then only `targetBytes` caps the output). */
   originalSize: number;
   /**
-   * True when the prepared photo is smaller than the source. With no binding
-   * target and no resize, the planner writes only the asked quality, and
-   * keeps the source when that can't beat it. Default: false
+   * True when the output can't be the source as it is: the prepared photo is
+   * smaller, or in another format. Then quality is searched under the source's
+   * size. When false and no target binds, the planner encodes only the asked
+   * quality, and keeps the source when that can't beat it. Default: false
    */
-  resized?: boolean;
+  transformed?: boolean;
 }
 
 /**
@@ -65,7 +69,7 @@ export interface PhotoDecision<R> {
   format: PhotoFormat | null;
   /** Quality written at; null when kept or PNG. */
   quality: number | null;
-  /** The source came back unchanged: nothing smaller was possible. */
+  /** The source came back unchanged: no encode tried was smaller. */
   kept: boolean;
   /** `targetBytes` could not be met even at the smallest size tried. */
   missedTarget: boolean;

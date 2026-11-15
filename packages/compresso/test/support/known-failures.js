@@ -78,7 +78,6 @@ export const KNOWN_FAILURES = {
     // compress() reads `format.toLowerCase()` without a default.
     failsWith: (error) => error instanceof TypeError && /toLowerCase/.test(error.message),
   },
-  'COR-03/maxSizeMB': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/backgroundColor': { findings: ['COR-03'], where: BROWSERS },
   'COR-03/maxInputPixels': { findings: ['COR-03'], where: BROWSERS },
   // A kept source keeps its EXIF, GPS included.

@@ -29,6 +29,7 @@ export function renderToCanvas(image, srcWidth, srcHeight, dstWidth, dstHeight, 
     curHeight = Math.max(Math.round(curHeight / 2), dstHeight);
     const step = createCanvas(curWidth, curHeight);
     step.ctx.drawImage(src, 0, 0, curWidth, curHeight);
+    free(src);
     src = step.canvas;
   }
 
@@ -38,5 +39,12 @@ export function renderToCanvas(image, srcWidth, srcHeight, dstWidth, dstHeight, 
     ctx.fillRect(0, 0, dstWidth, dstHeight);
   }
   ctx.drawImage(src, 0, 0, dstWidth, dstHeight);
+  free(src);
   return canvas;
+
+  // A halving step's pixels are freed as soon as the next one is drawn:
+  // Safari caps canvas memory per page. The source image is never touched.
+  function free(step) {
+    if (step !== image) step.width = step.height = 0;
+  }
 }

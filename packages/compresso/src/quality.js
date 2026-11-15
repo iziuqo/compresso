@@ -38,9 +38,9 @@ export async function findQuality(encode, quality, ceiling, onStep) {
   let s1 = 0;
   let fit = null;
   for (let i = 1; i < MAX_ENCODES; i++) {
-    // `|| midpoint`: two encodes of the same size give no slope to follow.
+    // Two misses of the same size give no slope to follow: halve instead.
     // Rounded so repeated values hit a host's encode cache.
-    const guess = q1 + ((q2 - q1) * (ceiling * AIM - s1)) / (s2 - s1) || (q1 + q2) / 2;
+    const guess = s2 === s1 ? q2 / 2 : q1 + ((q2 - q1) * (ceiling * AIM - s1)) / (s2 - s1);
     const q = Math.round(Math.min(q2 - MIN_QUALITY, Math.max(MIN_QUALITY, guess)) * 1000) / 1000;
     if (q < MIN_QUALITY || q <= fit) break;
     const size = await encode(q);

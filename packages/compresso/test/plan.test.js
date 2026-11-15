@@ -112,6 +112,13 @@ describe('findQuality', () => {
     expect(await findQuality(async (q) => curves.floored(q), 0.8, 15)).toBeNull();
   });
 
+  it('halves the quality when two misses are the same size, instead of creeping down', async () => {
+    const tried = [];
+    const size = (q) => (q > 0.1 ? 500 : 50);
+    expect(await findQuality(async (q) => (tried.push(q), size(q)), 0.8, 100)).not.toBeNull();
+    expect(tried.length).toBeLessThanOrEqual(4);
+  });
+
   it('reports its progress up to 1', async () => {
     const steps = [];
     await findQuality(async () => 1000, 0.8, 10, (s) => steps.push(s));
@@ -171,10 +178,10 @@ describe('planPhoto', () => {
     expect(calls).toMatchObject({ measures: 1, writes: 0 });
   });
 
-  it('still searches when a resize was asked, since the source is not that size', async () => {
+  it('still searches when the output is resized or converted, since the source is not what was asked', async () => {
     const { host, calls } = fakeHost({ width: 1000, height: 1000, size: 300 * KB });
     const prepare = host.prepare;
-    host.prepare = async (edge) => ({ ...(await prepare(edge)), resized: true });
+    host.prepare = async (edge) => ({ ...(await prepare(edge)), transformed: true });
     const out = await planPhoto(host, recipe());
     expect(out).toMatchObject({ kept: false, missedTarget: false });
     expect(out.result.size).toBeLessThanOrEqual(300 * KB);
@@ -195,6 +202,15 @@ describe('planPhoto', () => {
     const out = await planPhoto(host, recipe({ targetBytes: 500 }));
     expect(out).toMatchObject({ kept: true, missedTarget: true });
   });
+
+  for (const targetBytes of [undefined, null, 0, -1, Number.NaN]) {
+    it(`treats targetBytes ${targetBytes} as no target`, async () => {
+      const { host, calls } = fakeHost({ width: 1000, height: 1000, size: 2 * MB });
+      const out = await planPhoto(host, recipe({ targetBytes }));
+      expect(out).toMatchObject({ kept: false, quality: 0.8, missedTarget: false });
+      expect(calls).toMatchObject({ prepares: 1, measures: 1 });
+    });
+  }
 
   it('keeps the source when a PNG would grow', async () => {
     const { host } = fakeHost({ width: 500, height: 500, size: 100 * KB });

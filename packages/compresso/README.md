@@ -214,10 +214,10 @@ const targets = allocateBudget(10_000_000, photos.map((photo) => photo.size));
 const decision = await planPhoto(
   {
     formats: ['webp', 'jpeg'], // what this host can write, best first
-    prepare: (maxLongEdge) => myDecode(photo, maxLongEdge), // → { width, height, originalSize }
+    prepare: (maxLongEdge) => myDecode(photo, maxLongEdge), // → { width, height, originalSize, transformed? }
     measure: (format, quality) => myEncodedSize(format, quality), // bytes, in memory
     write: (format, quality) => myWrite(format, quality),
-    keep: () => photo, // nothing smaller was possible
+    keep: () => photo, // no encode tried was smaller
     release: () => myFree(),
   },
   { formats: ['avif', 'webp', 'jpeg'], quality: 0.8, targetBytes: targets[0] },
@@ -225,8 +225,8 @@ const decision = await planPhoto(
 // → { result, format, quality, kept, missedTarget }
 ```
 
-When no quality meets `targetBytes`, the planner steps the long edge down by 20% and searches
-again (never below 480 px), then gives the smallest file it can make with `missedTarget: true`.
+When no quality meets `targetBytes`, the planner steps the long edge down, by 20% or by as much as
+the bytes still missing say, and searches again (never below 480 px), then gives the smallest file it can make with `missedTarget: true`.
 `findQuality` (the quality search on its own) and `resolveFormat` are exported too; see
 `types/plan.d.ts` for the full contract.
 

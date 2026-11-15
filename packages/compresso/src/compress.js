@@ -116,8 +116,10 @@ export async function compress(source, options = {}) {
   // the apps do; this canvas host draws and encodes for it.
   const originalSize = sourceSize(source);
   let canvas, width, height, encodes;
+  // Lower-cased for the planner, which tells PNG apart by name.
+  const formats = [format.toLowerCase()];
   const host = {
-    formats: [format],
+    formats,
     async prepare(maxLongEdge = Infinity) {
       ({ width, height } = calculateDimensions(
         originalWidth,
@@ -132,7 +134,8 @@ export async function compress(source, options = {}) {
         height,
         // PNG ignores quality, so only a size target caps it, not the source's size.
         originalSize: mimeType === 'image/png' ? 0 : originalSize,
-        resized: width < originalWidth || height < originalHeight,
+        // Resized or converted: the source isn't what was asked for.
+        transformed: width < originalWidth || height < originalHeight || source.type !== mimeType,
       };
     },
     async measure(_, quality) {
@@ -150,7 +153,7 @@ export async function compress(source, options = {}) {
   report(opts, 0.5, 'compressing');
   const decision = await planPhoto(
     host,
-    { formats: [format], quality: opts.quality, maxLongEdge: cap, targetBytes: opts.maxSizeMB * 1024 * 1024 },
+    { formats, quality: opts.quality, maxLongEdge: cap, targetBytes: opts.maxSizeMB * 1024 * 1024 },
     { signal: opts.signal, onProgress: (step) => report(opts, 0.5 + step * 0.4, 'compressing') }
   );
   const blob = decision.result;

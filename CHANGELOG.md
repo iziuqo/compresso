@@ -36,10 +36,16 @@ All notable changes to `compresso.js` are documented here. The format is based o
   target: a 12 MP photo meets 1, 0.5 or 0.2 MB in four encodes at most (it
   took eight or nine). When quality alone can't reach the target, the image
   steps down in size, down to a 480px long edge, instead of returning an
-  oversized file: a 48 MP photo now meets "under 0.2 MB".
+  oversized file: a 48 MP photo now meets "under 0.2 MB". This applies to PNG
+  output too, which can't lower its quality, so a PNG with `maxSizeMB` now
+  comes back smaller in size where it used to ignore the target.
 - **A source no encode can beat comes back after one encode.** With no
-  `maxSizeMB` and no resize, only the asked quality is tried; quality is no
-  longer pushed near zero for a saving under 1%.
+  `maxSizeMB`, no resize and no change of format, only the asked quality is
+  tried, and when it can't beat the source the source comes back; quality is
+  no longer pushed near zero for a saving under 1%. A conversion, such as
+  HEIC to JPEG, still searches under the source's size.
+- **`maxSizeMB: undefined`, `null`, `0`, a negative number or `NaN` means no
+  target**, as when it is left out. `undefined` used to override the default.
 
 ### Added
 - **`pool.stats()` reports `mode` and `reason`**: whether the pool runs on
@@ -52,7 +58,8 @@ All notable changes to `compresso.js` are documented here. The format is based o
 - **`compress()` and `compresso.js/plan` share one engine.** `compress()` now
   runs the same `planPhoto` planner the apps use, through a canvas host, so
   the browser and the apps decide quality, size and never-bigger alike. The
-  planner's `PhotoHost.prepare()` may report `resized`. Size budgets rise to
+  planner's `PhotoHost.prepare()` may report `transformed` (resized or in
+  another format). Size budgets rise to
   match: main entry 5 kB, pool 6.25 kB, worker 5 kB (from 4, 5.25 and 4).
 - **The HEIC decoder in `dist/heic-to.js` is built from `heic-to` 1.6.7**
   (libheif 1.23.7, up from 1.5.2 and libheif 1.22.2). Same API, same

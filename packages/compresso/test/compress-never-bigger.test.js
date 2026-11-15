@@ -1,15 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Satisfies compress()'s environment guard so the tests below reach the real
-// shrinkToFit/never-bigger logic under test.
+// planner and its never-bigger rule.
 vi.stubGlobal('Image', class {});
 
-// This suite exercises shrinkToFit's own quality-floor fallback (issue #6): when
-// no quality in the binary search — down to and including the final unconditional
-// `encode(canvas, mimeType, 0.1)` — produces a blob at or under the source's size,
-// compress() must still never hand back something bigger than the input. Mocking
-// platform.js lets encode() simulate a source that's genuinely incompressible at
-// every quality, deterministically and without a real image fixture.
+// This suite exercises the never-bigger rule (issue #6): when no quality the
+// planner tries produces a blob at or under the source's size, compress() must
+// still never hand back something bigger than the input. Mocking platform.js
+// lets encode() simulate a source that's genuinely incompressible at every
+// quality, deterministically and without a real image fixture.
 vi.mock('../src/platform.js', () => ({
   decode: vi.fn(),
   encode: vi.fn(),
@@ -31,14 +30,13 @@ beforeEach(() => {
   decode.mockResolvedValue({ image: {}, width: 10, height: 10 });
 });
 
-describe('compress() — never-bigger guarantee under shrinkToFit\'s quality-floor fallback', () => {
+describe('compress() — the never-bigger guarantee', () => {
   it('falls back to the original bytes when no quality beats an incompressible source', async () => {
     const originalSize = 1000;
     const source = blobOfSize(originalSize, 'image/jpeg');
 
-    // Every quality — including shrinkToFit's final q=0.1 floor — encodes bigger
-    // than the source. No quality level should ever let this test "accidentally"
-    // pass by finding something that fits.
+    // Every quality encodes bigger than the source. No quality level should
+    // ever let this test "accidentally" pass by finding something that fits.
     encode.mockImplementation(async () => blobOfSize(originalSize + 500, 'image/jpeg'));
 
     const result = await compress(source, { format: 'jpeg' });
@@ -78,12 +76,37 @@ describe('compress() — never-bigger guarantee under shrinkToFit\'s quality-flo
     expect(encode).toHaveBeenCalledTimes(1);
   });
 
+  it('converting to another format still searches under the source size, rather than keep the source', async () => {
+    const originalSize = 1000;
+    const source = blobOfSize(originalSize, 'image/webp');
+    encode.mockImplementation(async (_canvas, _mime, quality) =>
+      blobOfSize(quality < 0.5 ? originalSize - 200 : originalSize + 500, 'image/jpeg')
+    );
+
+    const result = await compress(source, { format: 'jpeg' });
+
+    expect(result.blob).not.toBe(source);
+    expect(result.compressedSize).toBe(originalSize - 200);
+  });
+
+  for (const maxSizeMB of [undefined, null, 0, -1, Number.NaN]) {
+    it(`treats maxSizeMB ${maxSizeMB} as no target`, async () => {
+      const source = blobOfSize(1000, 'image/jpeg');
+      encode.mockImplementation(async () => blobOfSize(800, 'image/jpeg'));
+
+      const result = await compress(source, { format: 'jpeg', maxSizeMB });
+
+      expect([result.compressedSize, result.missedTarget, result.width]).toEqual([800, false, 10]);
+      expect(encode).toHaveBeenCalledTimes(1);
+    });
+  }
+
   it('does not apply the source-bytes fallback to PNG, which is exempt from the size search', async () => {
     const originalSize = 1000;
     const source = blobOfSize(originalSize, 'image/png');
 
-    // PNG ignores quality — shrinkToFit is never invoked for it — so even an
-    // encode bigger than the source is returned as-is, by design.
+    // PNG ignores quality, so with no size target even an encode bigger
+    // than the source is returned as-is, by design.
     encode.mockImplementation(async () => blobOfSize(originalSize + 500, 'image/png'));
 
     const result = await compress(source, { format: 'png' });

@@ -14,7 +14,8 @@
  *      (`findQuality`, at most 4 encodes, measured in memory; only the winner
  *      is written). With no target and no resize, only the asked quality is
  *      worth writing: when it can't beat the source, the source comes back
- *      after that one encode.
+ *      after that one encode. A conversion to another format still searches
+ *      under the source's size, since the source isn't what was asked for.
  *   3. When no quality meets the target (a 48 MP photo into "under 200 KB"),
  *      the long edge steps down, by 20% or by as much as the smallest encode
  *      says it must, and the search runs again, rather than failing. At a
@@ -45,7 +46,8 @@ const TYPICAL_PHOTO_BYTES = 3_000_000;
 export async function planPhoto(host, recipe, { signal, onProgress } = {}) {
   const format = resolveFormat(recipe.formats, host.formats);
   const quality = Math.min(1, Math.max(0.01, recipe.quality ?? 0.8));
-  const target = recipe.targetBytes ?? Infinity;
+  // A missing, zero, negative or non-number target means no target.
+  const target = recipe.targetBytes > 0 ? recipe.targetBytes : Infinity;
   const lossy = format !== 'png';
   // The smallest encode of this attempt, [quality, bytes]: how far the size
   // must fall, and the last resort when no size meets the target.
@@ -68,16 +70,16 @@ export async function planPhoto(host, recipe, { signal, onProgress } = {}) {
   let maxLongEdge = recipe.maxLongEdge ?? undefined;
   for (let attempt = 0; ; attempt++) {
     throwIfAborted(signal);
-    const { width, height, originalSize, resized } = await host.prepare(maxLongEdge);
+    const { width, height, originalSize, transformed } = await host.prepare(maxLongEdge);
     smallest = [quality, Infinity];
     try {
       const ceiling = Math.min(target, originalSize || Infinity);
       const targetBinds = target < (originalSize || Infinity);
       // Progress assumes a photo settles by its second attempt, as most do.
       const onStep = (step) => onProgress?.(Math.min(0.95, (attempt + step) / 2));
-      // PNG ignores quality, and with no target or resize only the asked
-      // quality is worth writing (COR-05): one encode either fits or doesn't.
-      const fit = lossy && (targetBinds || resized)
+      // PNG ignores quality, and with no target, resize or conversion only
+      // the asked quality is worth writing (COR-05): one encode fits or doesn't.
+      const fit = lossy && (targetBinds || transformed)
         ? await findQuality(measure, quality, ceiling, onStep)
         : (await measure(quality)) <= ceiling ? quality : null;
       if (fit !== null) return await write(fit, false);
