@@ -114,3 +114,27 @@ describe('compress() — the never-bigger guarantee', () => {
     expect(result.compressedSize).toBe(originalSize + 500);
   });
 });
+
+describe('compress() — output inside real limits (COR-01)', () => {
+  it('scales WebP past 16,383 px to fit, and reports the size encoded', async () => {
+    decode.mockResolvedValue({ image: {}, width: 800, height: 20000 });
+    encode.mockImplementation(async () => blobOfSize(100, 'image/webp'));
+    const result = await compress(blobOfSize(1000, 'image/png'), { format: 'webp' });
+    expect([result.width, result.height]).toEqual([655, 16383]);
+  });
+
+  it('keeps every other format inside the 32,767 px edge every canvas holds', async () => {
+    decode.mockResolvedValue({ image: {}, width: 40000, height: 400 });
+    encode.mockImplementation(async () => blobOfSize(100, 'image/png'));
+    const result = await compress(blobOfSize(1000, 'image/png'), { format: 'png' });
+    expect([result.width, result.height]).toEqual([32767, 328]);
+  });
+
+  it('a kept source reports its own size, not the size it was scaled to', async () => {
+    decode.mockResolvedValue({ image: {}, width: 40000, height: 400 });
+    encode.mockImplementation(async () => blobOfSize(5000, 'image/jpeg'));
+    const result = await compress(blobOfSize(1000, 'image/jpeg'), { format: 'jpeg' });
+    expect(result.compressedSize).toBe(1000);
+    expect([result.width, result.height]).toEqual([40000, 400]);
+  });
+});

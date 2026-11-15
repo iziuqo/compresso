@@ -1,5 +1,25 @@
-import { describe, expect, it } from 'vitest';
-import { calculateDimensions } from '../src/resize.js';
+import { describe, expect, it, vi } from 'vitest';
+import { calculateDimensions, renderToCanvas } from '../src/resize.js';
+import { createCanvas } from '../src/platform.js';
+
+// A browser whose canvases past `limit` pixels draw nothing and read back
+// empty, like iOS Safari 17 past 16.7 MP (CMP-03).
+let limit = Infinity;
+vi.mock('../src/platform.js', () => ({
+  createCanvas: vi.fn((width, height) => {
+    const real = width * height <= limit;
+    const canvas = { width, height };
+    const ctx = {
+      canvas,
+      drawImage: vi.fn(),
+      fillRect: vi.fn(),
+      clearRect: vi.fn(),
+      getImageData: vi.fn(() => ({ data: real ? [255, 255, 255, 255] : [0, 0, 0, 0] })),
+    };
+    return { canvas, ctx };
+  }),
+}));
+const made = () => createCanvas.mock.results.map(({ value }) => value);
 
 describe('calculateDimensions', () => {
   it('leaves dimensions unchanged when unconstrained', () => {
@@ -32,5 +52,48 @@ describe('calculateDimensions', () => {
 
   it('handles a square image identically on both axes', () => {
     expect(calculateDimensions(500, 500, 100, Infinity)).toEqual({ width: 100, height: 100 });
+  });
+});
+
+describe('renderToCanvas: canvases the browser really accepts (CMP-03)', () => {
+  const image = {};
+
+  it('never reads back a canvas of 16.7 MP or less', () => {
+    limit = Infinity;
+    createCanvas.mockClear();
+    expect(renderToCanvas(image, 4096, 4096, 4096, 4096)).not.toBeNull();
+    expect(made()[0].ctx.getImageData).not.toHaveBeenCalled();
+  });
+
+  it('returns null for a target canvas the browser can\'t hold', () => {
+    limit = 16_777_216;
+    createCanvas.mockClear();
+    expect(renderToCanvas(image, 6000, 4000, 6000, 4000)).toBeNull();
+    expect(made()[0].canvas.width, 'freed at once').toBe(0);
+  });
+
+  it('returns null when the browser gives no context at all', () => {
+    createCanvas.mockImplementationOnce((width, height) => ({ canvas: { width, height }, ctx: null }));
+    expect(renderToCanvas(image, 100, 100, 100, 100)).toBeNull();
+  });
+
+  it('returns null when reading the canvas back throws', () => {
+    createCanvas.mockImplementationOnce((width, height) => ({
+      canvas: { width, height },
+      ctx: { fillRect: vi.fn(), clearRect: vi.fn(), getImageData: () => { throw new Error('no backing store'); } },
+    }));
+    expect(renderToCanvas(image, 6000, 4000, 6000, 4000)).toBeNull();
+  });
+
+  it('skips a halving step the browser refuses and draws the rest in one go', () => {
+    limit = 16_777_216;
+    createCanvas.mockClear();
+    // 16000 × 9000 to 2000 × 1125: the first halving step is 8000 × 4500, 36 MP.
+    const canvas = renderToCanvas(image, 16000, 9000, 2000, 1125);
+    expect(canvas).toMatchObject({ width: 2000, height: 1125 });
+    const [step, target] = made();
+    expect(step.canvas.width, 'the refused step is freed').toBe(0);
+    expect(step.ctx.drawImage).not.toHaveBeenCalled();
+    expect(target.ctx.drawImage).toHaveBeenCalledWith(image, 0, 0, 2000, 1125);
   });
 });

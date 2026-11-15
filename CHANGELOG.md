@@ -7,6 +7,17 @@ All notable changes to `compresso.js` are documented here. The format is based o
 ## [Unreleased]
 
 ### Fixed
+- **Output stays inside what the format and the browser can really hold.**
+  WebP stores at most 16,383px per edge: past it Chromium cut the image while
+  reporting the full size, and Firefox and Safari refused the encode. Output
+  past a format's edge limit is now scaled to fit, and every format stays
+  within 32,767px per edge, the most every engine's canvas holds (Firefox's
+  limit). And past its canvas limit,
+  iOS Safari 17 gives a canvas that draws nothing and encodes to nothing (24 MP
+  on an iPhone 15), so a canvas over 16.7 MP is checked with one pixel and,
+  when the browser didn't really give it, the size steps down until it does.
+  `width` and `height` report the size really encoded, and a source that comes
+  back untouched reports its own size, not the size it was scaled to.
 - **A long pool job that keeps working is no longer timed out.** `timeoutMs`
   is now the longest a job may go without reporting progress, not the longest
   it may run: the clock restarts on every progress message, and it scales with

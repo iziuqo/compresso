@@ -69,9 +69,13 @@ export interface CompressResult {
   blob: Blob;
   /** Object URL for preview (revoke with URL.revokeObjectURL when done) */
   url: string;
-  /** Output width in pixels */
+  /**
+   * Output width in pixels, as encoded. Output stays inside the format's edge
+   * limit (WebP: 16,383) and the canvas the browser really gives, so it can
+   * be smaller than asked.
+   */
   width: number;
-  /** Output height in pixels */
+  /** Output height in pixels, as encoded (see `width`). */
   height: number;
   /** Original width in pixels */
   originalWidth: number;
