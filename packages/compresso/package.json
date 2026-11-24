@@ -93,7 +93,7 @@
   "devDependencies": {
     "@rollup/plugin-terser": "^1.0.2",
     "@size-limit/file": "^14.3.0",
-    "@vitest/browser": "^5.1.0",
+    "@vitest/browser": "^5.1.1",
     "@vitest/browser-playwright": "^5.1.0",
     "@vitest/coverage-v8": "^5.1.0",
     "playwright": "^1.65.1",
